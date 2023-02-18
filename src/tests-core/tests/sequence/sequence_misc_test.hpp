@@ -147,6 +147,8 @@ public:
             SymbolT sym1 = get_symbol(size_index, syms, pos);
             SymbolT sym2 = seq->seek_entry(pos)->current_symbol();
 
+            yield();
+
             try {
                 assert_equals(sym1, sym2);
             }

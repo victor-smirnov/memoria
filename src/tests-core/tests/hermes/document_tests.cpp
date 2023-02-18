@@ -28,7 +28,6 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
         doc.root().as_bigint();
     });
 
-
     doc.set_dataobject<Varchar>("Hello world");
     assert_equals(true, doc.root().is_varchar());
     assert_equals("Hello world", doc.root().as_varchar());

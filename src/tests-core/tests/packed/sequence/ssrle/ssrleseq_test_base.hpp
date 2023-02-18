@@ -22,8 +22,6 @@
 #include <memoria/core/packed/sseq/packed_ssrle_seq.hpp>
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
-#include <memoria/reactor/reactor.hpp>
-
 #include <memory>
 #include <array>
 
@@ -88,6 +86,8 @@ public:
             for (size_t s = 0; s < run.pattern_length(); s++) {
                 run.set_pattern_symbol(s, test_base_->getRandom(AlphabetSize));
             }
+
+            yield();
 
             symbols.push_back(run);
         }
@@ -178,6 +178,8 @@ public:
                     ei.next_len(run_len);
                     ai.next_len(run_len);
 
+                    yield();
+
                     continue;
                 }
             }
@@ -256,6 +258,8 @@ public:
 
             RunSizeT local_size = runs[c].full_run_length();
             offset += SeqSizeT{local_size};
+
+            yield();
         }
 
         return blocks;
@@ -352,6 +356,8 @@ public:
             runs[c].full_ranks(Span<SeqSizeT>(total_ranks.data(), total_ranks.size()));
 
             offset += local_size;
+
+            yield();
         }
 
         return blocks;

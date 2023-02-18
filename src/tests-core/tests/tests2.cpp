@@ -1,5 +1,5 @@
  
-// Copyright 2018 Victor Smirnov
+// Copyright 2018-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #include <memoria/memoria.hpp>
-
-#include <memoria/reactor/application.hpp>
-
+#include <memoria/tests/tests.hpp>
 #include <memoria/tests/runner.hpp>
-#include <memoria/tests/arg_helper.hpp>
 
+#ifdef IOCB_FLAG_RESFD
+#undef IOCB_FLAG_RESFD
+#endif
 
+#include <seastar/core/app-template.hh>
+#include <seastar/core/thread.hh>
+#include <seastar/core/reactor.hh>
 
 using namespace memoria;
 using namespace memoria::reactor;
+
+using namespace seastar;
 
 namespace po = boost::program_options;
 
@@ -32,10 +38,17 @@ int main(int argc, char** argv, char** envp)
     //InitMemoriaCoreExplicit();
     InitMemoriaExplicit();
 
-    tests::ThreadsArgHelper helper(argv);
-    po::options_description options;
+    seastar::app_template::seastar_options opts;
 
-    options.add_options()
+    opts.smp_opts.memory_allocator = seastar::memory_allocator::standard;
+    opts.smp_opts.smp.set_value(1);
+
+    opts.smp_opts.thread_affinity.set_value(false);
+
+    seastar::app_template app(std::move(opts));
+    tests::set_current_app(&app);
+
+    app.add_options()
         ("runs", "Number of runs for entire test suites set")
         ("test", po::value<std::string>(), "Specific test name to run")
         ("replay", "Run the test in replay mode, implies --test is specified")
@@ -52,80 +65,80 @@ int main(int argc, char** argv, char** envp)
         )
         ;
 
-    return Application::run_e(options, helper.argc(), helper.args(), envp, [&]{
-        ShutdownOnScopeExit hh;
+    return app.run(argc, argv, [&] {
+        thread_attributes ta;
+        ta.stack_size = 1024*1024;
 
-        std::string coverage = app().options()["coverage"].as<std::string>();
-        if (!tests::coverage_from_string(coverage))
-        {
-            engine().println("Invalid test coverage type: {}", coverage);
-            return 1;
-        }
+        return seastar::async(ta, [&]() -> int {
+            std::cout << "Hello world\n";
 
-        if (app().options().count("print") > 0)
-        {
-            tests::tests_registry().print();
-            return 0;
-        }
+            auto& config = app.configuration();
 
-        if (app().options().count("test") > 0)
-        {
-            U8String test_name = U8String(app().options()["test"].as<std::string>());
+            std::string coverage = config["coverage"].as<std::string>();
+            if (!tests::coverage_from_string(coverage))
+            {
+                println("Invalid test coverage type: {}", coverage);
+                return 1;
+            }
 
-            bool replay = app().options().count("replay") > 0;
+            if (config.count("test") > 0)
+            {
+                U8String test_name = U8String(config["test"].as<std::string>());
 
-            if (replay) {
-                return (tests::replay_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+                bool replay = config.count("replay") > 0;
+
+                if (replay) {
+                    return (tests::replay_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+                }
+                else {
+                    return (tests::run_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+                }
+            }
+            else if (config.count("server"))
+            {
+                if (config.count("port") == 0) {
+                    println("Server --port number must be specified");
+                    return 1;
+                }
+
+                if (config.count("worker-num") == 0) {
+                    println("Worker's number must be specified (--worker-num)");
+                    return 1;
+                }
+
+                if (config.count("output") == 0) {
+                    println("Worker's output folder must be specified (--output)");
+                    return 1;
+                }
+
+                U8String address = config["server"].as<std::string>();
+                uint16_t port = config["port"].as<uint16_t>();
+                size_t worker_num = config["worker-num"].as<size_t>();
+
+                println("Starting worker {}, server {}, port {}", worker_num, address, port);
+
+                boost::filesystem::path output_folder(config["output"].as<std::string>());
+
+                tests::Worker worker(seastar::ipv4_addr(address, port), worker_num, output_folder);
+                worker.run();
+                return 0;
             }
             else {
-                return (tests::run_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
-            }
-        }
-        else if (app().options().count("server"))
-        {
-            if (app().options().count("port") == 0) {
-                engine().println("Server --port number must be specified");
-                return 1;
-            }
+                size_t workers = std::thread::hardware_concurrency();
 
-            if (app().options().count("worker-num") == 0) {
-                engine().println("Worker's number must be specified (--worker-num)");
-                return 1;
-            }
+                if (workers == 0) {
+                    workers = 1;
+                }
 
-            if (app().options().count("output") == 0) {
-                engine().println("Worker's output folder must be specified (--output)");
-                return 1;
+                if (config.count("workers") != 0) {
+                    workers = config["workers"].as<size_t>();
+                }
+
+                tests::run_tests2(workers);
+                println("Done...");
             }
 
-            IPAddress address = parse_ipv4(app().options()["server"].as<std::string>());
-            uint16_t port = app().options()["port"].as<uint16_t>();
-            size_t worker_num = app().options()["worker-num"].as<size_t>();
-
-            println("Starting worker {}, server {}, port {}", worker_num, address.to_string(), port);
-
-            filesystem::path output_folder(app().options()["output"].as<std::string>());
-
-            tests::Worker worker(address, port, worker_num, output_folder);
-            worker.run();
             return 0;
-        }
-        else {
-            size_t workers = std::thread::hardware_concurrency();
-
-            if (workers == 0) {
-                workers = 1;
-            }
-
-            if (app().options().count("workers") != 0) {
-                workers = app().options()["workers"].as<size_t>();
-            }
-
-            tests::run_tests2(workers);
-
-            engine().println("Done...");
-        }
-
-        return 0;
+        });
     });
 }

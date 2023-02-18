@@ -21,7 +21,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/strings/u8_string.hpp>
-#include <memoria/core/tools/type_name.hpp>
+//#include <memoria/core/tools/type_name.hpp>
 
 #include <boost/variant2/variant.hpp>
 
@@ -746,7 +746,7 @@ namespace detail {
                 out << "<Void>";
             }
             else {
-                out << "Unprintable: " << TypeNameFactory<T>::name();
+                out << "Unprintable: " << typeid(T).name();
             }
         }
         else {

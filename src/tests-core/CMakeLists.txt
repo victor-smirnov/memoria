@@ -18,7 +18,8 @@ include_directories(include)
 file(GLOB TOOLS_LIB_SRC lib/*.cpp)
 
 add_library(MemoriaTests2 STATIC ${TOOLS_LIB_SRC})
-SET_TARGET_PROPERTIES(MemoriaTests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+SET_TARGET_PROPERTIES(MemoriaTests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6")
+set_property(TARGET MemoriaTests2 MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
 target_link_libraries(MemoriaTests2 MemoriaStoresReactor MemoriaCtrsReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS})
 

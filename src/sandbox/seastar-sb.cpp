@@ -18,10 +18,17 @@
 #include <seastar/core/reactor.hh>
 #include <iostream>
 
-int main(int argc, char** argv) {
-    seastar::app_template app;
+int main(int argc, char** argv)
+{
+    seastar::app_template::seastar_options opts;
+    opts.smp_opts.smp.set_value(1);
+
+
+
+    seastar::app_template app(std::move(opts));
     app.run(argc, argv, [] {
             std::cout << "Hello world\n";
+
             return seastar::make_ready_future<>();
     });
 }

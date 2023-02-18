@@ -18,7 +18,7 @@
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/arg_helper.hpp>
 
-#include <memoria/reactor/reactor.hpp>
+#include <seastar/core/thread.hh>
 
 namespace memoria {
 namespace tests {
@@ -109,7 +109,7 @@ void TestsRegistry::print() const
     {
         for (auto& test: suite.second->tests())
         {
-            reactor::engine().coutln("{}/{}", suite.first, test.first);
+            println("{}/{}", suite.first, test.first);
         }
     }
 }
@@ -171,5 +171,8 @@ void ThreadsArgHelper::fix_thread_arg()
     }
 }
 
+void yield() {
+    seastar::thread::yield();
+}
 
 }}

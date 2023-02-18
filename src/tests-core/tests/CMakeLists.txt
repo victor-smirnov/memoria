@@ -1,12 +1,14 @@
+find_package(yaml-cpp)
+
 set (SRCS )
 
-if(BUILD_TESTS_REACTOR)
-    set (SRCS ${SRCS} reactor/file_stream_test.cpp)
-    set (SRCS ${SRCS} reactor/pipe_test.cpp)
-    set (SRCS ${SRCS} reactor/socket_test.cpp)
-    set (SRCS ${SRCS} reactor/file_block_test.cpp)
-    set (SRCS ${SRCS} reactor/file_unbuffered_block_test.cpp)
-endif()
+#if(BUILD_TESTS_REACTOR)
+#    set (SRCS ${SRCS} reactor/file_stream_test.cpp)
+#    set (SRCS ${SRCS} reactor/pipe_test.cpp)
+#    set (SRCS ${SRCS} reactor/socket_test.cpp)
+#    set (SRCS ${SRCS} reactor/file_block_test.cpp)
+#    set (SRCS ${SRCS} reactor/file_unbuffered_block_test.cpp)
+#endif()
 
 if(BUILD_TESTS_SDN OR BUILD_TESTS_HERMES)
     set (SRCS ${SRCS} hermes/document_tests.cpp)
@@ -39,13 +41,10 @@ if(BUILD_TESTS_STORES)
     set (SRCS ${SRCS} store/swmr_store_test_suite.cpp)
 endif()
 
-
 add_executable(tests2 tests2.cpp ${SRCS})
-
-set_target_properties(tests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+set_target_properties(tests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6")
 set_target_properties(tests2 PROPERTIES LINK_FLAGS    "${MEMORIA_LINK_FLAGS}")
-
-target_link_libraries(tests2 MemoriaStoresReactor MemoriaCtrsReactor MemoriaCoreReactor MemoriaInitReactor MemoriaTests2 yaml-cpp)
-
+target_link_libraries(tests2 MemoriaStoresReactor MemoriaCtrsReactor MemoriaCoreReactor MemoriaInitReactor MemoriaTests2 Seastar::seastar yaml-cpp::yaml-cpp)
 target_link_libraries(tests2 ${MEMORIA_LIBS})
+
 

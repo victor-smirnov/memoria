@@ -21,8 +21,6 @@
 #include <memoria/core/tools/uid_256.hpp>
 #include <memoria/core/tools/uid_64.hpp>
 
-#include <memoria/filesystem/path.hpp>
-
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/tests/tests.hpp>
@@ -37,17 +35,17 @@ template <typename T> struct IndirectStateFiledSerializer;
 
 template <typename T>
 struct IndirectStateFiledSerializer<AllocSharedPtr<IMemoryStore<T>>> {
-    static void externalize(IMemoryStorePtr<T>& alloc, filesystem::path path, ConfigurationContext* context)
+    static void externalize(IMemoryStorePtr<T>& alloc, fs::path path, ConfigurationContext* context)
     {
-        auto path_str = path.to_u8();
+        U8String path_str = path.string();
         path_str += ".mma1";
 
         //alloc->store(path_str);
     }
 
-    static void internalize(IMemoryStorePtr<T>& alloc, filesystem::path path, ConfigurationContext* context)
+    static void internalize(IMemoryStorePtr<T>& alloc, fs::path path, ConfigurationContext* context)
     {
-        auto path_str = path.to_u8();
+        U8String path_str = path.string();
         path_str += ".mma1";
         alloc = load_memory_store(path_str);
     }

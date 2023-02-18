@@ -15,12 +15,7 @@
 
 #pragma once
 
-#include <memoria/filesystem/path.hpp>
-
 #include <memoria/core/tools/boost_serialization.hpp>
-#include <memoria/reactor/reactor.hpp>
-#include <memoria/reactor/file_streams.hpp>
-
 
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
@@ -33,46 +28,47 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-
+#include <boost/filesystem.hpp>
 
 #include <fstream>
 
 namespace memoria {
 namespace tests {
 
+namespace fs = boost::filesystem;
+
 struct ConfigurationContext {
     virtual ~ConfigurationContext() noexcept {}
-    virtual filesystem::path resource_path(const std::string& name) = 0;
+    virtual fs::path resource_path(const std::string& name) = 0;
 };
 
 
 template <typename T>
 struct IndirectStateFiledSerializer {
 
-    static void externalize(const T& field, filesystem::path path, ConfigurationContext* context)
+    static void externalize(const T& field, fs::path path, ConfigurationContext* context)
     {
-        auto file = reactor::open_buffered_file(path, reactor::FileFlags::RDWR | reactor::FileFlags::TRUNCATE | reactor::FileFlags::CREATE, reactor::FileMode::IDEFLT);
-        reactor::FileOutputStream<> fos { file };
+        std::fstream fos;
+        fos.open(path.string(), fos.out | fos.trunc);
 
         boost::archive::text_oarchive ar(fos);
 
         ar << field;
 
         fos.flush();
-
-        file.close();
+        fos.close();
     }
 
-    static void internalize(T& field, filesystem::path path, ConfigurationContext* context)
+    static void internalize(T& field, fs::path path, ConfigurationContext* context)
     {
-        auto file = reactor::open_buffered_file(path, reactor::FileFlags::RDONLY , reactor::FileMode::IDEFLT);
-        reactor::FileInputStream<> fis { file };
+        std::fstream fis;
+        fis.open(path.string(), fis.in);
 
         boost::archive::text_iarchive ar(fis);
 
         ar >> field;
 
-        file.close();
+        fis.close();
     }
 };
 

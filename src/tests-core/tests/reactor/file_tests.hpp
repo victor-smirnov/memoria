@@ -24,6 +24,7 @@
 #include <memoria/core/tools/random.hpp>
 
 #include <algorithm>
+#include <random>
 
 namespace memoria {
 namespace tests {

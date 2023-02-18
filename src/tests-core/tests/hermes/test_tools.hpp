@@ -18,8 +18,6 @@
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/assertions.hpp>
 
-#include <memoria/reactor/reactor.hpp>
-
 #include <memoria/core/hermes/hermes.hpp>
 
 #include <unordered_map>

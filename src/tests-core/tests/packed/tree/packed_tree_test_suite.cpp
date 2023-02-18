@@ -15,9 +15,6 @@
 
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/assertions.hpp>
-
-#include <memoria/reactor/reactor.hpp>
-
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/random.hpp>
 

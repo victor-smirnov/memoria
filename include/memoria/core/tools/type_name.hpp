@@ -22,7 +22,7 @@
 #include <memoria/core/memory/malloc.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
-
+#include <memoria/core/tools/result.hpp>
 
 #include <string>
 #include <sstream>
@@ -95,7 +95,7 @@ static inline U8String demangle(const char* name)
         return U8String(std::string(buf.get()));
     }
     else {
-        MMA_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", name);
+        MEMORIA_MAKE_GENERIC_ERROR("Demaingling failed for type {}", name).do_throw();
     }
 }
 

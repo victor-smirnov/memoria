@@ -19,13 +19,14 @@
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/strings/format.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/filesystem/path.hpp>
 #include <memoria/core/memory/malloc.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/tools/optional.hpp>
 
 #include <memoria/tests/state.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include <yaml-cpp/yaml.h>
 
@@ -49,7 +50,7 @@ enum class TestStatus {PASSED, TEST_FAILED, SETUP_FAILED};
 struct TestConfigurator {
     virtual ~TestConfigurator() noexcept {}
     virtual YAML::Node& configuration() = 0;
-    virtual filesystem::path config_base_path() const = 0;
+    virtual fs::path config_base_path() const = 0;
 };
 
 struct TestContext {
@@ -59,7 +60,7 @@ struct TestContext {
 
     virtual TestConfigurator* configurator() noexcept  = 0;
     virtual std::ostream& out() noexcept               = 0;
-    virtual filesystem::path data_directory() noexcept = 0;
+    virtual fs::path data_directory() noexcept = 0;
 
     virtual void passed() noexcept                     = 0;
     virtual void failed(TestStatus detail, std::exception_ptr ex, TestState* state) noexcept  = 0;
@@ -350,5 +351,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small_, T&
         return xlarge;
     }
 }
+
+void yield();
 
 }}

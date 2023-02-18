@@ -36,13 +36,13 @@ template <typename... Args>
 U8String format_u8(const char16_t* fmt_str, Args&&... args)
 {
     U16String fmt16(fmt_str);
-    return ::fmt::format(fmt16.to_u8().to_std_string(), std::forward<Args>(args)...);
+    return ::fmt::format(fmt::runtime(fmt16.to_u8().to_std_string()), std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 U8String format_u8(const char* fmt_str, Args&&... args)
 {
-    return ::fmt::format(fmt_str, std::forward<Args>(args)...);
+    return ::fmt::format(fmt::runtime(fmt_str), std::forward<Args>(args)...);
 }
 
 template <typename... Args>

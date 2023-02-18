@@ -16,8 +16,6 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/filesystem/path.hpp>
-
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/random.hpp>
 
@@ -27,6 +25,8 @@
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/variadic/to_list.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include <yaml-cpp/yaml.h>
 
 #include <string>
@@ -35,7 +35,7 @@
 namespace memoria {
 namespace tests {
 
-
+namespace fs = boost::filesystem;
 
 template <typename T> struct IndirectStateFiledSerializer;
 
@@ -88,7 +88,7 @@ public:
         if (node[name_])
         {
             auto file_name = node[name_].template as<std::string>();
-            filesystem::path file_path = file_name;
+            fs::path file_path = file_name;
 
             if (file_path.is_relative())
             {
@@ -111,13 +111,15 @@ class TestState {
     bool replay_;
     int64_t seed_;
 public:
-    filesystem::path working_directory_;
+    fs::path working_directory_;
 
     TestState() = default;
     TestState(TestState&&) = default;
     TestState(const TestState&) = delete;
 
     virtual ~TestState() noexcept;
+
+    void yield();
 
     virtual void add_field_handlers() {
         add_field_handler("seed", seed_);
@@ -212,17 +214,17 @@ public:
 
 class CommonConfigurationContext: public ConfigurationContext {
 
-    filesystem::path config_base_path_;
+    fs::path config_base_path_;
 
 public:
-    CommonConfigurationContext(filesystem::path config_base_path):
+    CommonConfigurationContext(fs::path config_base_path):
         config_base_path_(config_base_path)
     {}
 
-    virtual filesystem::path resource_path(const std::string& name)
+    virtual fs::path resource_path(const std::string& name)
     {
-        filesystem::path pp = config_base_path_;
-        return pp.append(name.data());
+        fs::path pp = config_base_path_;
+        return pp.append(name);
     }
 };
 

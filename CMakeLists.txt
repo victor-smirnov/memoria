@@ -28,7 +28,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Memoria.cmake)
 
 set (MEMORIA_API_CXX_STANDARD 17)
-set (MEMORIA_INTERNAL_CXX_STANDARD 17)
+set (MEMORIA_INTERNAL_CXX_STANDARD 20)
 
 set(CMAKE_CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 
@@ -198,7 +198,7 @@ endif()
 include_directories(${Boost_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})
-link_libraries(Boost::program_options Boost::serialization)
+link_libraries(Boost::program_options Boost::serialization Boost::filesystem)
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
@@ -207,7 +207,7 @@ find_package(absl CONFIG REQUIRED)
 link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 
 find_package(fmt CONFIG REQUIRED)
-link_libraries(fmt::fmt fmt::fmt-header-only)
+link_libraries(fmt::fmt)
 
 find_package(unofficial-hash-library CONFIG REQUIRED)
 

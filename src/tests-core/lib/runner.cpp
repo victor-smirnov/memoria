@@ -14,11 +14,6 @@
 // limitations under the License.
 
 #include <memoria/tests/runner.hpp>
-#include <memoria/reactor/process.hpp>
-#include <memoria/reactor/pipe_streams_reader.hpp>
-#include <memoria/reactor/application.hpp>
-#include <memoria/reactor/file_streams.hpp>
-#include <memoria/filesystem/operations.hpp>
 
 #include <memoria/core/tools/random.hpp>
 #include <memoria/core/tools/time.hpp>
@@ -28,15 +23,19 @@
 
 #include <memoria/core/hermes/hermes.hpp>
 
+
 #include <yaml-cpp/yaml.h>
 #include <sstream>
 #include <thread>
+#include <functional>
 
 namespace memoria {
 namespace tests {
 
-using filesystem::path;
-using namespace reactor;
+namespace bp = boost::process;
+namespace ss = seastar;
+
+using fs::path;
 
 void dump_exception(std::ostream& out, std::exception_ptr& ex)
 {
@@ -64,18 +63,19 @@ void dump_exception(std::ostream& out, std::exception_ptr& ex)
 
 namespace {
 
-filesystem::path get_tests_config_path()
+fs::path get_tests_config_path()
 {
-    auto& app = reactor::app();
+    auto& app = get_current_app();
+    auto& config = app.configuration();
 
-    filesystem::path config_path;
+    fs::path config_path;
 
-    if (app.options().count("config") > 0)
+    if (config.count("config") > 0)
     {
-        config_path = app.options()["config"].as<std::string>();
+        config_path = config["config"].as<std::string>();
     }
     else {
-        auto program_path = reactor::get_program_path();
+        fs::path program_path = get_program_path();
         config_path = program_path.parent_path();
         config_path.append(get_image_name().string() + ".yaml");
     }
@@ -84,15 +84,16 @@ filesystem::path get_tests_config_path()
 }
 
 
-filesystem::path get_tests_output_path()
+fs::path get_tests_output_path()
 {
-    auto& app = reactor::app();
+    auto& app = get_current_app();
+    auto& config = app.configuration();
 
-    filesystem::path output_path;
+    fs::path output_path;
 
-    if (app.options().count("output") > 0)
+    if (config.count("output") > 0)
     {
-        output_path = app.options()["output"].as<std::string>();
+        output_path = config["output"].as<std::string>();
     }
     else {
         auto image_name = get_image_name();
@@ -104,8 +105,11 @@ filesystem::path get_tests_output_path()
 
 U8String get_test_coverage_str()
 {
-    if (app().options().count("coverage") > 0) {
-        return U8String(app().options()["coverage"].as<std::string>());
+    auto& app = get_current_app();
+    auto& config = app.configuration();
+
+    if (config.count("coverage") > 0) {
+        return U8String(config["coverage"].as<std::string>());
     }
     else {
         return "small";
@@ -114,7 +118,10 @@ U8String get_test_coverage_str()
 
 Optional<TestCoverage> get_test_coverage()
 {
-    if (app().options().count("coverage") > 0) {
+    auto& app = get_current_app();
+    auto& config = app.configuration();
+
+    if (config.count("coverage") > 0) {
         return coverage_from_string(get_test_coverage_str().to_u8());
     }
     else {
@@ -131,8 +138,8 @@ TestStatus run_single_test(const U8String& test_path)
     auto test = tests_registry().find_test(test_path);
     if (test)
     {
-        filesystem::path output_dir_base = get_tests_output_path();
-        filesystem::path config_path     = get_tests_config_path();
+        fs::path output_dir_base = get_tests_output_path();
+        fs::path config_path     = get_tests_config_path();
 
         U8String suite_name;
         U8String test_name;
@@ -143,10 +150,9 @@ TestStatus run_single_test(const U8String& test_path)
 
         int64_t seed = getTimeInMillis();
 
-        if (filesystem::is_regular_file(config_path))
+        if (fs::is_regular_file(config_path))
         {
-            FileInputStream<char> fi_stream(open_buffered_file(config_path, FileFlags::RDONLY));
-            YAML::Node config = YAML::Load(fi_stream);
+            YAML::Node config = YAML::Load(config_path.string());
 
             if (config["seed"])
             {
@@ -160,23 +166,23 @@ TestStatus run_single_test(const U8String& test_path)
             }
         }
 
-        reactor::engine().coutln("seed = {}", seed);
+        println("seed = {}", seed);
 
         Seed(seed);
         SeedBI(seed);
 
-        filesystem::path test_output_dir = output_dir_base;
+        fs::path test_output_dir = output_dir_base;
         test_output_dir.append(suite_name.to_u8().to_std_string());
         test_output_dir.append(test_name.to_u8().to_std_string());
 
-		filesystem::create_directories(test_output_dir);
+        fs::create_directories(test_output_dir);
 
         Optional<TestCoverage> coverage = get_test_coverage();
 
         DefaultTestContext ctx(
             test_config,
             config_path.parent_path(),
-            filesystem::absolute(test_output_dir),
+            fs::absolute(test_output_dir),
             coverage.get(),
             false,
             seed
@@ -188,10 +194,10 @@ TestStatus run_single_test(const U8String& test_path)
 
         if (ctx.status() == TestStatus::PASSED)
         {
-            reactor::engine().coutln("PASSED in {}s", FormatTime(end_time - start_time));
+            println("PASSED in {}s", FormatTime(end_time - start_time));
         }
         else {
-            reactor::engine().coutln("FAILED in {}s", FormatTime(end_time - start_time));
+            println("FAILED in {}s", FormatTime(end_time - start_time));
             if (ctx.ex())
             {
                 dump_exception(ctx.out(), ctx.ex());
@@ -211,28 +217,27 @@ TestStatus replay_single_test(const U8String& test_path)
     auto test = tests_registry().find_test(test_path);
     if (test)
     {
-        filesystem::path output_dir_base = get_tests_output_path();
+        fs::path output_dir_base = get_tests_output_path();
 
         U8String suite_name;
         U8String test_name;
 
         std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
 
-        filesystem::path test_output_dir = output_dir_base;
+        fs::path test_output_dir = output_dir_base;
         test_output_dir.append(suite_name.to_u8().to_std_string());
         test_output_dir.append(test_name.to_u8().to_std_string());
 
-        filesystem::path config_path = test_output_dir;
+        fs::path config_path = test_output_dir;
         config_path.append("config.yaml");
 
         YAML::Node config;
 
         int64_t seed = getTimeInMillis();
 
-        if (filesystem::is_regular_file(config_path))
+        if (fs::is_regular_file(config_path))
         {
-            reactor::FileInputStream<char> fi_config(open_buffered_file(config_path, FileFlags::RDONLY));
-            config = YAML::Load(fi_config);
+            config = YAML::Load(config_path.string());
 
             if (config["seed"])
             {
@@ -240,7 +245,7 @@ TestStatus replay_single_test(const U8String& test_path)
             }
         }
 
-        reactor::engine().coutln("seed = {}", seed);
+        println("seed = {}", seed);
         Seed(static_cast<int32_t>(seed));
         SeedBI(seed);
 
@@ -249,7 +254,7 @@ TestStatus replay_single_test(const U8String& test_path)
         DefaultTestContext ctx(
             config,
             config_path.parent_path(),
-            filesystem::absolute(test_output_dir),
+            fs::absolute(test_output_dir),
             coverage.get(),
             true,
             seed
@@ -261,10 +266,10 @@ TestStatus replay_single_test(const U8String& test_path)
 
         if (ctx.status() == TestStatus::PASSED)
         {
-            reactor::engine().coutln("PASSED in {}s", FormatTime(end_time - start_time));
+            println("PASSED in {}s", FormatTime(end_time - start_time));
         }
         else {
-            reactor::engine().coutln("FAILED in {}s", FormatTime(end_time - start_time));
+            println("FAILED in {}s", FormatTime(end_time - start_time));
             if (ctx.ex())
             {
                 dump_exception(ctx.out(), ctx.ex());
@@ -344,22 +349,20 @@ bool is_test_enabled(EnablementType global, EnablementType suite, EnablementType
     }
 }
 
-
 }
 
+/*
 void run_tests()
 {
-    filesystem::path output_dir_base = get_tests_output_path();
+    fs::path output_dir_base = get_tests_output_path();
 
-    filesystem::path config_path    = get_tests_config_path();
+    fs::path config_path    = get_tests_config_path();
     U8String config_file           = U8String(config_path.string());
 
     YAML::Node tests_config;
 
-    if (filesystem::is_regular_file(config_path))
-    {
-        reactor::FileInputStream<char> config(open_buffered_file(config_path, FileFlags::RDONLY));
-        tests_config = YAML::Load(config);
+    if (fs::is_regular_file(config_path)) {
+        tests_config = YAML::Load(config_path.string());
     }
 
     auto global_enabled = is_enabled(tests_config);
@@ -385,17 +388,16 @@ void run_tests()
             {
                 tests_run++;
 
-                filesystem::path test_output_dir = output_dir_base;
+                fs::path test_output_dir = output_dir_base;
                 test_output_dir.append(suite.first.to_u8().to_std_string());
                 test_output_dir.append(test.first.to_u8().to_std_string());
 
-                filesystem::create_directories(test_output_dir);
+                fs::create_directories(test_output_dir);
 
                 U8String test_path = suite.first + "/" + test.first;
 
-                std::vector<U8String> args;
+                std::vector<std::string> args;
 
-                args.emplace_back("tests2");
                 args.emplace_back("--test");
                 args.emplace_back(test_path);
 
@@ -421,34 +423,18 @@ void run_tests()
                 args.emplace_back("--coverage");
                 args.emplace_back(get_test_coverage_str());
 
-                reactor::Process process = reactor::ProcessBuilder::create(reactor::get_program_path())
-                        .with_args(args)
-                        .run();
-
-                filesystem::path std_output = test_output_dir;
+                fs::path std_output = test_output_dir;
                 std_output.append("stdout.txt");
-                File out_file = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
 
-                filesystem::path std_error = test_output_dir;
+                fs::path std_error = test_output_dir;
                 std_error.append("stderr.txt");
-                File err_file = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
 
-                reactor::InputStreamReaderWriter out_reader(process.out_stream(), out_file.ostream());
-                reactor::InputStreamReaderWriter err_reader(process.err_stream(), err_file.ostream());
+                Process process(get_program_path().string(), args, std_output.string(), std_error.string());
+                Status status = process.join();
 
-                process.join();
-
-                out_reader.join();
-                err_reader.join();
-
-                out_file.close();
-                err_file.close();
-
-                auto status = process.status();
-
-                if (!(status == reactor::Process::Status::EXITED && process.exit_code() == 0))
+                if (!(status == Status::EXITED && process.exit_code() == 0))
                 {
-                    if (status == reactor::Process::Status::CRASHED)
+                    if (status == Status::CRASHED)
                     {
                         crashed.push_back(test.first);
                     }
@@ -466,21 +452,23 @@ void run_tests()
         {
             if (failed.size() == 0 && crashed.size() == 0)
             {
-                reactor::engine().coutln("{}: PASSED ({})", suite.first, passed);
+                println("{}: PASSED ({})", suite.first, passed);
             }
             else if (failed.size() > 0 && crashed.size() > 0)
             {
-                reactor::engine().coutln("{}: PASSED ({}); FAILED {}; CRASHED {}", suite.first, passed, to_string(failed), to_string(crashed));
+                println("{}: PASSED ({}); FAILED {}; CRASHED {}", suite.first, passed, to_string(failed), to_string(crashed));
             }
             else if (failed.size() > 0) {
-                reactor::engine().coutln("{}: PASSED ({}); FAILED {}", suite.first, passed, to_string(failed));
+                println("{}: PASSED ({}); FAILED {}", suite.first, passed, to_string(failed));
             }
             else {
-                reactor::engine().coutln("{}: PASSED ({}); CRASHED {}", suite.first, passed, to_string(crashed));
+                println("{}: PASSED ({}); CRASHED {}", suite.first, passed, to_string(crashed));
             }
         }
     }
 }
+
+*/
 
 void Test::run(TestContext *context) noexcept
 {
@@ -539,7 +527,7 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
         state->on_test_failure();
 
         try {
-            filesystem::path config_path = this->data_directory();
+            fs::path config_path = this->data_directory();
             config_path.append("config.yaml");
 
             CommonConfigurationContext configuration_context(data_directory());
@@ -547,13 +535,15 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
 
             state->externalize(config, &configuration_context);
 
-            FileOutputStream<char> stream(open_buffered_file(config_path, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE));
-            YAML::Emitter emitter(stream);
+            std::fstream s;
+            s.open(config_path.string(), s.binary | s.trunc | s.in | s.out);
+
+            YAML::Emitter emitter(s);
 
             emitter.SetIndent(4);
             emitter << config;
 
-            stream.flush();
+            s.flush();
         }
         catch (...) {
             println("Can't externalize the test's state");
@@ -565,12 +555,30 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
 
 void MultiProcessRunner::start()
 {
-    socket_ = ServerSocket(address_, port_);
-    socket_.listen();
+    ss::listen_options opts;
+    opts.reuse_address = true;
 
-    address_ = socket_.address();
-    port_ = socket_.port();
+    const auto& suites  = tests_registry().suites();
 
+
+    for (const auto& suite: suites)
+    {
+        for (const auto& test: suite.second->tests()) {
+            U8String full_test_name = suite.first + "/" + test.first;
+            tests_.push_back(full_test_name);
+        }
+    }
+
+    socket_ = ss::listen(
+        ss::socket_address(ss::ipv4_addr(address_.to_std_string(), port_)),
+        opts
+    );
+
+    if (tests_.size() < workers_num_) {
+        workers_num_ = tests_.size();
+    }
+
+    println("Starting {} workers", workers_num_);
     worker_processes_.resize(workers_num_);
 
     for (size_t c = 0; c < workers_num_; c++) {
@@ -578,7 +586,7 @@ void MultiProcessRunner::start()
     }
 
     for (size_t c = 0; c < workers_num_; c++) {
-        fibers_.push_back(std::make_pair(format_u8("Process Watcher {}", c), worker_processes_[c]->start()));
+        threads_.push_back(std::make_pair(format_u8("Process Watcher {}", c), worker_processes_[c]->start()));
     }
 
     handle_connections();
@@ -586,11 +594,11 @@ void MultiProcessRunner::start()
 
 std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
 {
-    filesystem::path output_dir_base = get_tests_output_path();
+    fs::path output_dir_base = get_tests_output_path();
     output_dir_base.append(std::to_string(num));
-    filesystem::create_directories(output_dir_base);
+    fs::create_directories(output_dir_base);
 
-    auto proc = std::make_shared<WorkerProcess>(address_, port_, output_dir_base, num);
+    auto proc = std::make_shared<WorkerProcess>(address_, socket_.local_address().port(), output_dir_base, num);
 
     proc->set_status_listener([weak_self = weak_from_this(), address = address_, port = port_, num, output_dir_base, this](auto status, auto exit_code)
     {
@@ -600,15 +608,23 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
         }
 
         bool restart{false};
-
-        if (status != reactor::Process::Status::EXITED || (status == reactor::Process::Status::EXITED && exit_code != 0))
+        if (status != Status::EXITED || (status == Status::EXITED && exit_code != 0))
         {
             auto ii = self->heads_.find(num);
             if (ii != self->heads_.end()) {
-                //engine().
-                println("CRASHED: {} :: {}", ii->second, num);
+
+                if (status == Status::CRASHED) {
+                    println("CRASHED: {} :: {}", ii->second, num);
+                    self->crashes_++;
+                }
+                else if (status == Status::UNKNOWN) {
+                    println("UNKNOWN: {} :: {}", ii->second, num);
+                }
+                else if (status == Status::TERMINATED) {
+                    println("TERMINATED: {} :: {}", ii->second, num);
+                }
+
                 self->heads_.erase(ii);
-                self->crashes_++;
             }
 
             restart = true;
@@ -621,55 +637,48 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
         if (restart && respawn_workers_)
         {
             self->worker_processes_[num] = std::make_shared<WorkerProcess>(address, port, output_dir_base, num);
-            self->fibers_.push_back(std::make_pair(format_u8("Process Watcher {}", num), self->worker_processes_[num]->start()));
+            self->threads_.push_back(std::make_pair(format_u8("Process Watcher {}", num), self->worker_processes_[num]->start()));
         }
     });
 
     return proc;
 }
 
-void write_message(BinaryOutputStream output, const U8StringView& msg)
+void write_message(ss::output_stream<char>& output, const U8StringView& msg)
 {
     uint64_t size = msg.size();
-    output.write(ptr_cast<const uint8_t>(&size), sizeof(size));
-    output.write(ptr_cast<const uint8_t>(msg.data()), size);
-    output.flush();
+    output.write(ptr_cast<const char>(&size), sizeof(size)).get();
+    output.write(ptr_cast<const char>(msg.data()), size).get();
+    output.flush().get();
 }
 
-hermes::HermesCtr read_message(BinaryInputStream input)
+hermes::HermesCtr read_message(ss::input_stream<char>& input)
 {
     uint64_t size{0};
-    if (input.read(ptr_cast<uint8_t>(&size), sizeof(size)) < sizeof(size))
-    {
-        MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
-    }
+    auto buf = input.read_exactly(sizeof(size)).get();
+    std::memcpy(&size, buf.get(), sizeof(size));
 
-    U8String str(size, ' ');
-    if (input.read(ptr_cast<uint8_t>(str.data()), size) < size) {
-        MEMORIA_MAKE_GENERIC_ERROR("Connection has been closed").do_throw();
-    }
+    auto msg = input.read_exactly(size).get();
+    U8String str(msg.get(), size);
 
     return hermes::HermesCtrView::parse_document(str);
 }
 
 
+template <typename StreamT>
+struct StreamCloser {
+    StreamT* stream_{};
+    ~StreamT() {
+        if (stream_) {
+            stream_->close().get();
+        }
+    }
+};
+
 
 void MultiProcessRunner::handle_connections()
 {
-    const auto& suites  = tests_registry().suites();
-
-    std::list<U8String> tests;
-
-
-    for (const auto& suite: suites)
-    {
-        for (const auto& test: suite.second->tests()) {
-            U8String full_test_name = suite.first + "/" + test.first;
-            tests.push_back(full_test_name);
-        }
-    }
-
-    size_t total_tests = tests.size();
+    size_t total_tests = tests_.size();
     size_t processed{};
     size_t sent{};
 
@@ -677,23 +686,34 @@ void MultiProcessRunner::handle_connections()
     std::set<U8String> processed_tasks;
 
 
-    bool do_finish = false;
-
     while (processed + crashes_ < total_tests)
     {
-        fibers::fiber ff([&](SocketConnectionData&& conn_data) {
+        ss::accept_result conn;
+        try {
+            conn = socket_.accept().get();
+        }
+        catch (const std::system_error& err) {
+            if (err.code().value() != 103) {
+                throw err;
+            }
+            else {
+                break;
+            }
+        }
 
+        auto fn = [&](ss::accept_result conn_data) {
             std::shared_ptr<WorkerProcess> worker_process;
             size_t worker_num = -1ull;
 
             try {
-                ServerSocketConnection conn(std::move(conn_data));
-                BinaryInputStream input  = conn.input();
-                BinaryOutputStream output = conn.output();
+                auto input  = conn_data.connection.input();
+                auto output = conn_data.connection.output();
 
-                while (tests.size() || heads_.count(worker_num) > 0)
+                StreamCloser<ss::input_stream<char>> is_closer{&input};
+                StreamCloser<ss::output_stream<char>> os_closer{&output};
+
+                while (tests_.size() || heads_.count(worker_num) > 0)
                 {
-                    // FIXME: Handle exceptions here!
                     auto msg = read_message(input);
                     U8String code = msg.root().search("code").as_varchar();
 
@@ -704,9 +724,9 @@ void MultiProcessRunner::handle_connections()
                     }
                     else if (code == "GET_TASK")
                     {
-                        if (tests.size()) {
-                            U8String new_test = tests.front();
-                            tests.pop_front();
+                        if (tests_.size()) {
+                            U8String new_test = tests_.front();
+                            tests_.pop_front();
 
                             heads_[worker_num] = new_test;
 
@@ -730,11 +750,9 @@ void MultiProcessRunner::handle_connections()
                         processed_tasks.insert(test_path);
 
                         if (status > 0) {
-                            //engine().
                             println("*FAILED: {} :: {}({}) of {}", test_path, processed + crashes_, crashes_, total_tests);
                         }
                         else {
-                            //engine().
                             println("PASSED: {} :: {}({}) of {}", test_path, processed + crashes_, crashes_, total_tests);
                         }
                     }
@@ -745,13 +763,14 @@ void MultiProcessRunner::handle_connections()
                 }
 
                 if (processed + crashes_ >= total_tests) {
-                    if (!do_finish) {
-                        do_finish = true;
-                        for (size_t c = 0; c < 3; c++) {
-                            //println("Ping {} of {}", c + 1, workers_num_);
-                            ping_socket();
-                        }
-                    }
+                    socket_.abort_accept();
+                }
+            }
+            catch (const std::system_error& ex)
+            {
+                if (worker_process) {
+                    worker_process->terminate();
+                    worker_process->join();
                 }
             }
             catch (const std::exception& ex)
@@ -776,63 +795,67 @@ void MultiProcessRunner::handle_connections()
                 }
             }
             catch (...) {
-                engine().println("Unknown exception, worker = {}", worker_num);
+                println("Unknown exception, worker = {}", worker_num);
             }
-        }, socket_.accept());
+        };
 
-        fibers_.push_back(std::make_pair(format_u8("WorkerFacacde"), std::move(ff)));
+        ss::thread_attributes ta;
+        ta.stack_size = 1024*1024;
+        auto thread = seastar::async(ta, std::move(fn), std::move(conn));
+
+        threads_.push_back(std::make_pair(format_u8("WorkerFacacde"), std::move(thread)));
     }
 
     respawn_workers_ = false;
 
     for (auto proc: worker_processes_) {
-        proc->join();
-    }
-
-    for (auto& pair: fibers_)
-    {
-        if (pair.second.joinable()) {
-
-            pair.second.join();
+        try {
+            proc->join();
+        }
+        catch (const std::system_error& err) {
+            if (err.code().value() != 10) {
+                throw err;
+            }
         }
     }
 
-    socket_.close();
+    for (auto& pair: threads_)
+    {
+        try {
+            pair.second.get();
+        }
+        catch (const std::system_error& err) {
+            if (err.code().value() != 10) {
+                throw err;
+            }
+        }
+    }
 }
 
 
 void MultiProcessRunner::ping_socket()
 {
-    reactor::ClientSocket c_socket(address_, port_);
-    BinaryOutputStream output = c_socket.output();
+    ss::connected_socket c_socket = ss::engine().connect(ss::socket_address(ss::ipv4_addr(address_, port_))).get();
+    auto output = c_socket.output();
 
     write_message(output, "{'code': 'NONE'}");
 
-    output.close();
-    c_socket.close();
+    output.close().get();
 }
 
 
-reactor::Process::Status WorkerProcess::status() const {
-    if (process_) {
-        return process_.status();
-    }
-    else {
-        return reactor::Process::Status::TERMINATED;
-    }
-}
+
 
 WorkerProcess::~WorkerProcess() noexcept {}
 
-fibers::fiber WorkerProcess::start()
+ss::future<> WorkerProcess::start()
 {
-    filesystem::path output_dir_base(output_folder_);
+    fs::path output_dir_base(output_folder_);
 
-    std::vector<U8String> args;
+    std::vector<std::string> args;
 
-    args.emplace_back("tests2");
     args.emplace_back("--server");
-    args.emplace_back(socket_addr_.to_string());
+    args.emplace_back(socket_addr_);
     args.emplace_back("--port");
     args.emplace_back(std::to_string(port_));
 
@@ -845,57 +868,56 @@ fibers::fiber WorkerProcess::start()
     args.emplace_back("--coverage");
     args.emplace_back(get_test_coverage_str());
 
-    process_ = reactor::ProcessBuilder::create(reactor::get_program_path())
-            .with_args(args)
-            .run();
-
-    filesystem::path std_output = output_dir_base;
+    fs::path std_output = output_dir_base;
     std_output.append("stdout.txt");
-    out_file_ = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
 
-    filesystem::path std_error = output_dir_base;
+    fs::path std_error = output_dir_base;
     std_error.append("stderr.txt");
-    err_file_ = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
 
-    out_reader_ = std::make_unique<reactor::InputStreamReaderWriter>(process_.out_stream(), out_file_.ostream());
-    err_reader_ = std::make_unique<reactor::InputStreamReaderWriter>(process_.err_stream(), err_file_.ostream());
+    process_ = std::make_unique<Process>(get_program_path().string(), args, std_output.string(), std_error.string());
 
-    return fibers::fiber([&]{
+    return ss::async([&]() {
         auto holder = this->shared_from_this();
 
-        process_.join();
-
-        out_reader_->join();
-        err_reader_->join();
-
-        out_file_.close();
-        err_file_.close();
-
-        auto status = process_.status();
-
         int32_t code{-1};
+        Status status = Status::EXITED;
 
-        if (status == reactor::Process::Status::EXITED) {
-            code = process_.exit_code();
+        try {
+            status = process_->join();
+        }
+        catch (const std::system_error& err) {
+            if (err.code().value() != 3) {
+                status = Status::CRASHED;
+            }
+            else {
+                status = Status::UNKNOWN;
+            }
+        }
+        catch (...) {
+            status = Status::UNKNOWN;
+        }
+
+        if (status == Status::EXITED) {
+            code = process_->exit_code();
         }
 
         if (status_listener_) {
-            //engine().println("Process {} exited with status {}, code {}", worker_num_, (int)status, code);
             status_listener_(status, code);
         }
     });
 }
 
 
-
-
-
 void Worker::run()
 {
-    socket_ = reactor::ClientSocket(server_address_, port_);
+    try {
+    socket_ = seastar::connect(ss::socket_address(server_address_)).get();
 
-    BinaryInputStream input = socket_.input();
-    BinaryOutputStream output = socket_.output();
+    auto input = socket_.input();
+    auto output = socket_.output();
+
+    StreamCloser<ss::input_stream<char>> is_closer{&input};
+    StreamCloser<ss::output_stream<char>> os_closer{&output};
 
     write_message(output, format_u8("{{'code': 'GREETING', 'worker_id':{}}}", worker_num_));
 
@@ -910,8 +932,6 @@ void Worker::run()
         {            
             U8String test_path = msg.root().search("test_path").as_varchar();
 
-            println("++++++++++ New message from server: {}", test_path);
-
             TestStatus status = run_single_test(test_path);
 
             write_message(output, format_u8(
@@ -922,10 +942,13 @@ R"({{
 }})", test_path, (int)status));
         }
         else {
-            input.close();
-            output.close();
-            socket_.close();
             return;
+        }
+    }
+    }
+    catch(const std::system_error& err) {
+        if (err.code().value() != 111) {
+            throw err;
         }
     }
 }
@@ -934,6 +957,316 @@ void run_tests2(size_t threads)
 {
     auto runner = std::make_shared<MultiProcessRunner>(threads);
     runner->start();
+}
+
+seastar::app_template* appt = nullptr;
+
+void set_current_app(seastar::app_template* app) {
+    appt = app;
+}
+
+seastar::app_template& get_current_app()
+{
+    if (appt) {
+        return *appt;
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Seastar application is not set").do_throw();
+     }
+}
+
+
+
+namespace {
+
+size_t find_zero(const char* mem, size_t max)
+{
+    size_t c;
+    for (c = 0; c < max; c++)
+    {
+        if (mem[c] == 0) {
+            break;
+        }
+    }
+    return c;
+}
+
+}
+
+fs::path get_program_path()
+{
+    const char* link_path = "/proc/self/cmdline";
+
+    std::fstream ff;
+    ff.open(link_path, ff.in);
+
+    U8String str;
+    while (!ff.eof()) {
+        char ch = 0;
+        ff >> ch;
+
+        if (ch) {
+            str += U8String(1, ch);
+        }
+        else {
+            break;
+        }
+    }
+    ff.close();
+    return str.to_std_string();
+}
+
+fs::path get_image_name()
+{
+    return get_program_path().filename();
+}
+
+
+
+
+static bp::child start_process(std::string name, std::string stdout, std::string stderr, const std::vector<std::string>& args)
+{
+    if (args.size() == 0) {
+        return bp::child(name, bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 1) {
+        return bp::child(
+                name,
+                args[0],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 2) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 3) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 4) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 5) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 6) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 7) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 8) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 9) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                args[8],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 10) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                args[8],
+                args[9],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 11) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                args[8],
+                args[9],
+                args[10],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 12) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                args[8],
+                args[9],
+                args[10],
+                args[11],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 13) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                args[8],
+                args[9],
+                args[10],
+                args[11],
+                args[12],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else if (args.size() == 14) {
+        return bp::child(
+                name,
+                args[0],
+                args[1],
+                args[2],
+                args[3],
+                args[4],
+                args[5],
+                args[6],
+                args[7],
+                args[8],
+                args[9],
+                args[10],
+                args[11],
+                args[12],
+                args[13],
+                bp::std_out > stdout, bp::std_err > stderr);
+    }
+    else {
+        MEMORIA_MAKE_GENERIC_ERROR("Supplied number of arguments {} is too big", args.size()).do_throw();
+    }
+}
+
+
+
+std::ostream& operator<<(std::ostream& out, Status status)
+{
+    switch (status)
+    {
+        case Status::RUNNING: out << "RUNNING"; break;
+        case Status::EXITED:  out << "EXITED"; break;
+        case Status::CRASHED: out << "CRASHED"; break;
+        case Status::TERMINATED: out << "TERMINATED"; break;
+        case Status::UNKNOWN: out << "UNKNOWN"; break;
+        case Status::FAILED: out << "FAILED"; break;
+    }
+
+    return out;
+}
+
+
+Process::Process(
+        std::string filename,
+        const std::vector<std::string>& args,
+        std::string stdout_fname,
+        std::string stderr_fname
+    ):
+    process_(start_process(filename, stdout_fname, stderr_fname, args))
+{
+}
+
+void Process::terminate() {
+    ss::engine().kill(process_.id(), SIGTERM);
+}
+
+Status Process::join()
+{
+    int status = ss::engine().waitpid(process_.id()).get();
+
+    Status ss = Status::EXITED;
+
+    if (WIFSIGNALED(status))
+    {
+        int sign = WTERMSIG(status);
+        if (sign == SIGTERM) {
+            //println("TERMINATED");
+            ss = Status::TERMINATED;
+        }
+        else {
+            //println("CRASHED");
+            ss = Status::CRASHED;
+        }
+    }
+    else if (WEXITSTATUS(status)) {
+        ss = Status::FAILED;
+        //println("FAILED");
+    }
+
+    return ss;
+
+
 }
 
 }}

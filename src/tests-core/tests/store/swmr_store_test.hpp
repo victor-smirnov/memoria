@@ -52,7 +52,7 @@ public:
         auto wd = Base::working_directory_;
         wd.append("file.mma2");
 
-        U8String file = wd.std_string();
+        U8String file = wd.string();
 
         auto store = std::make_shared<LiteSWMRStoreOperation>(file, 1024*4);
 
@@ -76,7 +76,7 @@ public:
         auto wd = Base::working_directory_;
         wd.append("file.mma2");
 
-        U8String file = wd.std_string();
+        U8String file = wd.string();
 
         auto store = std::make_shared<SWMRStoreOperation>(file, 1024*4);
 
@@ -96,7 +96,7 @@ public:
         auto wd = Base::working_directory_;
         wd.append("file.mma2");
 
-        U8String file = wd.std_string();
+        U8String file = wd.string();
 
         auto store = std::make_shared<LMDBStoreOperation>(file, 1024*4);
         store->remove_if_exists();
@@ -118,7 +118,7 @@ public:
         auto wd = Base::working_directory_;
         wd.append("file.mma2");
 
-        U8String file = wd.std_string();
+        U8String file = wd.string();
 
         auto store = std::make_shared<MemoryStoreOperation>(file);
         store->remove_if_exists();

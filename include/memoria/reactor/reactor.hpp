@@ -383,7 +383,7 @@ public:
     template <typename... Args>
     std::basic_ostream<char>& cout(const char* fmt, Args&&... args)
     {
-        cout_ << fmt::format(fmt, std::forward<Args>(args)...);
+        cout_ << fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
         return cout_;
     }
 
@@ -397,21 +397,21 @@ public:
     template <typename... Args>
     std::basic_ostream<char>& coutln(const char* fmt, Args&&... args)
     {
-        cout_ << fmt::format(fmt, std::forward<Args>(args)...) << std::flush << std::endl;
+        cout_ << fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...) << std::flush << std::endl;
         return cout_;
     }
 
     template <typename... Args>
     std::basic_ostream<char>& cerr(const char* fmt, Args&&... args)
     {
-        cerr_ << fmt::format(fmt, std::forward<Args>(args)...);
+        cerr_ << fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
         return cerr_;
     }
 
     template <typename... Args>
     std::basic_ostream<char>& cerrln(const char* fmt, Args&&... args)
     {
-        cerr_ << fmt::format(fmt, std::forward<Args>(args)...) << std::flush << std::endl;
+        cerr_ << fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...) << std::flush << std::endl;
         return cerr_;
     }
 

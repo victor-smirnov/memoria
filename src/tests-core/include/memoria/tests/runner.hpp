@@ -1,5 +1,5 @@
 
-// Copyright 2018-2021 Victor Smirnov
+// Copyright 2018-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,39 @@
 
 #pragma once
 
+
 #include <memoria/tests/tests.hpp>
-#include <memoria/reactor/reactor.hpp>
-#include <memoria/reactor/process.hpp>
-#include <memoria/reactor/socket.hpp>
+
+#ifdef IOCB_FLAG_RESFD
+#undef IOCB_FLAG_RESFD
+#endif
+
+#include <seastar/core/app-template.hh>
+#include <seastar/core/seastar.hh>
+#include <seastar/core/thread.hh>
+#include <seastar/core/reactor.hh>
+
+#include <seastar/net/api.hh>
+#include <seastar/net/tcp.hh>
+#include <seastar/net/stack.hh>
+
+
+#include <boost/filesystem.hpp>
+#include <boost/process.hpp>
 
 #include <yaml-cpp/yaml.h>
 
 namespace memoria {
 namespace tests {
 
+namespace ss = seastar;
+
 class NOOPConfigurator: public TestConfigurator {
     YAML::Node configuration_;
-    filesystem::path config_base_path_;
+    fs::path config_base_path_;
 public:
 
-    NOOPConfigurator(YAML::Node configuration, filesystem::path config_base_path):
+    NOOPConfigurator(YAML::Node configuration, fs::path config_base_path):
         configuration_(configuration),
         config_base_path_(config_base_path)
     {}
@@ -39,7 +56,7 @@ public:
         return configuration_;
     }
 
-    filesystem::path config_base_path() const {
+    fs::path config_base_path() const {
         return config_base_path_;
     }
 };
@@ -47,7 +64,7 @@ public:
 
 class DefaultTestContext: public TestContext {
     NOOPConfigurator configurator_;
-    filesystem::path data_directory_;
+    fs::path data_directory_;
 
     TestStatus status_{TestStatus::PASSED};
 
@@ -62,8 +79,8 @@ class DefaultTestContext: public TestContext {
 public:
     DefaultTestContext(
             YAML::Node configuration,
-            filesystem::path config_base_path,
-            filesystem::path data_directory,
+            fs::path config_base_path,
+            fs::path data_directory,
             TestCoverage coverage,
             bool replay,
             int64_t seed
@@ -85,10 +102,10 @@ public:
     }
 
     virtual std::ostream& out() noexcept {
-        return reactor::engine().cout();
+        return std::cout;
     }
 
-    virtual filesystem::path data_directory() noexcept {
+    virtual fs::path data_directory() noexcept {
         return data_directory_;
     }
 
@@ -107,6 +124,7 @@ public:
         return seed_;
     }
 };
+#include <seastar/core/seastar.hh>
 
 void dump_exception(std::ostream& out, std::exception_ptr& ex);
 TestStatus run_single_test(const U8String& test_path);
@@ -116,15 +134,13 @@ void run_tests();
 void run_tests2(size_t threads);
 
 class Worker {
-    reactor::ClientSocket socket_;
-    reactor::IPAddress server_address_;
-    uint16_t port_;
+    seastar::connected_socket socket_;
+    seastar::ipv4_addr server_address_;
     size_t worker_num_;
-    filesystem::path output_folder_;
+    fs::path output_folder_;
 public:
-    Worker(reactor::IPAddress server_address, uint16_t port, size_t worker_num, filesystem::path output_folder):
-        server_address_(server_address),
-        port_(port),
+    Worker(seastar::ipv4_addr server_address, size_t worker_num, fs::path output_folder):
+        server_address_(server_address),        
         worker_num_(worker_num),
         output_folder_(output_folder)
     {}
@@ -132,27 +148,69 @@ public:
     void run();
 };
 
+enum class Status {
+    RUNNING, EXITED, TERMINATED, CRASHED, FAILED, UNKNOWN
+};
+
+std::ostream& operator<<(std::ostream& out, Status status);
+
+class Process {
+    boost::process::child process_;
+public:
+    Process(
+        std::string filename,
+        const std::vector<std::string>& args,
+        std::string stdout_fname,
+        std::string stderr_fname
+    );
+
+    Process(Process&& process):
+        process_(std::move(process.process_))
+    {}
+
+    Process(const Process& process) = delete;
+
+    bool valid() {
+        return process_.valid();
+    }
+
+    Status join();
+
+    int32_t exit_code() const {
+        return process_.exit_code();
+    }
+
+    void detach() {
+        process_.detach();
+    }
+
+    bool joinable() {
+        return process_.joinable();
+    }
+
+    void kill() {
+        process_.terminate();
+    }
+
+    void terminate();
+};
+
 class WorkerProcess: public std::enable_shared_from_this<WorkerProcess> {
-    reactor::Process process_;
+    std::unique_ptr<Process> process_;
 
-    reactor::File out_file_;
-    reactor::File err_file_;
-    std::unique_ptr<reactor::InputStreamReaderWriter> out_reader_;
-    std::unique_ptr<reactor::InputStreamReaderWriter> err_reader_;
-
-    reactor::IPAddress socket_addr_;
+    U8String socket_addr_;
     uint16_t port_;
-    filesystem::path output_folder_;
+    fs::path output_folder_;
     size_t worker_num_;
 public:
 
-    using StatusListener = std::function<void (reactor::Process::Status, int32_t)>;
+    using StatusListener = std::function<void (Status, int32_t)>;
 private:
 
     StatusListener status_listener_;
 
 public:
-    WorkerProcess(reactor::IPAddress socket_addr, uint16_t port, filesystem::path output_folder, size_t num):
+    WorkerProcess(U8String socket_addr, uint16_t port, fs::path output_folder, size_t num):
         socket_addr_(socket_addr),
         port_(port),
         output_folder_(output_folder),
@@ -165,40 +223,40 @@ public:
         status_listener_ = ll;
     }
 
-    reactor::Process::Status status() const;
+    ss::future<> start();
 
-    fibers::fiber start();
-
-    void join() {
-        process_.join();
+    Status join() {
+        return process_->join();
     }
 
     void terminate() {
-        process_.terminate();
+        process_->terminate();
     }
 
     void kill() {
-        process_.kill();
+        process_->terminate();
     }
 };
 
 
 class MultiProcessRunner: public std::enable_shared_from_this<MultiProcessRunner> {
-    reactor::ServerSocket socket_;
+    seastar::server_socket socket_;
     std::vector<std::shared_ptr<WorkerProcess>> worker_processes_;
     size_t workers_num_;
-    reactor::IPAddress address_;
+    U8String address_;
     uint16_t port_;
 
     size_t crashes_{};
     std::map<size_t, U8String> heads_;
 
-    std::list<std::pair<U8String, fibers::fiber>> fibers_;
+    std::list<std::pair<U8String, ss::future<>>> threads_;
 
     bool respawn_workers_{true};
 
+    std::list<U8String> tests_;
+
 public:
-    MultiProcessRunner(size_t workers_num, const reactor::IPAddress& address = reactor::IPAddress(), uint16_t port = 0):
+    MultiProcessRunner(size_t workers_num, const U8String& address = "0.0.0.0", uint16_t port = 0):
         workers_num_(workers_num),
         address_(address),
         port_(port)
@@ -213,5 +271,16 @@ private:
 
     void ping_socket();
 };
+
+void set_current_app(seastar::app_template* app);
+seastar::app_template& get_current_app();
+
+
+fs::path get_program_path();
+fs::path get_image_name();
+
+
+
+
 
 }}
