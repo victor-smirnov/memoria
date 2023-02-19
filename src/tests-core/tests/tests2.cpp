@@ -18,6 +18,8 @@
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/runner.hpp>
 
+#include <memoria/seastar/seastar.hpp>
+
 #include <seastar/core/app-template.hh>
 #include <seastar/core/thread.hh>
 #include <seastar/core/reactor.hh>

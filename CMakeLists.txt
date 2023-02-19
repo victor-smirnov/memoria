@@ -46,9 +46,6 @@ ENDIF()
 option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
-option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" ON)
-option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using Seastar for concurrency" OFF)
-
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
@@ -71,16 +68,10 @@ option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
 option(BUILD_TESTS_HRPC         "Build HRPC Protocol tests" ON)
 
-
-
 option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)
-
-
 
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
-
-
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 

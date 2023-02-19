@@ -20,10 +20,10 @@ add_executable(hrpc_tests_server hrpc_tests_server.cpp ${SRCS})
 SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-target_link_libraries(hrpc_tests_server MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor Seastar::seastar ${MEMORIA_LIBS})
+target_link_libraries(hrpc_tests_server MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit)
 
 add_executable(hrpc_tests_client hrpc_tests_client.cpp ${SRCS})
 SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-target_link_libraries(hrpc_tests_client MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor Seastar::seastar ${MEMORIA_LIBS})
+target_link_libraries(hrpc_tests_client MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit)

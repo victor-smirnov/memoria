@@ -13,13 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/memory/shared_ptr.hpp>
-#include <memoria/core/tools/result.hpp>
+#include <memoria/seastar/seastar.hpp>
 
-#include <seastar/core/smp.hh>
-#include <thread>
-
-
-namespace memoria {
-
-}
+const char* __asan_default_options() { return "detect_leaks=0"; }

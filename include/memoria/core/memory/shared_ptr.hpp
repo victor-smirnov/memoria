@@ -43,9 +43,8 @@ namespace arena {
 class ArenaAllocator;
 }
 
-class MemoryObject;
-
-#ifdef MMA_NO_REACTOR
+// FIXME: Probable not needed. This interface was designed
+// for old Reactor.
 class MemoryObject {
 public:
     virtual ~MemoryObject() noexcept = default;
@@ -53,82 +52,6 @@ public:
     constexpr bool is_put_to_list() const { return false;}
     void put_to_list() {}
 };
-
-#else
-
-class MemoryObjectList {
-    MemoryObject* head_;
-    size_t size_;
-public:
-    MemoryObjectList():
-        head_(), size_()
-    {}
-
-    MemoryObject* head() const {return head_;}
-    size_t size() const {return size_;}
-
-    void link(MemoryObject* msg);
-
-    MemoryObject* detach_all() {
-        MemoryObject* tmp = head_;
-        head_ = nullptr;
-        size_ = 0;
-        return tmp;
-    }
-
-    static MemoryObjectList& list(int cpu) {
-        return object_lists()[cpu];
-    }
-
-private:
-    static std::vector<MemoryObjectList>& object_lists();
-};
-
-class MemoryObject {
-    MemoryObjectList* list_;
-    MemoryObject* next_;
-
-protected:
-    int owner_cpu_;
-
-    friend class MemoryObjectList;
-public:
-    MemoryObject():
-        list_(), next_(), owner_cpu_()
-    {}
-
-    ~MemoryObject() noexcept = default;
-    virtual void finalize_memory_object() {}
-
-    bool is_put_to_list() const {
-        return list_ != nullptr;
-    }
-
-    void put_to_list() {
-        list_->link(this);
-    }
-
-    int owner_cpu() const {
-        return owner_cpu_;
-    }
-
-    void set_list(MemoryObjectList* list) {
-        list_ = list;
-    }
-
-    void run_finalizers()
-    {
-        MemoryObject* obj = this;
-        while (obj) {
-            MemoryObject* next = obj->next_;
-            obj->finalize_memory_object();
-            obj = next;
-        }
-    }
-};
-
-
-#endif
 
 
 class SharedPtrHolder: public MemoryObject {

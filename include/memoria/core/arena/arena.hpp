@@ -156,6 +156,14 @@ protected:
     template <typename>
     friend class AddrResolver;
 
+    void on_create() {
+        //println("Creating ArenaAllocator: {}", ++DebugCounter);
+    }
+
+    void on_destroy() {
+        //println("Destroying ArenaAllocator: {}", --DebugCounter);
+    }
+
 public:
 
     ArenaAllocator(AllocationType alc_type, size_t chunk_size, void* data, size_t data_size) noexcept :
@@ -166,6 +174,8 @@ public:
         add_chunk(data_size);
         Chunk& head = this->head();
         memcpy(head.memory.get(), data, data_size);
+
+        on_create();
     }
 
     ArenaAllocator(
@@ -180,6 +190,8 @@ public:
         header_size_(header_size)
     {
         add_chunk(std::move(buffer), data_size);
+
+        on_create();
     }
 
 
@@ -187,7 +199,9 @@ public:
         allocation_type_(AllocationType::MULTI_CHUNK),
         chunk_size_(chunk_size),
         header_size_(0)
-    {}
+    {
+        on_create();
+    }
 
     ArenaAllocator(AllocationType alc_type, size_t chunk_size = 4096, size_t header_size = 0) noexcept :
         allocation_type_(alc_type),
@@ -196,6 +210,8 @@ public:
     {
         add_chunk(chunk_size);
         head().size = header_size;
+
+        on_create();
     }
 
     ArenaAllocator(AllocationType alc_type, size_t chunk_size, const void* data, size_t segment_size):
@@ -206,11 +222,15 @@ public:
         add_chunk(segment_size);
         head().size = segment_size;
         std::memcpy(head().memory.get(), data, segment_size);
+
+        on_create();
     }
 
     ArenaAllocator(const ArenaAllocator&) = delete;
 
-    virtual ~ArenaAllocator() noexcept = default;
+    virtual ~ArenaAllocator() noexcept {
+        on_destroy();
+    }
 
     size_t header_size() const {return header_size_;}
 

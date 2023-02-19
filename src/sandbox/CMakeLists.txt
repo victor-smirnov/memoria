@@ -1,5 +1,5 @@
 
-# Copyright 2016-2022 Victor Smirnov
+# Copyright 2016-2023 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,47 +15,23 @@
 
 include_directories(../tools/include)
 
-if (BUILD_REACTOR_MEMORIA_LIB)
 
-    if (NOT DEFINED MEMORIA_SANDBOX)
-        set(MEMORIA_SANDBOX )
-    endif()
-
-    FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
-        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp ${MAIN_INCLUDES})
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrsReactor MemoriaStoresReactor MemoriaCoreReactor MemoriaInitReactor ${MEMORIA_LIBS} atomic)
-    ENDFOREACH(MEMORIA_TARGET)
-
-endif()
+set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256)
 
 
-if (BUILD_CLASSIC_MEMORIA_LIB)
+FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
+    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCtrs MemoriaInit ${MEMORIA_LIBS})
+ENDFOREACH(MEMORIA_TARGET )
 
-    if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        #set(MEMORIA_SANDBOX_CLASSIC send_msg_bench_raw swmr_store pseudo_latency benchmark_btree benchmark_stdset ld_doc)
-        set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256)
+set(MEMORIA_SANDBOX_SEASTAR seastar-sb)
 
-        if (NO_COW_PROFILE)
-            set(MEMORIA_SANDBOX_CLASSIC ${MEMORIA_SANDBOX_CLASSIC})
-        endif()
-    endif()
+FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
+    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCtrs MemoriaInit MemoriaSeastar)
+ENDFOREACH(MEMORIA_TARGET )
 
-    FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
-        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR")
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit ${MEMORIA_LIBS})
-    ENDFOREACH(MEMORIA_TARGET )
-
-    set(MEMORIA_SANDBOX_SEASTAR seastar-sb)
-
-    FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
-        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR -DSEASTAR_SCHEDULING_GROUPS_COUNT=16")
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_TARGET} MemoriaCtrs MemoriaStores MemoriaCore MemoriaInit Seastar::seastar  ${MEMORIA_LIBS})
-    ENDFOREACH(MEMORIA_TARGET )
-
-endif()

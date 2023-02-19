@@ -356,4 +356,3 @@ public:
 using NamedCode = NamedTypedCode<int32_t>;
 
 }
-

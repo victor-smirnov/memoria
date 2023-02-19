@@ -27,6 +27,7 @@
 #include "u_string_capi.hpp"
 
 #include <string>
+#include <string_view>
 #include <sstream>
 #include <ostream>
 

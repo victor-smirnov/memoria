@@ -28,7 +28,7 @@ namespace ss = seastar;
 
 int main(int argc, char** argv, char** envp)
 {
-    InitMemoriaExplicit();
+
 
     ss::app_template::seastar_options opts;
 
@@ -38,10 +38,12 @@ int main(int argc, char** argv, char** envp)
 
     ss::app_template app(std::move(opts));
 
-    return app.run(
+    int code = app.run(
         argc, argv,
         []()
     {
+        InitMemoriaExplicit();
+
         return ss::async([]{
             println("HRPC Client");
 
@@ -65,4 +67,8 @@ int main(int argc, char** argv, char** envp)
             return 0;
         });
     });
+
+    println("Seastar is done");
+
+    return code;
 }

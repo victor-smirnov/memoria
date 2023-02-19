@@ -13,13 +13,7 @@
 # limitations under the License.
 
 
-if (BUILD_MACOSX)
-    file(GLOB SRCS *.cpp macosx/*.cpp posix/*.cpp)
-elseif (BUILD_MSVC)
-    file(GLOB SRCS *.cpp msvc/*.cpp)
-else()
-    file(GLOB SRCS *.cpp linux/*.cpp posix/*.cpp)
-endif()
+file(GLOB SRCS *.cpp hrpc/*.cpp)
 
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_REACTOR ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SEASTAR_SOURCES ${SRCS})
 

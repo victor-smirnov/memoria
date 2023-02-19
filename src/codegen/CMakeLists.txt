@@ -27,7 +27,6 @@ if (BUILD_CODEGENERATOR_EXPLICITLY)
     target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
     target_include_directories(MemoriaCodeGen PRIVATE include)
     target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
-    TARGET_COMPILE_DEFINITIONS(MemoriaCodeGen PUBLIC MMA_NO_REACTOR)
 
     target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options util)
     target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
@@ -103,7 +102,6 @@ target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options Boost::filesystem)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
 target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja unofficial::hash-library)
-TARGET_COMPILE_DEFINITIONS(MemoriaCodeGen PUBLIC MMA_NO_REACTOR)
 
 endif()
 

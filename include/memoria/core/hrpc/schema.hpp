@@ -93,7 +93,7 @@ public:
     }
 
     static Request make() {
-        Request rq(hermes::HermesCtr::make_pooled());
+        Request rq(hermes::HermesCtr::make_new());
         return rq;
     }
 
@@ -393,7 +393,7 @@ public:
     {}
 
     static TCPClientSocketConfig of_host(U8StringView host, uint16_t port = TCPProtocolConfig::PORT_DEFAULT) {
-        TCPClientSocketConfig cfg(hermes::HermesCtr::make_pooled());
+        TCPClientSocketConfig cfg(hermes::HermesCtr::make_new());
         cfg.set_host(host);
         return cfg;
     }
