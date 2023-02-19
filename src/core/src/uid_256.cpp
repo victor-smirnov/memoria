@@ -20,10 +20,6 @@
 #include <memoria/core/tools/result.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 #include <boost/uuid/uuid.hpp>
 
 #include <boost/spirit/include/qi.hpp>

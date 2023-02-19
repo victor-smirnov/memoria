@@ -38,8 +38,11 @@ PoolSharedPtr<MessageProvider> TCPClientMessageProviderImpl::
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<TCPClientMessageProviderImpl>>();
 
-    auto addr = reactor::IPAddress(config.host().data());
-    return pool->allocate_shared(reactor::ClientSocket(addr, config.port()));
+    auto socket = ss::engine().connect(ss::socket_address(
+        ss::ipv4_addr(config.host().to_std_string(), config.port())
+    )).get();
+
+    return pool->allocate_shared(std::move(socket));
 }
 
 
@@ -62,7 +65,7 @@ PoolSharedPtr<Session> HRPCServerSocketImpl::new_session()
     static thread_local auto pool =
             boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
 
-    reactor::SocketConnectionData conn_data = socket_.accept();
+    auto conn_data = socket_.accept().get();
     auto conn = TCPServerMessageProviderImpl::make_instance(this->shared_from_this(), std::move(conn_data));
 
     return pool->allocate_shared(endpoints_, conn, cfg_, SessionSide::SERVER);
@@ -72,7 +75,7 @@ PoolSharedPtr<Session> HRPCServerSocketImpl::new_session()
 PoolSharedPtr<MessageProvider> TCPServerMessageProviderImpl::
     make_instance(
         ServerSocketImplPtr socket,
-        reactor::SocketConnectionData&& conn_data
+        ss::accept_result conn_data
     )
 {
     static thread_local auto pool =
@@ -82,9 +85,9 @@ PoolSharedPtr<MessageProvider> TCPServerMessageProviderImpl::
 }
 
 TCPClientMessageProviderImpl::
-TCPClientMessageProviderImpl(reactor::ClientSocket socket):
+TCPClientMessageProviderImpl(ss::connected_socket socket):
     TCPMessageProviderBase(socket.input(), socket.output()),
-    socket_(socket)
+    socket_(std::move(socket))
 {
 }
 
@@ -93,55 +96,49 @@ RawMessagePtr TCPMessageProviderBase::read_message()
 {
     constexpr size_t basic_header_size = MessageHeader::basic_size();
 
-    alignas(MessageHeader)
-    uint8_t header_buf[basic_header_size]{0,};
+    auto header_buf = input_stream_.read_exactly(basic_header_size).get();
 
-    size_t sz1 = input_stream_.read_fully(header_buf, sizeof(header_buf), []{
-        this_fiber::yield();
-    });    
-
-    if (sz1 < sizeof(header_buf)) {
+    if (header_buf.size() < basic_header_size) {
         return RawMessagePtr{nullptr, ::free};
     }
 
-    MessageHeader* header = ptr_cast<MessageHeader>(header_buf);
+    MessageHeader* header = ptr_cast<MessageHeader>(header_buf.get());
     auto buffer = allocate_system<uint8_t>(header->message_size());
 
-    std::memcpy(buffer.get(), header_buf, basic_header_size);
+    std::memcpy(buffer.get(), header_buf.get(), basic_header_size);
 
     size_t msg_size = header->message_size() - basic_header_size;
-    size_t sz2 = input_stream_.read_fully(
-        buffer.get() + basic_header_size,
-        msg_size
-    );
+    auto data_buf = input_stream_.read_exactly(msg_size).get();
 
-    if (sz2 < msg_size) {
+    std::memcpy(buffer.get() + basic_header_size, data_buf.get(), msg_size);
+
+    if (data_buf.size() < msg_size) {
         return RawMessagePtr{nullptr, ::free};
     }
 
     return buffer;
 }
 
+
 void TCPMessageProviderBase::write_message(
         const MessageHeader& header,
         const uint8_t* data
 ) {
-    size_t sz = output_stream_.write_fully(data, header.message_size());
-    if (sz < header.message_size()) {
-        MEMORIA_MAKE_GENERIC_ERROR("write_fully: stream closed").do_throw();
-    }
+    output_stream_.write(ptr_cast<char>(data), header.message_size()).get();
+    output_stream_.flush().get();
 }
+
 
 TCPServerMessageProviderImpl::
 TCPServerMessageProviderImpl(
     ServerSocketImplPtr socket,
-    reactor::SocketConnectionData&& conn_data
+    ss::accept_result conn_data
 ):
     socket_(socket),
-    connection_(reactor::ServerSocketConnection(std::move(conn_data)))
+    connection_(std::move(conn_data))
 {
-    input_stream_ = connection_.input();
-    output_stream_ = connection_.output();
+    input_stream_ = connection_.connection.input();
+    output_stream_ = connection_.connection.output();
 }
 
 

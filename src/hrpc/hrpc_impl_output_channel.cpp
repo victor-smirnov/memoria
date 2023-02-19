@@ -44,10 +44,9 @@ void HRPCOutputChannelImpl::push(const Message& msg)
     {
         if (batch_size_ >= batch_size_limit_)
         {
-            std::unique_lock<fibers::mutex> lk(mutex_);
-            flow_control_.wait(lk, [&](){
+            flow_control_.wait([&](){
                 return batch_size_ >= batch_size_limit_;
-            });
+            }).get();
         }
 
         MessageType msg_type = call_side_ ? MessageType::CALL_CHANNEL_MESSAGE : MessageType::CONTEXT_CHANNEL_MESSAGE;
@@ -87,7 +86,7 @@ void HRPCOutputChannelImpl::do_close_channel() {
 
 void HRPCOutputChannelImpl::reset_buffer_size() {
     batch_size_ = 0;
-    flow_control_.notify_all();
+    flow_control_.broadcast();
 }
 
 

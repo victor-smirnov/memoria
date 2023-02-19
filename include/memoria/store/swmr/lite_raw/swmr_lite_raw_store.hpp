@@ -24,7 +24,7 @@
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#include <memoria/filesystem/path.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>

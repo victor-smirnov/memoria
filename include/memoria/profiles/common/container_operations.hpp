@@ -29,8 +29,8 @@
 
 #include <memoria/profiles/common/common.hpp>
 
-#include <memoria/filesystem/operations.hpp>
-#include <memoria/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <memoria/core/reflection/type_signature.hpp>
 

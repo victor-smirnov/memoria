@@ -17,10 +17,6 @@
 
 #define BOOST_SPIRIT_UNICODE
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 #include <memoria/core/hermes/hermes.hpp>
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/strings/format.hpp>

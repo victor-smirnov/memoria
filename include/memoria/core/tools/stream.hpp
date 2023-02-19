@@ -20,7 +20,7 @@
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/container/cow.hpp>
 
-#include <memoria/filesystem/path.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <fstream>
 #include <limits>
@@ -108,7 +108,7 @@ class FileOutputStreamHandler: public OutputStreamHandler {
 public:
     static std::unique_ptr<FileOutputStreamHandler> create(const char* file);
     
-    static std::unique_ptr<FileOutputStreamHandler> create_buffered(const filesystem::path& file);
+    static std::unique_ptr<FileOutputStreamHandler> create_buffered(const boost::filesystem::path& file);
 
     virtual ~FileOutputStreamHandler() noexcept {}
 };
@@ -117,7 +117,7 @@ class FileInputStreamHandler: public InputStreamHandler {
 public:
     static std::unique_ptr<FileInputStreamHandler> create(const char* file);
     
-    static std::unique_ptr<FileInputStreamHandler> create_buffered(const filesystem::path& file);
+    static std::unique_ptr<FileInputStreamHandler> create_buffered(const boost::filesystem::path& file);
     
     virtual ~FileInputStreamHandler() noexcept {}
 };

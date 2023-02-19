@@ -21,7 +21,6 @@
 #include <unicode/utext.h>
 #include <cstring>
 
-
 #define I32_FLAG(bitIndex) ((int32_t)1<<(bitIndex))
 
 namespace memoria {

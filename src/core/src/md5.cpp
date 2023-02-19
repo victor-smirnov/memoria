@@ -18,10 +18,6 @@
 
 #include <memoria/core/tools/md5.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 #include <iostream>
 
 namespace memoria {

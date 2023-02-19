@@ -16,9 +16,6 @@
 #include "hrpc_impl_input_channel.hpp"
 #include "hrpc_impl_session.hpp"
 
-#include <memoria/fiber/fiber.hpp>
-#include <memoria/reactor/reactor.hpp>
-
 namespace memoria::hrpc {
 
 HRPCInputChannelImpl::HRPCInputChannelImpl(

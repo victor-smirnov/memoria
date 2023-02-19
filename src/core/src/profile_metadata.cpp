@@ -20,10 +20,6 @@
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
 #include <memoria/profiles/impl/cow_profile.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 namespace memoria {
 
 template <typename Profile>

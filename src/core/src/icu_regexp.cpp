@@ -14,11 +14,9 @@
 // limitations under the License.
 
 #include <memoria/core/regexp/icu_regexp.hpp>
-
 #include "icu_regexp_impl.hpp"
 
 namespace memoria {
-
 
 ICURegexMatcher::~ICURegexMatcher() noexcept {}
 

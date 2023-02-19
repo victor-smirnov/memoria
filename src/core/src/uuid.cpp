@@ -16,10 +16,6 @@
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>

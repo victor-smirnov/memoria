@@ -18,7 +18,7 @@ include_directories(../tools/include)
 if (BUILD_REACTOR_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX)
-        set(MEMORIA_SANDBOX send_msg_bench send_msg_bench_raw queue_bench_atomic)
+        set(MEMORIA_SANDBOX )
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

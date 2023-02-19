@@ -26,7 +26,7 @@
 #include <memoria/store/memory_cow/common/store_base_cow.hpp>
 #include <memoria/store/memory_cow/threads/threads_snapshot_cow_impl.hpp>
 
-#include <memoria/filesystem/path.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <cstdlib>
 #include <memory>
@@ -638,7 +638,7 @@ public:
     }
 
 
-    void store(memoria::filesystem::path file_name, int64_t wait_duration)
+    void store(boost::filesystem::path file_name, int64_t wait_duration)
     {
         return this->store(file_name.string().c_str(), wait_duration);
     }

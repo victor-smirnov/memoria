@@ -18,11 +18,6 @@
 
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
-
 #include <unicode/utext.h>
 #include <unicode/utypes.h>
 #include <unicode/unistr.h>

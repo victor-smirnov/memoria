@@ -18,17 +18,11 @@
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/runner.hpp>
 
-#ifdef IOCB_FLAG_RESFD
-#undef IOCB_FLAG_RESFD
-#endif
-
 #include <seastar/core/app-template.hh>
 #include <seastar/core/thread.hh>
 #include <seastar/core/reactor.hh>
 
 using namespace memoria;
-using namespace memoria::reactor;
-
 using namespace seastar;
 
 namespace po = boost::program_options;

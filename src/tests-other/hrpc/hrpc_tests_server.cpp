@@ -13,9 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/reactor/reactor.hpp>
-#include <memoria/reactor/application.hpp>
-#include <memoria/reactor/reactor.hpp>
+
 #include <memoria/core/tools/time.hpp>
 
 #include <memoria/core/hrpc/hrpc.hpp>
@@ -27,56 +25,55 @@
 
 #include "hrpc_tests_common.hpp"
 
+
+#include <seastar/core/app-template.hh>
+#include <seastar/core/thread.hh>
+
 using namespace memoria;
-using namespace memoria::reactor;
+namespace ss = seastar;
 
 int main(int argc, char** argv, char** envp) {
 
     InitMemoriaExplicit();
 
-    boost::program_options::options_description dd;
-    return Application::run_e(
-        dd, argc, argv, envp,
-        []() -> int32_t
+
+    ss::app_template::seastar_options opts;
+
+    opts.smp_opts.memory_allocator = ss::memory_allocator::standard;
+    opts.smp_opts.smp.set_value(1);
+    opts.smp_opts.thread_affinity.set_value(false);
+
+    ss::app_template app(std::move(opts));
+
+    return app.run(
+        argc, argv,
+        []()
     {
-        ShutdownOnScopeExit hh;
-        engine().println("HRPC Server");
+        return ss::async([]{
 
-        auto endpoints = hrpc::EndpointRepository::make();
+            println("HRPC Server");
 
-        endpoints->add_handler(NORMAL_RQ_TEST, normal_rq_handler);
+            auto endpoints = hrpc::EndpointRepository::make();
+
+            endpoints->add_handler(NORMAL_RQ_TEST, normal_rq_handler);
+
+            auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
+            auto server = hrpc::make_tcp_server(server_cfg, endpoints);
+
+            seastar::thread ff_server([&](){
+                auto conn = server->new_session();
+                println("New server connection");
+
+                conn->handle_messages();
+                println("Server connection is done");
+                conn->close();
+            });
 
 
-//        service->add_handler(ENDPOINT1, [](const PoolSharedPtr<hrpc::Context>& ctx){
-//            println("Endpoint {} is called!", ctx->endpoint_id());
-//            println("Request: {}", ctx->request().to_pretty_string());
+            server->listen();
+            ff_server.join().get();
 
-//            auto i_channel = ctx->input_channel(0);
-//            hrpc::Message msg;
-//            while (i_channel->pop(msg)) {
-//                println("Channel msg: {}", msg.to_pretty_string());
-//            }
-
-//            hrpc::Response rs = hrpc::Response::ok();
-//            return rs;
-//        });
-
-        auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
-        auto server = hrpc::make_tcp_server(server_cfg, endpoints);
-
-        fibers::fiber ff_server([&](){
-            auto conn = server->new_session();
-
-            conn->handle_messages();
-            println("Server connection is done");
-            conn->close();
+            return 0;
         });
-
-
-        server->listen();
-        ff_server.join();
-
-        return 0;
-    }
-    );
+    });
 }

@@ -16,19 +16,19 @@
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/tools/result.hpp>
 
-#include <memoria/reactor/reactor.hpp>
+//#include <memoria/reactor/reactor.hpp>
 
 namespace memoria {
 
 std::vector<MemoryObjectList>& MemoryObjectList::object_lists() {
-    int cpus = reactor::engine().cpu_num();
+    int cpus = 1;// reactor::engine().cpu_num();
     static thread_local std::vector<MemoryObjectList> lists(cpus);
     return lists;
 }
 
 void MemoryObjectList::link(MemoryObject* msg)
 {
-    int cpu = reactor::engine().cpu();
+    int cpu = 1;//reactor::engine().cpu();
     MemoryObjectList& list = object_lists()[cpu];
     msg->next_ = list.head_;
     list.head_ = msg;

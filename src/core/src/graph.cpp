@@ -1,10 +1,5 @@
 #include <memoria/core/graph/graph.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
-
 
 namespace memoria {
 

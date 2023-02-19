@@ -78,7 +78,7 @@ else()
     link_libraries(ICU::i18n ICU::uc ICU::data)
 endif()
 
-find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS context program_options serialization unit_test_framework filesystem REQUIRED)
 
 find_package(absl CONFIG REQUIRED)
 link_libraries(absl::base absl::strings absl::hash absl::meta absl::time util)
@@ -100,7 +100,7 @@ target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
 target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
-target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options )
+target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options Boost::filesystem)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
 target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja unofficial::hash-library)
 TARGET_COMPILE_DEFINITIONS(MemoriaCodeGen PUBLIC MMA_NO_REACTOR)

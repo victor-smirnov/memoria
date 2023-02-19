@@ -39,10 +39,6 @@
 
 #include <memoria/core/container/ctr_instance_pool.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 #include <vector>
 #include <memory>
 #include <mutex>

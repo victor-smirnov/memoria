@@ -13,17 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
-
-
 #include <memoria/profiles/common/block_operations.hpp>
 #include <memoria/core/tools/dump.hpp>
-
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 
 #include <sstream>
 #include <string>

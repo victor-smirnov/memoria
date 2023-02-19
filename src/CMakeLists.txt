@@ -23,14 +23,13 @@ add_subdirectory(app_init)
 add_subdirectory(core)
 
 
-add_subdirectory(context)
-add_subdirectory(fiber)
+#add_subdirectory(context)
+#add_subdirectory(fiber)
 add_subdirectory(reactor)
-add_subdirectory(filesystem_reactor)
-add_subdirectory(filesystem_common)
-add_subdirectory(filesystem_classic)
+#add_subdirectory(filesystem_reactor)
+#add_subdirectory(filesystem_common)
+#add_subdirectory(filesystem_classic)
 add_subdirectory(hrpc)
-
 
 file(GLOB_RECURSE MAIN_INCLUDES ../include/*.hpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${MAIN_INCLUDES})
@@ -343,15 +342,15 @@ if (BUILD_TESTS)
         add_subdirectory(tests-core)
 
         if (BUILD_TESTS_FIBER)
-            add_subdirectory(tests-other/fiber)
+#            add_subdirectory(tests-other/fiber)
         endif()
 
         if (BUILD_TESTS_REACTOR)
-            add_subdirectory(tests-other/reactor)
+#            add_subdirectory(tests-other/reactor)
         endif()
 
         if (BUILD_TESTS_CONTEXT)
-            add_subdirectory(tests-other/context)
+#            add_subdirectory(tests-other/context)
         endif()
 
         if (BUILD_TESTS_HRPC)

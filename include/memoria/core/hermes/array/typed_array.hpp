@@ -209,7 +209,7 @@ public:
             if (my_size == other.size())
             {
                 for (uint64_t c = 0; c < my_size; c++) {
-                    if (get(c) != other.get(c)) {
+                    if (!(get(c) == other.get(c))) {
                         return false;
                     }
                 }

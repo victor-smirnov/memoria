@@ -36,14 +36,13 @@ class HRPCInputChannelImpl final:
 
     class UnboundedChannel {
         std::list<Message> messages_;
-        fibers::mutex mutex_;
-        fibers::condition_variable waiter_;
+        seastar::condition_variable waiter_;
         bool closed_{};
     public:
 
         void push(Message&& msg) {
             messages_.push_front(std::move(msg));
-            waiter_.notify_all();
+            waiter_.broadcast();
         }
 
         bool pop(Message& target)
@@ -65,13 +64,13 @@ class HRPCInputChannelImpl final:
 
         void close() {
             closed_ = true;
-            waiter_.notify_all();
+            waiter_.broadcast();
         }
 
         void clean_and_close() {
             closed_ = true;
             messages_.clear();
-            waiter_.notify_all();
+            waiter_.broadcast();
         }
 
     private:
@@ -79,11 +78,11 @@ class HRPCInputChannelImpl final:
             return messages_.size() == 0 && !closed_;
         }
 
-        void wait_for_message() {
-            std::unique_lock<fibers::mutex> lk(mutex_);
-            waiter_.wait(lk, [&]() -> bool {
+        void wait_for_message()
+        {
+            waiter_.wait([&]() -> bool {
                 return messages_.size() > 0 || closed_;
-            });
+            }).get();
         }
     };
 

@@ -15,10 +15,6 @@
 
 #include <memoria/core/types.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 namespace memoria {
 
 int64_t DebugCounter = 0;

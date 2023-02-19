@@ -20,8 +20,6 @@
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 #include <memoria/core/tools/optional.hpp>
 
-#include <memoria/reactor/socket.hpp>
-
 #include <boost/asio.hpp>
 
 namespace memoria::hrpc {
@@ -37,7 +35,19 @@ class HRPCServerSocketImpl final:
     TCPServerSocketConfig cfg_;
     PoolSharedPtr<EndpointRepository> endpoints_;
 
-    reactor::ServerSocket socket_;
+    seastar::server_socket socket_;
+
+    static seastar::server_socket make_socket(U8String host, int16_t port)
+    {
+        seastar::listen_options opts;
+        opts.reuse_address = true;
+        return seastar::listen(
+            seastar::socket_address(
+                seastar::ipv4_addr(host.to_std_string(), port)
+            ),
+            opts
+        );
+    }
 
 public:
     HRPCServerSocketImpl(
@@ -45,9 +55,12 @@ public:
             PoolSharedPtr<EndpointRepository> endpoints
     ):
         cfg_(cfg), endpoints_(endpoints),
-        socket_(reactor::IPAddress(cfg_.host().data()), cfg_.port())
+        socket_(make_socket(cfg_.host().data(), cfg_.port()))
     {
     }
+
+
+
 
     PoolSharedPtr<EndpointRepository> service() {
         return endpoints_;
@@ -57,9 +70,7 @@ public:
         return cfg_;
     }
 
-    void listen() override {
-        socket_.listen();
-    }
+    void listen() override {}
 
     PoolSharedPtr<Session> new_session() override;
 };
@@ -70,18 +81,24 @@ public:
 
 class TCPMessageProviderBase: public MessageProvider  {
 protected:
-    BinaryInputStream input_stream_;
-    BinaryOutputStream output_stream_;
+    ss::input_stream<char> input_stream_;
+    ss::output_stream<char> output_stream_;
+    bool closed_{};
 public:
     TCPMessageProviderBase(
-        BinaryInputStream input_stream,
-        BinaryOutputStream output_stream
+        ss::input_stream<char> input_stream,
+        ss::output_stream<char> output_stream
     ):
-        input_stream_(input_stream),
-        output_stream_(output_stream)
-    {}
+        input_stream_(std::move(input_stream)),
+        output_stream_(std::move(output_stream))
+    {
+    }
 
     TCPMessageProviderBase() {}
+
+    bool is_closed() override {
+        return closed_;
+    }
 
     bool needs_session_id() override {
         return false;
@@ -133,25 +150,22 @@ public:
 
 
 class TCPClientMessageProviderImpl final: public TCPMessageProviderBase {
-    reactor::ClientSocket socket_;
+    seastar::connected_socket socket_;
 
 public:
-    TCPClientMessageProviderImpl(reactor::ClientSocket socket);
+    TCPClientMessageProviderImpl(seastar::connected_socket socket);
 
-    void close() noexcept override
-    {
+    void close() noexcept override {
         try {
-            socket_.close();
+            socket_.shutdown_input();
+            socket_.shutdown_output();
+            closed_ = true;
         }
         catch (...) {
-            println("Exception closing TCP client socket");
+            println("Exception closing TCP server connection");
         }
     }
 
-
-    bool is_closed() override {
-        return socket_.is_closed();
-    }
 
     static PoolSharedPtr<MessageProvider> make_instance(TCPClientSocketConfig config);
 };
@@ -159,30 +173,28 @@ public:
 
 class TCPServerMessageProviderImpl final: public TCPMessageProviderBase {
     ServerSocketImplPtr socket_;
-    reactor::ServerSocketConnection connection_;
+    ss::accept_result connection_;
 
 public:
     TCPServerMessageProviderImpl(
         ServerSocketImplPtr socket,
-        reactor::SocketConnectionData&& conn_data
+        ss::accept_result connection
     );
 
     void close() noexcept override {
         try {
-            connection_.close();
+            connection_.connection.shutdown_input();
+            connection_.connection.shutdown_output();
+            closed_ = true;
         }
         catch (...) {
             println("Exception closing TCP server connection");
         }
     }
 
-    bool is_closed() override {
-        return connection_.is_closed();
-    }
-
     static PoolSharedPtr<MessageProvider> make_instance(
         ServerSocketImplPtr socket,
-        reactor::SocketConnectionData&& conn_data
+        ss::accept_result connection
     );
 };
 

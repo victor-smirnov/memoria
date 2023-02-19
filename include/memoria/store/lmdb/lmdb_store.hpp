@@ -300,10 +300,10 @@ public:
     {
         auto name = file_name.to_std_string();
 
-        if (filesystem::exists(name)){
+        if (boost::filesystem::exists(name)){
             uint64_t mdb_block_size = 4096;
 
-            if (filesystem::file_size(name) >= mdb_block_size * 2)
+            if (boost::filesystem::file_size(name) >= mdb_block_size * 2)
             {
                 auto memblock = allocate_system<uint8_t>(mdb_block_size);
 

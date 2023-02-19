@@ -26,7 +26,8 @@
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
 
-#include <memoria/filesystem/path.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -97,7 +98,7 @@ public:
         file_size_(compute_file_size(params.file_size().get()))
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (filesystem::exists(file_name.to_std_string())) {
+            if (boost::filesystem::exists(file_name.to_std_string())) {
                 return MEMORIA_MAKE_GENERIC_ERROR("Provided file {} already exists", file_name);
             }
             acquire_lock(file_name.data(), true);
@@ -123,7 +124,7 @@ public:
             read_only_ = params.is_read_only();
 
             file_       = std::make_unique<boost::interprocess::file_mapping>(file_name_.data(), mapping_params);
-            file_size_  = memoria::filesystem::file_size(file_name_);
+            file_size_  = boost::filesystem::file_size(file_name_.to_std_string());
             check_file_size();
 
             region_ = boost::interprocess::mapped_region(*file_.get(), boost::interprocess::read_write);
@@ -183,8 +184,8 @@ public:
     {
         auto name = file_name.to_std_string();
 
-        if (filesystem::exists(name)){
-            if (filesystem::file_size(name) > BASIC_BLOCK_SIZE * 2)
+        if (boost::filesystem::exists(name)){
+            if (boost::filesystem::file_size(name) > BASIC_BLOCK_SIZE * 2)
             {
                 auto memblock = allocate_system<uint8_t>(BASIC_BLOCK_SIZE);
 

@@ -30,10 +30,6 @@
 #include <memoria/core/memory/object_pool.hpp>
 #include <memoria/core/tools/checks.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 #include <memory>
 #include <typeinfo>
 

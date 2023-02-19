@@ -14,73 +14,55 @@
 // limitations under the License.
 
 
-#include <memoria/reactor/reactor.hpp>
-#include <memoria/reactor/application.hpp>
-#include <memoria/reactor/reactor.hpp>
-#include <memoria/core/tools/time.hpp>
-
-#include <memoria/core/hrpc/hrpc.hpp>
-#include <memoria/core/hrpc/hrpc_async.hpp>
-
 #include <memoria/core/hrpc/hrpc.hpp>
 
 #include <memoria/memoria.hpp>
 
 #include "hrpc_tests_common.hpp"
 
+#include <seastar/core/app-template.hh>
+#include <seastar/core/thread.hh>
+
 using namespace memoria;
-using namespace memoria::reactor;
+namespace ss = seastar;
 
-int main(int argc, char** argv, char** envp) {
-
+int main(int argc, char** argv, char** envp)
+{
     InitMemoriaExplicit();
 
-    boost::program_options::options_description dd;
-    return Application::run_e(
-        dd, argc, argv, envp,
-        []() -> int32_t
+    ss::app_template::seastar_options opts;
+
+    opts.smp_opts.memory_allocator = ss::memory_allocator::standard;
+    opts.smp_opts.smp.set_value(1);
+    opts.smp_opts.thread_affinity.set_value(false);
+
+    ss::app_template app(std::move(opts));
+
+    return app.run(
+        argc, argv,
+        []()
     {
-        ShutdownOnScopeExit hh;
-        engine().println("HRPC Client");
+        return ss::async([]{
+            println("HRPC Client");
 
-        auto endpoints = hrpc::EndpointRepository::make();
+            auto endpoints = hrpc::EndpointRepository::make();
 
-        auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
-        auto session = hrpc::open_tcp_session(client_cfg, endpoints);
+            auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
+            auto session = hrpc::open_tcp_session(client_cfg, endpoints);
 
-        fibers::fiber ff_conn_h([=](){
-            session->handle_messages();
-            println("Client connection is done");
+            seastar::thread ff_conn_h([=](){
+                session->handle_messages();
+                println("Client connection is done");
+            });
+
+            normal_rq_cient(session);
+
+            session->close();
+            ff_conn_h.join().get();
+
+            println("Client is done");
+
+            return 0;
         });
-
-        normal_rq_cient(session);
-
-//        hrpc::Request rq = hrpc::Request::make();
-//        rq.set_output_channels(1);
-
-//        auto call = conn->call(ENDPOINT1, rq, [=](hrpc::Response rs){
-//            println("Response: {}", rs.to_pretty_string());
-//            conn->close();
-//        });
-
-//        this_fiber::yield();
-
-//        auto o_channel = call->output_channel(0);
-
-//        for (int c = 0; c < 3; c++) {
-//            auto batch = hrpc::Message::empty();
-//            o_channel->push(batch);
-//            this_fiber::yield();
-//        }
-
-//        o_channel->close();
-
-//        call->wait();
-
-        session->close();
-
-        ff_conn_h.join();
-
-        return 0;
     });
 }

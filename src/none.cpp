@@ -1,3 +1,3 @@
 namespace {
-void foo() {}
+void no_fn_123456();
 }

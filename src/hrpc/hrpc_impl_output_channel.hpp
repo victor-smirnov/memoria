@@ -32,8 +32,7 @@ class HRPCOutputChannelImpl final:
     uint64_t batch_size_limit_{};
     uint64_t batch_size_{};
 
-    fibers::mutex mutex_;
-    fibers::condition_variable flow_control_;
+    seastar::condition_variable flow_control_;
 
 
 public:

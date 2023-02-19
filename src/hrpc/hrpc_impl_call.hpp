@@ -37,8 +37,7 @@ class HRPCCallImpl final:
 
     CallCompletionFn completion_fn_;
 
-    fibers::mutex mutex_;
-    fibers::condition_variable waiter_;
+    seastar::condition_variable waiter_;
 
 public:
     HRPCCallImpl(

@@ -246,7 +246,7 @@ public:
     {}
 
     void remove_if_exists() {
-        filesystem::remove(file_name_.data());
+        boost::filesystem::remove(file_name_.data());
     }
 
     virtual CtrID ctr_id() {
@@ -293,7 +293,7 @@ public:
 
     virtual StoreT create_store()
     {
-        if (filesystem::exists(file_name_.data())) {
+        if (boost::filesystem::exists(file_name_.data())) {
             return open_store();
         }
 
@@ -324,7 +324,7 @@ public:
 
     virtual StoreT create_store()
     {
-        if (filesystem::exists(file_name_.data())) {
+        if (boost::filesystem::exists(file_name_.data())) {
             return open_store();
         }
 
@@ -355,7 +355,7 @@ public:
 
     virtual StoreT create_store()
     {
-        if (filesystem::exists(file_name_.data())) {
+        if (boost::filesystem::exists(file_name_.data())) {
             return open_store();
         }
 
@@ -386,7 +386,7 @@ public:
     }
 
     void remove_if_exists() {
-        filesystem::remove(file_name_.data());
+        boost::filesystem::remove(file_name_.data());
     }
 
 
@@ -400,7 +400,7 @@ public:
 
     virtual StoreT create_store() {
 
-        if (filesystem::exists(file_name_.data())) {
+        if (boost::filesystem::exists(file_name_.data())) {
             return open_store();
         }
 

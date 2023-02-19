@@ -72,7 +72,7 @@ void HRPCContextImpl::cancel_call()
 
     cancelled_ = true;
     if (cancel_listener_) {
-        reactor::in_fiber(cancel_listener_).detach();
+        (void)seastar::async(cancel_listener_);
     }
 }
 

@@ -25,12 +25,9 @@
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/core/tools/time.hpp>
-#include <memoria/reactor/reactor.hpp>
 
 #include <functional>
 #include <memory>
-
-
 
 namespace memoria {
 namespace tests {
@@ -227,7 +224,7 @@ public:
 
     U8String getResourcePath(const U8String& resource)
     {
-        filesystem::path path = this->working_directory_;
+        boost::filesystem::path path = this->working_directory_;
         path.append(resource.to_std_string());
 
         return path.string();
@@ -235,7 +232,7 @@ public:
 
     template <typename... Args>
     void coutln(const char* format, Args&&... args) {
-        reactor::engine().coutln(format, std::forward<Args>(args)...);
+        println(format, std::forward<Args>(args)...);
     }
 };
 

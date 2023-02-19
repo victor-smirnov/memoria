@@ -53,10 +53,9 @@ void HRPCCallImpl::wait()
 {
     if (response_.is_null())
     {
-        std::unique_lock<fibers::mutex> lk(mutex_);
-        waiter_.wait(lk, [&](){
+        waiter_.wait([&](){
             return response_.is_not_null();
-        });
+        }).get();
     }
 }
 
@@ -78,10 +77,10 @@ void HRPCCallImpl::cancel()
 void HRPCCallImpl::set_response(Response rs)
 {
     response_ = rs;
-    waiter_.notify_all();
+    waiter_.broadcast();
 
     if (completion_fn_) {
-        reactor::engine().in_fiber(completion_fn_, response_).detach();
+        seastar::async(completion_fn_, response_).get();
     }
 }
 

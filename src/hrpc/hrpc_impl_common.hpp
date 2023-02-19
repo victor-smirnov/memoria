@@ -17,12 +17,17 @@
 
 #include <memoria/core/hrpc/hrpc.hpp>
 
-#include <memoria/fiber/fiber.hpp>
-#include <memoria/fiber/condition_variable.hpp>
-
 #include <memoria/core/tools/iostreams.hpp>
 
+#include <seastar/core/seastar.hh>
+#include <seastar/core/reactor.hh>
+#include <seastar/core/thread.hh>
+#include <seastar/core/shared_mutex.hh>
+#include <seastar/net/api.hh>
+
 namespace memoria::hrpc {
+
+namespace ss = seastar;
 
 class HRPCClientSocketImpl;
 using ClientSocketImplPtr = PoolSharedPtr<HRPCClientSocketImpl>;

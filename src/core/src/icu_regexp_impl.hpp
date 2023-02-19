@@ -15,10 +15,6 @@
 
 #include <memoria/core/regexp/icu_regexp.hpp>
 
-#ifndef MMA_NO_REACTOR
-#   include <memoria/reactor/reactor.hpp>
-#endif
-
 namespace memoria {
 
 using RegexMatcher = MMA_ICU_CXX_NS::RegexMatcher;

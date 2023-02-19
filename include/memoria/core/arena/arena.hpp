@@ -469,10 +469,6 @@ private:
         return head().memory.get() + addr;
     }
 
-
-
-
-
     void enlarge_chunk(size_t requested)
     {
         auto& chunk = head();

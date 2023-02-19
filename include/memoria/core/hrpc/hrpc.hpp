@@ -19,8 +19,6 @@
 #include <memoria/core/hrpc/schema.hpp>
 #include <memoria/core/hrpc/exceptions.hpp>
 
-#include <memoria/fiber/future.hpp>
-
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/tools/optional.hpp>
 
