@@ -1,5 +1,5 @@
 
-# Copyright 2016 Victor Smirnov
+# Copyright 2016-2023 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,11 +66,8 @@ option(BUILD_NO_COW_PROFILE     "Build NoCowProfile" ON)
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" ON)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
 option(BUILD_TESTS_CONTAINERS   "Build Containers tests" ON)
-option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
 option(BUILD_TESTS_SDN          "Build Hermes tests" ON)
 option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
-option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
-option(BUILD_TESTS_CONTEXT      "Build Context Switching tests" OFF)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
 option(BUILD_TESTS_HRPC         "Build HRPC Protocol tests" ON)
 

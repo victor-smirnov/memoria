@@ -16,19 +16,21 @@
 #include <memoria/core/memory/shared_ptr.hpp>
 #include <memoria/core/tools/result.hpp>
 
-#include <memoria/reactor/reactor.hpp>
+#include <seastar/core/smp.hh>
+#include <thread>
+
 
 namespace memoria {
 
 std::vector<MemoryObjectList>& MemoryObjectList::object_lists() {
-    int cpus = reactor::engine().cpu_num();
+    int cpus = std::thread::hardware_concurrency();
     static thread_local std::vector<MemoryObjectList> lists(cpus);
     return lists;
 }
 
 void MemoryObjectList::link(MemoryObject* msg)
 {
-    int cpu = reactor::engine().cpu();
+    int cpu = seastar::this_shard_id();
     MemoryObjectList& list = object_lists()[cpu];
     msg->next_ = list.head_;
     list.head_ = msg;

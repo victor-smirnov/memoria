@@ -341,29 +341,13 @@ if (BUILD_TESTS)
     if (BUILD_REACTOR_MEMORIA_LIB)
         add_subdirectory(tests-core)
 
-        if (BUILD_TESTS_FIBER)
-#            add_subdirectory(tests-other/fiber)
-        endif()
-
-        if (BUILD_TESTS_REACTOR)
-#            add_subdirectory(tests-other/reactor)
-        endif()
-
-        if (BUILD_TESTS_CONTEXT)
-#            add_subdirectory(tests-other/context)
-        endif()
-
         if (BUILD_TESTS_HRPC)
             add_subdirectory(tests-other/hrpc)
         endif()
     endif()
-
-    if (BUILD_TESTS_DISRUPTOR)
-        add_subdirectory(tests-other/disruptor)
-    endif()
 endif()
 
-if (BUILD_SANDBOX)    
+if (BUILD_SANDBOX)
     add_subdirectory(sandbox)
 endif()
 
