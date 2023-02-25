@@ -54,7 +54,7 @@ public:
     virtual void release() noexcept = 0;
 };
 
-void release(MemoriaError* error) noexcept;
+void release(MemoriaError* error ) noexcept;
 
 using MemoriaErrorPtr = std::unique_ptr<MemoriaError, std::function<void(MemoriaError*)>>;
 

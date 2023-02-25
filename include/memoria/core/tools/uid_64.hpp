@@ -234,6 +234,15 @@ struct FromString<UID64> {
 template <>
 struct DataTypeTraits<UID64>: FixedSizeDataTypeTraits<UID64, UID64> {};
 
+template <>
+struct DataTypeTraits<Uid64>: FixedSizeDataTypeTraits<UID64, Uid64> {};
+
+template <>
+struct ViewToDTMapping<UID64>: HasType<Uid64> {};
+
+template <>
+struct ViewToDTMapping<FxdSizeView<UID64, ViewKind::BY_VALUE>>: HasType<Uid64> {};
+
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UID64>& block_id_value) noexcept;
 
 static inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const CowBlockID<UID64>& value)

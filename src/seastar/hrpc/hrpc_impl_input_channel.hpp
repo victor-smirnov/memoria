@@ -60,7 +60,7 @@ class HRPCInputChannelImpl final:
             return false;
         }
 
-        bool is_closed() const {return closed_;}
+        bool is_closed() const {return closed_ && messages_.empty();}
 
         void close() {
             closed_ = true;

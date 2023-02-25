@@ -203,6 +203,8 @@ find_package(unofficial-hash-library CONFIG REQUIRED)
 
 link_libraries(unofficial::hash-library)
 
+find_package(Catch2 CONFIG REQUIRED)
+
 
 find_package(Seastar REQUIRED)
 

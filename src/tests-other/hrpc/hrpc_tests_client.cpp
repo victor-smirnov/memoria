@@ -23,52 +23,54 @@
 #include <seastar/core/app-template.hh>
 #include <seastar/core/thread.hh>
 
+#include <catch2/catch_session.hpp>
+
 using namespace memoria;
 namespace ss = seastar;
 
 int main(int argc, char** argv, char** envp)
 {
-
-
     ss::app_template::seastar_options opts;
-
     opts.smp_opts.memory_allocator = ss::memory_allocator::standard;
     opts.smp_opts.smp.set_value(1);
     opts.smp_opts.thread_affinity.set_value(false);
 
     ss::app_template app(std::move(opts));
 
-    int code = app.run(
+    return app.run(
         argc, argv,
-        []()
+        [&]()
     {
         InitMemoriaExplicit();
 
-        return ss::async([]{
-            println("HRPC Client");
+        return ss::async([&]{
+            println("HRPC Client running Catch2 tests");
 
             auto endpoints = hrpc::EndpointRepository::make();
 
             auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
             auto session = hrpc::open_tcp_session(client_cfg, endpoints);
 
+            set_session(session);
+            auto dtr = MakeOnScopeExit([]{
+                set_session(SessionPtr{});
+            });
+
             seastar::thread ff_conn_h([=](){
                 session->handle_messages();
                 println("Client connection is done");
             });
 
-            normal_rq_cient(session);
+            const char* argv0[] = {"test", 0};
+            int result = Catch::Session().run( 1, argv0 );
 
             session->close();
+            println("Session has been closed");
             ff_conn_h.join().get();
 
             println("Client is done");
 
-            return 0;
+            return result;
         });
     });
-
-    println("Seastar is done");
-
-    return code;
 }

@@ -56,6 +56,10 @@ int main(int argc, char** argv, char** envp) {
             auto endpoints = hrpc::EndpointRepository::make();
 
             endpoints->add_handler(NORMAL_RQ_TEST, normal_rq_handler);
+            endpoints->add_handler(ERRORS_TEST, errors_handler);
+            endpoints->add_handler(INPUT_CHANNEL_TEST, input_stream_handler);
+            endpoints->add_handler(OUTPUT_CHANNEL_TEST, output_stream_handler);
+            endpoints->add_handler(CANCEL_RQ_TEST, cancel_rq_handler);
 
             auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
             auto server = hrpc::make_tcp_server(server_cfg, endpoints);

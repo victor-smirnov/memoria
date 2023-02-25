@@ -1,5 +1,5 @@
 
-# Copyright 2017 Victor Smirnov
+# Copyright 2023 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *_test.cpp)
+file(GLOB SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *_test.cpp hrpc_tests_common.cpp)
 
 
 add_executable(hrpc_tests_server hrpc_tests_server.cpp ${SRCS})
 SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+target_link_libraries(hrpc_tests_server MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit Catch2::Catch2)
 
-target_link_libraries(hrpc_tests_server MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit)
 
 add_executable(hrpc_tests_client hrpc_tests_client.cpp ${SRCS})
 SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
-target_link_libraries(hrpc_tests_client MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit)
+target_link_libraries(hrpc_tests_client MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit Catch2::Catch2)

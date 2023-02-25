@@ -19,13 +19,23 @@ namespace memoria {
 
 using namespace hrpc;
 
-Response normal_rq_handler(ContextPtr context)
+Response cancel_rq_handler(ContextPtr context)
 {
-    int arg1 = context->request().parameters().get(ARG1).to_i32();
-    int arg2 = context->request().parameters().get(ARG2).to_i32();
+    bool cancelled = false;
+    context->set_cancel_listener([&]{
+        cancelled = true;
+    });
 
-    auto rs = Response::ok(arg1 + arg2);
-    return rs;
+    auto ch = context->input_channel(0);
+    Message msg;
+    while (ch->pop(msg)) {}
+
+    if (!context->is_cancelled()) {
+        MEMORIA_MAKE_GENERIC_ERROR("'cancelled' flag must be set here").do_throw();
+    }
+    else {
+        return Response::ok(cancelled);
+    }
 }
 
 }
@@ -33,20 +43,23 @@ Response normal_rq_handler(ContextPtr context)
 using namespace memoria;
 using namespace memoria::hrpc;
 
-TEST_CASE( "Normal HRPC request" ) {
+TEST_CASE( "Cancel request" ) {
     auto rq = Request::make();
 
-    rq.set_parameter(ARG1, 1);
-    rq.set_parameter(ARG2, 2);
+    rq.set_output_channels(1);
 
-    auto call = session()->call(NORMAL_RQ_TEST, rq);
+    auto call = session()->call(CANCEL_RQ_TEST, rq);
+
+    call->cancel();
+    call->output_channel(0)->close();
+
     call->wait();
 
     hrpc::Response rs = call->response();
     REQUIRE(rs.status_code() == hrpc::StatusCode::OK);
 
-    int32_t result = rs.result().cast_to<Integer>().value_t();
-    REQUIRE(result == 3);
+    bool result = rs.result().to_bool();
+    CHECK(result == true);
 }
 
 

@@ -33,6 +33,8 @@
 #include <iostream>
 #include <type_traits>
 
+
+
 namespace memoria {
 
 class UID256;
@@ -436,6 +438,9 @@ struct FromString<UID256> {
 template <>
 struct DataTypeTraits<UID256>: FixedSizeDataTypeTraits<UID256, UID256> {};
 
+template <>
+struct DataTypeTraits<Uid256>: FixedSizeDataTypeTraits<UID256, Uid256> {};
+
 std::ostream& operator<<(std::ostream& out, const BlockIDValueHolder<UID256>& block_id_value) noexcept;
 
 static inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const CowBlockID<UID256>& value)
@@ -445,6 +450,13 @@ static inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const Co
     }
     return out;
 }
+
+
+template <>
+struct ViewToDTMapping<UID256>: HasType<Uid256> {};
+
+template <>
+struct ViewToDTMapping<FxdSizeView<UID256, ViewKind::BY_VALUE>>: HasType<Uid256> {};
 
 
 UID256& get_debug_uid256_0();

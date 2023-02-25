@@ -22,6 +22,9 @@
 
 #include <memoria/core/hermes/hermes.hpp>
 
+#include <memoria/core/tools/uid_256.hpp>
+#include <memoria/core/tools/uid_64.hpp>
+
 #include <stdlib.h>
 #include <string>
 
@@ -72,6 +75,19 @@ struct ToPlainStringConverter<Hermes> {
 };
 
 
+template <>
+struct ToPlainStringConverter<Uid256> {
+    static U8String to_string(DTTViewType<Uid256> view) {
+        return view.str();
+    }
+};
+
+template <>
+struct ToPlainStringConverter<Uid64> {
+    static U8String to_string(DTTViewType<Uid64> view) {
+        return view.str();
+    }
+};
 
 template <>
 struct FromPlainStringConverter<Varchar> {
@@ -198,6 +214,22 @@ struct FromPlainStringConverter<Hermes> {
     }
 };
 
+
+template <>
+struct FromPlainStringConverter<Uid256> {
+    static hermes::Object from_string(U8StringView str) {
+        auto val = UID256::parse(str);
+        return hermes::HermesCtrView::wrap_dataobject<Uid256>(val);
+    }
+};
+
+template <>
+struct FromPlainStringConverter<Uid64> {
+    static hermes::Object from_string(U8StringView str) {
+        auto val = UID64::parse(str);
+        return hermes::HermesCtrView::wrap_dataobject<Uid64>(val);
+    }
+};
 
 template <typename ToDT>
 struct DatatypeConverter<Varchar, ToDT>: IDatatypeConverter {

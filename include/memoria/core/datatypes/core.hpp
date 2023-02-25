@@ -49,6 +49,10 @@ struct TimeWithTZ {};
 struct Boolean   {};
 struct Hermes    {};
 
+struct Uid256    {};
+struct Uid128    {};
+struct Uid64     {};
+
 // TODO: May be Hermes Datatypes, but
 // should not have unprefixed aliases
 struct UID64CowBlockID {};
@@ -191,12 +195,21 @@ template <>
 struct TypeHash<Decimal>: UInt64Value<39> {};
 
 
+template <>
+struct TypeHash<Uid256>: UInt64Value<40> {};
+
+template <>
+struct TypeHash<Uid128>: UInt64Value<41> {};
+
+template <>
+struct TypeHash<Uid64>: UInt64Value<42> {};
+
 
 template <>
 struct TypeHash<CoreApiProfileDT>: UInt64Value<75796829474235345ull> {};
 
 using AllHermesDatatypes = TL<
-    Varchar, BigInt, UBigInt, Boolean, Double, Real, TinyInt, UTinyInt, SmallInt, USmallInt, Integer, UInteger, Hermes
+    Varchar, BigInt, UBigInt, Boolean, Double, Real, TinyInt, UTinyInt, SmallInt, USmallInt, Integer, UInteger, Hermes, Uid256, Uid64
 >;
 
 using IntegerNumericDatatypes = TL<

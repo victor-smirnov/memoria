@@ -20,6 +20,9 @@
 #include <memoria/core/datatypes/reflection.hpp>
 #include <memoria/core/datatypes/core.hpp>
 
+#include <memoria/core/tools/uid_256.hpp>
+#include <memoria/core/tools/uid_64.hpp>
+
 #include "reflection_internal.hpp"
 
 namespace memoria {

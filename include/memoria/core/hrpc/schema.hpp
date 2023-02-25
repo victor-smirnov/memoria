@@ -103,38 +103,156 @@ public:
     }
 };
 
-enum class ErrorCode: uint32_t {
-    GENERIC = 0
+enum class ErrorType: uint32_t {
+    MEMORIA, HRPC, BOOST, CXX_STD, CXX_SYSTEM, UNKNOWN
 };
 
 
 class Error: public hermes::TinyObjectBase {
 public:
-    static constexpr NamedCode CODE         = NamedCode(1, "code");
+    static constexpr NamedCode TYPE         = NamedCode(1, "type");
     static constexpr NamedCode DESCRIPTION  = NamedCode(2, "description");
-protected:    
 public:
     Error() {}
     Error(hermes::TinyObjectMap object):
         hermes::TinyObjectBase(std::move(object))
     {}
 
-    ErrorCode code() const {
-        return (ErrorCode)object_.get(CODE).cast_to<UInteger>().value_t();
+    ErrorType type() const {
+        return (ErrorType)object_.get(TYPE).cast_to<UInteger>().value_t();
     }
 
     U8StringOView description() const {
         return object_.get(DESCRIPTION).cast_to<Varchar>();
     }
 
-    void set_code(ErrorCode code) {
-        object_.put_t<UInteger>(CODE, (uint32_t)code);
+    void set_type(ErrorType type) {
+        object_.put_t<UInteger>(TYPE, (uint32_t)type);
     }
 
     void set_description(U8StringView descr) {
-        object_.put_t<Varchar>(CODE, descr);
+        object_.put_t<Varchar>(DESCRIPTION, descr);
     }
 };
+
+class CxxSystemError: public Error {
+public:
+    static constexpr NamedCode CODE                 = NamedCode(3, "code");
+    static constexpr NamedCode MESSAGE              = NamedCode(4, "message");
+    static constexpr NamedCode CATEGORY             = NamedCode(5, "category");
+    static constexpr NamedCode CONDITION_CODE       = NamedCode(6, "condition_code");
+    static constexpr NamedCode CONDITION_MESSAGE    = NamedCode(7, "condition_message");
+    static constexpr NamedCode CONDITION_CATEGORY   = NamedCode(8, "condition_category");
+
+public:
+    CxxSystemError() {}
+    CxxSystemError(hermes::TinyObjectMap object):
+        Error(std::move(object))
+    {}
+
+    CxxSystemError(hermes::HermesCtr ctr, const std::system_error& err):
+        Error(std::move(ctr.make_tiny_map()))
+    {
+        set_type(ErrorType::CXX_SYSTEM);
+        set_description(err.what());
+
+        set_code(err.code().value());
+        set_message(err.code().message());
+        set_categorty(err.code().category().name());
+
+        set_condition_code(err.code().default_error_condition().value());
+        set_condition_message(err.code().default_error_condition().message());
+        set_condition_categorty(err.code().default_error_condition().category().name());
+    }
+
+    int32_t code() const {
+        return object_.get(CODE).cast_to<Integer>();
+    }
+
+    U8StringOView message() const {
+        return object_.get(MESSAGE).cast_to<Varchar>();
+    }
+
+    U8StringOView category() const {
+        return object_.get(CATEGORY).cast_to<Varchar>();
+    }
+
+    int32_t condition_code() const {
+        return object_.get(CONDITION_CODE).cast_to<Integer>();
+    }
+
+    U8StringOView condition_message() const {
+        return object_.get(CONDITION_MESSAGE).cast_to<Varchar>();
+    }
+
+    U8StringOView condition_category() const {
+        return object_.get(CONDITION_CATEGORY).cast_to<Varchar>();
+    }
+
+    void set_code(int32_t code) {
+        object_.put_t<Integer>(CODE, (int32_t)code);
+    }
+
+    void set_message(U8StringView txt) {
+        object_.put_t<Varchar>(MESSAGE, txt);
+    }
+
+    void set_categorty(U8StringView cat) {
+        object_.put_t<Varchar>(CATEGORY, cat);
+    }
+
+    void set_condition_code(int32_t code) {
+        object_.put_t<Integer>(CONDITION_CODE, (int32_t)code);
+    }
+
+    void set_condition_message(U8StringView txt) {
+        object_.put_t<Varchar>(CONDITION_MESSAGE, txt);
+    }
+
+    void set_condition_categorty(U8StringView cat) {
+        object_.put_t<Varchar>(CONDITION_CATEGORY, cat);
+    }
+};
+
+enum class HrpcErrors: int32_t {
+    INVALID_ENDPOINT,
+    OTHER
+};
+
+class HrpcError: public Error {
+public:
+    static constexpr NamedCode CODE = NamedCode(3, "code");
+    static constexpr NamedCode ENDPOINT_ID = NamedCode(4, "endpoint_id");
+
+    HrpcError() {}
+    HrpcError(hermes::TinyObjectMap object):
+        Error(std::move(object))
+    {}
+
+    HrpcErrors code() const {
+        return (HrpcErrors)object_.get(CODE).to_i32();
+    }
+
+    Optional<EndpointID> endpoint_id() const
+    {
+        auto obj = object_.get(ENDPOINT_ID);
+        if (obj.is_not_empty()) {
+            return obj.cast_to<typename ViewToDTMapping<EndpointID>::Type>().value_t();
+        }
+        else {
+            return {};
+        }
+    }
+
+    void set_code(HrpcErrors code) {
+        object_.put_t<Integer>(CODE, (int32_t)code);
+    }
+
+    void set_endpoint_id(const EndpointID& endpoint_id) {
+        object_.put(ENDPOINT_ID, endpoint_id);
+    }
+};
+
 
 
 enum class StatusCode: uint32_t {
@@ -192,6 +310,61 @@ public:
 
     void set_error(const Error& error) {
         object_.put(ERROR, error.object());
+    }
+
+    Error set_error()
+    {
+        Error error(object_.ctr().make_tiny_map());
+        object_.put(ERROR, error.object());
+        return error;
+    }
+
+    Error set_error(ErrorType type)
+    {
+        Error error(object_.ctr().make_tiny_map());
+        error.set_type(type);
+        object_.put(ERROR, error.object());
+        return error;
+    }
+
+    Error set_error(ErrorType type, U8StringView descr)
+    {
+        Error error(object_.ctr().make_tiny_map());
+        error.set_type(type);
+        error.set_description(descr);
+        object_.put(ERROR, error.object());
+        return error;
+    }
+
+    CxxSystemError set_system_error()
+    {
+        CxxSystemError error(object_.ctr().make_tiny_map());
+        error.set_type(ErrorType::CXX_SYSTEM);
+        object_.put(ERROR, error.object());
+        return error;
+    }
+
+    CxxSystemError set_error(const std::system_error& err)
+    {
+        CxxSystemError error(object_.ctr(), err);
+        object_.put(ERROR, error.object());
+        return error;
+    }
+
+    HrpcError set_hrpc_error(HrpcErrors code)
+    {
+        HrpcError error(object_.ctr().make_tiny_map());
+        error.set_type(ErrorType::HRPC);
+        error.set_code(code);
+        object_.put(ERROR, error.object());
+        return error;
+    }
+
+    HrpcError set_hrpc_error(HrpcErrors code, U8StringView descr)
+    {
+        auto error = set_hrpc_error(code);
+        error.set_description(descr);
+        return error;
     }
 
     static Response make_empty()
