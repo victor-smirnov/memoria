@@ -4,7 +4,7 @@ build.sh
 .kdev*
 .vs*
 CMakeSettings.json
-/*.user*
+CMakeLists.txt.user
 dist/
 _build/
 _generate/
