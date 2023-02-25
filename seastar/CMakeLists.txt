@@ -17,14 +17,14 @@ file(GLOB_RECURSE LIB_SOURCES *.cpp)
 file(GLOB_RECURSE LIB_HEADERS *.hpp)
 
 add_library(MemoriaSeastar STATIC )
-SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
 SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(MemoriaSeastar MemoriaCore Seastar::seastar)
 
-set_property(TARGET MemoriaSeastar PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+target_link_libraries(MemoriaSeastar MemoriaCore Seastar::seastar)
+target_include_directories(MemoriaSeastar PUBLIC include)
+
+set_target_properties(MemoriaSeastar PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
 target_sources(
     MemoriaSeastar

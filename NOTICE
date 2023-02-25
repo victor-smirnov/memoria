@@ -2,8 +2,6 @@ Different part of this package come under different licenses.
 
 Memoria itself is under Apache 2.0 license.
 
-LMDB database is under The OpenLDAP Public License. See licences/LICENCE.lmdb for details.
-
 Check file headers to get the exact conditions those sources may be used under.
 
 Flat_hash_map/flat_hash_set is under Copyright Malte Skarupke 2017, see licences/LICENCE_1_0.txt

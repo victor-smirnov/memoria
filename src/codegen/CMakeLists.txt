@@ -106,9 +106,6 @@ target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
 target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
 
-
-target_compile_options(MemoriaCodeGen PRIVATE -v)
-
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options Boost::filesystem)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
 target_link_libraries(MemoriaCodeGen PRIVATE pantor::inja unofficial::hash-library)

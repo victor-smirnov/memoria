@@ -20,9 +20,6 @@ include_directories(../generated)
 include_directories(../codegen)
 
 add_subdirectory(app_init)
-add_subdirectory(seastar)
-
-
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
     add_subdirectory(codegen)

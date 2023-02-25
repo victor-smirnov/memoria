@@ -183,22 +183,10 @@ endif()
 
 find_package(Boost 1.74.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
-if (MSVC)
-    link_libraries(Boost::program_options Boost::serialization Boost::unit_test_framework)
-endif()
-
-include_directories(${Boost_INCLUDE_DIRS})
-
-link_directories(${Boost_LIBRARY_DIRS})
 link_libraries(Boost::program_options Boost::serialization Boost::filesystem)
-
-include_directories(${ICU_INCLUDE_DIRS})
-link_directories(${ICU_LIBRARY_DIRS})
-
 
 
 find_package(Catch2 CONFIG REQUIRED)
-
 
 find_package(Seastar REQUIRED)
 
@@ -218,6 +206,6 @@ set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_SEASTAR ${MAIN_INCLUDES}
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 get_property(GLOBAL_SEASTAR_SRCS GLOBAL PROPERTY GLOBAL_SEASTAR_SOURCES)
 
-
 add_subdirectory(core)
+add_subdirectory(seastar)
 add_subdirectory(src)

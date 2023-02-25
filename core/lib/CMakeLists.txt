@@ -25,8 +25,12 @@ target_include_directories(MemoriaCore PUBLIC include)
 
 SET_TARGET_PROPERTIES(MemoriaCore PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
-target_link_libraries(MemoriaCore absl::base absl::strings absl::hash absl::meta absl::time)
-target_link_libraries(MemoriaCore fmt::fmt unofficial::hash-library)
+
+target_link_libraries(MemoriaCore PUBLIC absl::base absl::strings absl::hash absl::meta absl::time)
+target_link_libraries(MemoriaCore PUBLIC fmt::fmt)
+target_link_libraries(MemoriaCore PUBLIC Boost::filesystem)
+
+target_link_libraries(MemoriaCore PRIVATE unofficial::hash-library)
 
 file(GLOB_RECURSE LIB_HEADERS "include/*.*" "../../include/*.*")
 target_sources(
