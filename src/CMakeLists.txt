@@ -20,15 +20,8 @@ include_directories(../generated)
 include_directories(../codegen)
 
 add_subdirectory(app_init)
-add_subdirectory(core)
 add_subdirectory(seastar)
 
-file(GLOB_RECURSE MAIN_INCLUDES ../include/*.hpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${MAIN_INCLUDES})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_SEASTAR ${MAIN_INCLUDES})
-
-get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
-get_property(GLOBAL_SEASTAR_SRCS GLOBAL PROPERTY GLOBAL_SEASTAR_SOURCES)
 
 
 if (BUILD_CODEGENERATOR_EXPLICITLY)
@@ -228,8 +221,6 @@ add_subdirectory(containers)
 add_subdirectory(stores)
 
 
-add_library(MemoriaCore STATIC ${GLOBAL_CORE_SRCS})
-
 get_property(GLOBAL_INIT_SRCS GLOBAL PROPERTY GLOBAL_INIT_SOURCES)
 get_property(GLOBAL_CONTAINERS_SRCS GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES)
 get_property(GLOBAL_SRORES_SRCS GLOBAL PROPERTY GLOBAL_STORES_SOURCES)
@@ -257,14 +248,9 @@ target_link_libraries(MemoriaCtrs MemoriaCore)
 target_link_libraries(MemoriaStores MemoriaCore)
 target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
 
-target_sources(MemoriaCore PUBLIC ${MAIN_INCLUDES})
-
-add_library(MemoriaSeastar STATIC ${GLOBAL_SEASTAR_SRCS})
 target_sources(MemoriaSeastar PUBLIC ${MAIN_INCLUDES})
-
 SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
 target_link_libraries(MemoriaSeastar MemoriaCore Seastar::seastar)
 
 set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})

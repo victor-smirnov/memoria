@@ -18,7 +18,7 @@
 # MEMORIA_COMPILE_FLAGS            Additional flags for compiler
 # MEMORIA_LINK_FLAGS               Additional flags for linker
 
-cmake_minimum_required (VERSION 3.6)
+cmake_minimum_required (VERSION 3.16)
 project (Memoria)
 
 set(VERSION "0.1.0")
@@ -74,6 +74,8 @@ option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+
 
 set (BUILD_POSIX  FALSE)
 set (BUILD_MSVC   FALSE)
@@ -214,5 +216,16 @@ endif()
 
 find_package(Qt5 COMPONENTS Widgets QUIET)
 
+
+
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
+file(GLOB_RECURSE MAIN_INCLUDES include/*.hpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${MAIN_INCLUDES})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_SEASTAR ${MAIN_INCLUDES})
+
+get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
+get_property(GLOBAL_SEASTAR_SRCS GLOBAL PROPERTY GLOBAL_SEASTAR_SOURCES)
+
+
+add_subdirectory(core)
 add_subdirectory(src)

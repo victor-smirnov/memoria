@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (BUILD_POSIX)
-    add_subdirectory(posix)
-endif()
 
-if (BUILD_MSVC)
-    add_subdirectory(msvc)
-endif()
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES ${SRCS})

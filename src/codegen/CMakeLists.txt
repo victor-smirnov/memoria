@@ -41,7 +41,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Memoria.cmake)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(../../include)
-include_directories(../core/include)
+include_directories(../../core/include)
 
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
@@ -92,9 +92,16 @@ find_package(unofficial-hash-library CONFIG REQUIRED)
 
 STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
 
-file(GLOB CTRGEN_SRCS *.cpp)
-add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${MEMORIA_CORE_SRCS})
+set(CORE_PATH ../../core)
 
+file(GLOB_RECURSE  MEMORIA_CORE_LIB_SRCS ${CORE_PATH}/lib/*.*)
+
+
+file(GLOB CTRGEN_SRCS *.cpp)
+add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${MEMORIA_CORE_SRCS} ${MEMORIA_CORE_LIB_SRCS})
+
+target_include_directories(MemoriaCodeGen PRIVATE ${CORE_PATH}/include)
+target_include_directories(MemoriaCodeGen PRIVATE ../../include)
 target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
 target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
