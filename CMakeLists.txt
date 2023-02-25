@@ -50,7 +50,6 @@ option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
-option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
 
 option(BUILD_WITH_STATIC_BOOST     "Use static boost libraries" OFF)
 option(BUILD_EXTRA_CONTAINERS      "Build additional containers" ON)
@@ -104,23 +103,8 @@ if (BUILD_POSIX)
 
     add_definitions(-DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6)
 
-    if (BUILD_EMIT_LLVM)
-        set (CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -flto -fuse-ld=lld -Wl,-save-temps")
-        add_definitions(-Wl,-save-temps -flto)
-    endif()
-
-    #add_definitions(-stdlib=libc++)
-    #add_definitions(-stdlib=libstdc++)
-
     add_definitions(-march=native -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
-
-    if (BUILD_MACOSX)
-        add_definitions(-DBOOST_STACKTRACE_USE_ADDR2LINE)
-    else()
-        #add_global_linker(-stdlib=libstdc++)
-        #add_global_linker(-static-libstdc++)
-    endif()
 
     add_definitions(-Wstringop-overflow=1 -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
@@ -162,41 +146,11 @@ else()
     add_definitions(-DDLLEXPORT -DNOMINMAX /bigobj)
 endif()
 
-
-#set (Boost_USE_DEBUG_LIBS	 ON)
-#set (Boost_USE_RELEASE_LIBS	 ON)
-#set (Boost_USE_DEBUG_RUNTIME	 ON)
-#set (Boost_USE_MULTITHREADED     ON)
-
-if (MSVC)
-    set (Boost_USE_STATIC_RUNTIME    ON)
-    set (Boost_USE_STATIC_LIBS       ON)
-    find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
-    link_libraries(ICU::dt ICU::uc ICU::i18n)
-
-else()
-#    set (Boost_USE_STATIC_RUNTIME    ${BUILD_WITH_STATIC_BOOST})
-#    set (Boost_USE_STATIC_LIBS       ${BUILD_WITH_STATIC_BOOST})
-    find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
-    link_libraries(ICU::i18n ICU::uc ICU::data)
-endif()
-
-find_package(Boost 1.74.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
-
-link_libraries(Boost::program_options Boost::serialization Boost::filesystem)
-
+find_package(Boost 1.74.0 COMPONENTS filesystem program_options serialization unit_test_framework REQUIRED)
 
 find_package(Catch2 CONFIG REQUIRED)
 
-find_package(Seastar REQUIRED)
-
-if (BUILD_TESTS)
-    find_package(yaml-cpp CONFIG REQUIRED)
-endif()
-
 find_package(Qt5 COMPONENTS Widgets QUIET)
-
-
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 file(GLOB_RECURSE MAIN_INCLUDES include/*.hpp)

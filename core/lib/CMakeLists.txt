@@ -16,6 +16,7 @@
 find_package(absl CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(unofficial-hash-library CONFIG REQUIRED)
+find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 
 file(GLOB_RECURSE LIB_SOURCES *.cpp *.hpp hermes/*.cpp platforms/posix/*.cpp)
 
@@ -29,6 +30,7 @@ set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD
 target_link_libraries(MemoriaCore PUBLIC absl::base absl::strings absl::hash absl::meta absl::time)
 target_link_libraries(MemoriaCore PUBLIC fmt::fmt)
 target_link_libraries(MemoriaCore PUBLIC Boost::filesystem)
+target_link_libraries(MemoriaCore PUBLIC ICU::i18n ICU::uc ICU::data)
 
 target_link_libraries(MemoriaCore PRIVATE unofficial::hash-library)
 
