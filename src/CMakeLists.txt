@@ -223,52 +223,33 @@ add_subdirectory(stores)
 
 get_property(GLOBAL_INIT_SRCS GLOBAL PROPERTY GLOBAL_INIT_SOURCES)
 get_property(GLOBAL_CONTAINERS_SRCS GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES)
-get_property(GLOBAL_SRORES_SRCS GLOBAL PROPERTY GLOBAL_STORES_SOURCES)
 
 add_library(MemoriaInit STATIC ${GLOBAL_INIT_SRCS})
 add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_MAIN_SOURCES} none.cpp)
-add_library(MemoriaStores STATIC ${GLOBAL_SRORES_SRCS} ${GENERATED_STORE_SOURCES})
 
-target_include_directories(MemoriaStores PRIVATE "stores/lmdb")
 
 SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-SET_TARGET_PROPERTIES(MemoriaCore PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} ")
-SET_TARGET_PROPERTIES(MemoriaCore PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
 SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
 target_link_libraries(MemoriaCore ${MEMORIA_LIBS})
 target_link_libraries(MemoriaCtrs MemoriaCore)
-target_link_libraries(MemoriaStores MemoriaCore)
 target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
 
-target_sources(MemoriaSeastar PUBLIC ${MAIN_INCLUDES})
-SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(MemoriaSeastar MemoriaCore Seastar::seastar)
-
-set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
-set_property(TARGET MemoriaInit MemoriaCtrs MemoriaStores MemoriaSeastar PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_property(TARGET MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
 export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores MemoriaSeastar FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
-
-
 
 if (BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-
 if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
-
 
 if (BUILD_TESTS)     
     add_subdirectory(tests-core)
@@ -277,7 +258,6 @@ if (BUILD_TESTS)
             add_subdirectory(tests-other/hrpc)
     endif()
 endif()
-
 
 if (BUILD_SANDBOX)
     add_subdirectory(sandbox)

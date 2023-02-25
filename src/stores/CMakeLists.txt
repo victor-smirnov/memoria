@@ -12,24 +12,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_library(MemoriaStores STATIC )
+
 if (NO_COW_PROFILE)
-    add_subdirectory(lmdb)
+    find_package(lmdb REQUIRED)
+
+    file (GLOB LMDB_SOURCES lmdb/*.cpp lmdb/*.c)
+    file (GLOB_RECURSE LMDB_HEADERS lmdb/*.hpp lmdb/*.h)
+
+    target_link_libraries(MemoriaStores PRIVATE lmdb)
+    target_include_directories(MemoriaStores PRIVATE lmdb)
 endif()
 
 if (COW_PROFILE)
-    add_subdirectory(memory_cow_threads)
-    add_subdirectory(swmr_mapped)
+    file (GLOB_RECURSE MEMORY_COW_THREADS_SOURCES memory_cow_threads/*.cpp)
+    file (GLOB_RECURSE MEMORY_COW_THREADS_HEADERS memory_cow_threads/*.hpp)
+    target_include_directories(MemoriaStores PRIVATE memory_cow_threads)
+
+    file (GLOB_RECURSE MEMORY_SWMR_MAPPED_SOURCES swmr_mapped/*.cpp)
+    file (GLOB_RECURSE MEMORY_SWMR_MAPPED_HEADERS swmr_mapped/*.hpp)
+    target_include_directories(MemoriaStores PRIVATE swmr_mapped)
 endif()
 
 if (COW_LITE_PROFILE)
-    add_subdirectory(swmr_fibers)
-    add_subdirectory(swmr_lite_fibers)
-    add_subdirectory(swmr_lite_mapped)
-    add_subdirectory(swmr_lite_raw)
+    file (GLOB_RECURSE SWMR_FIBERS_SOURCES swmr_fibers/*.cpp)
+    file (GLOB_RECURSE SWMR_FIBERS_HEADERS swmr_fibers/*.hpp)
+    target_include_directories(MemoriaStores PRIVATE swmr_fibers)
+
+    file (GLOB_RECURSE SWMR_LITE_FIBERS_SOURCES swmr_lite_fibers/*.cpp)
+    file (GLOB_RECURSE SWMR_LITE_FIBERS_HEADERS swmr_lite_fibers/*.hpp)
+    target_include_directories(MemoriaStores PRIVATE swmr_lite_fibers)
+
+    file (GLOB_RECURSE SWMR_LITE_MAPPED_SOURCES swmr_lite_mapped/*.cpp)
+    file (GLOB_RECURSE SWMR_LITE_MAPPED_HEADERS swmr_lite_mapped/*.hpp)
+    target_include_directories(MemoriaStores PRIVATE swmr_lite_mapped)
+
+    file (GLOB_RECURSE SWMR_LITE_RAW_SOURCES swmr_lite_raw/*.cpp)
+    file (GLOB_RECURSE SWMR_LITE_RAW_HEADERS swmr_lite_raw/*.hpp)
+    target_include_directories(MemoriaStores PRIVATE swmr_lite_raw)
 endif()
 
-add_subdirectory(common)
+file (GLOB_RECURSE COMMON_SOURCES common/*.cpp)
+file (GLOB_RECURSE COMMON_HEADERS common/*.hpp)
 
-file(GLOB SRCS *.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES ${SRCS})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_STORES_SOURCES_REACTOR ${SRCS})
+SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+set_property(TARGET MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+target_link_libraries(MemoriaStores PUBLIC MemoriaCore)
+target_include_directories(MemoriaStores PUBLIC ../../include)
+
+file (GLOB LIB_SOURCES *.cpp)
+file (GLOB LIB_HEADERS *.hpp)
+
+target_sources(
+    MemoriaStores
+    PRIVATE
+        ${LIB_SOURCES} ${LIB_HEADERS}
+        ${LMDB_SOURCES} ${LMDB_HEADERS}
+        ${MEMORY_COW_THREADS_SOURCES} ${MEMORY_COW_THREADS_HEADERS}
+        ${MEMORY_SWMR_MAPPED_SOURCES} ${MEMORY_SWMR_MAPPED_HEADERS}
+        ${SWMR_FIBERS_SOURCES} ${SWMR_FIBERS_HEADERS}
+        ${SWMR_LITE_FIBERS_SOURCES} ${SWMR_LITE_FIBERS_HEADERS}
+        ${SWMR_LITE_MAPPED_SOURCES} ${SWMR_LITE_MAPPED_HEADERS}
+        ${SWMR_LITE_RAW_SOURCES} ${SWMR_LITE_RAW_HEADERS}
+        ${GENERATED_STORE_SOURCES}
+        ${COMMON_SOURCES} ${COMMON_HEADERS}
+)

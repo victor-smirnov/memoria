@@ -21,7 +21,7 @@
 
 #include <functional>
 
-#include <mdb/mma_lmdb.h>
+#include <lmdb.h>
 
 namespace memoria {
 
@@ -86,8 +86,8 @@ public:
         data_db_ = data_db;
 
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, MDB_RDONLY, &transaction_)) {
-                return make_generic_error("Can't start read-only transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_begin(mdb_env_, nullptr, MDB_RDONLY, &transaction_)) {
+                return make_generic_error("Can't start read-only transaction, error = {}", mdb_strerror(rc));
             }
 
             auto superblock_ptr = get_data_addr(DirectoryCtrID, system_db_);
@@ -119,7 +119,7 @@ public:
                 directory_ctr_->internal_detouch_from_store();
             }
             else {
-                mma_mdb_txn_abort(transaction_);
+                mdb_txn_abort(transaction_);
                 return std::move(directory_ctr_ref).transfer_error();
             }
         }
@@ -129,7 +129,7 @@ public:
 
     virtual ~LMDBStoreReadOnlySnapshot() noexcept {
         if (transaction_) {
-            mma_mdb_txn_abort(transaction_);
+            mdb_txn_abort(transaction_);
         }
     }
 
@@ -144,7 +144,7 @@ public:
 
 protected:
     uint64_t sequence_id() const {
-        return mma_mdb_txn_id(transaction_);
+        return mdb_txn_id(transaction_);
     }
 
     virtual SnpSharedPtr<StoreT> self_ptr() {

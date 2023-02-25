@@ -147,8 +147,8 @@ public:
         data_db_ = data_db;
 
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, 0, &transaction_)) {
-                return make_generic_error("Can't start read-write transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_begin(mdb_env_, nullptr, 0, &transaction_)) {
+                return make_generic_error("Can't start read-write transaction, error = {}", mdb_strerror(rc));
             }
 
             return VoidResult::of();
@@ -165,7 +165,7 @@ public:
         );
 
         if (maybe_error) {
-            mma_mdb_txn_abort(transaction_);
+            mdb_txn_abort(transaction_);
         }
     }
 
@@ -188,8 +188,8 @@ public:
         data_db_ = data_db;
 
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, 0, &transaction_)) {
-                return make_generic_error("Can't start read-write transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_begin(mdb_env_, nullptr, 0, &transaction_)) {
+                return make_generic_error("Can't start read-write transaction, error = {}", mdb_strerror(rc));
             }
 
             return VoidResult::of();
@@ -198,7 +198,7 @@ public:
 
     virtual ~LMDBStoreWritableSnapshot() noexcept {
         if (transaction_ && !committed_) {
-            mma_mdb_txn_abort(transaction_);
+            mdb_txn_abort(transaction_);
         }
 
         block_cache_.for_each_entry([&](BlockCacheEntry* entry){
@@ -242,8 +242,8 @@ public:
                 write_data(DirectoryCtrID, superblock_, superblock_->superblock_size(), system_db_);
             }
 
-            if (const int rc = mma_mdb_txn_commit(transaction_)) {
-                make_generic_error("Can't commit read-write transaction, error = {}", mma_mdb_strerror(rc)).do_throw();
+            if (const int rc = mdb_txn_commit(transaction_)) {
+                make_generic_error("Can't commit read-write transaction, error = {}", mdb_strerror(rc)).do_throw();
             }
 
             committed_ = true;
@@ -676,8 +676,8 @@ private:
         MDB_val key = {sizeof(block_id), ptr_cast<void>(&block_id)};
         MDB_val data = {size, bytes};
 
-        if (int rc = mma_mdb_put(transaction_, dbi, &key, &data, 0)) {
-            make_generic_error("Can't write block {} of {} bytes to the database, error = {}", block_id, size, mma_mdb_strerror(rc)).do_throw();
+        if (int rc = mdb_put(transaction_, dbi, &key, &data, 0)) {
+            make_generic_error("Can't write block {} of {} bytes to the database, error = {}", block_id, size, mdb_strerror(rc)).do_throw();
         }
     }
 
@@ -686,8 +686,8 @@ private:
         MDB_val key = {sizeof(ctr_id), ptr_cast<void>(&ctr_id)};
         MDB_val data = {size, bytes};
 
-        if (int rc = mma_mdb_put(transaction_, dbi, &key, &data, 0)) {
-            make_generic_error("Can't write block {} of {} bytes to the database, error = {}", ctr_id, size, mma_mdb_strerror(rc)).do_throw();
+        if (int rc = mdb_put(transaction_, dbi, &key, &data, 0)) {
+            make_generic_error("Can't write block {} of {} bytes to the database, error = {}", ctr_id, size, mdb_strerror(rc)).do_throw();
         }
     }*/
 
@@ -696,8 +696,8 @@ private:
         MDB_val key = {sizeof(block_id), ptr_cast<void>(&block_id)};
         MDB_val data{};
 
-        if (int rc = mma_mdb_del(transaction_, dbi, &key, &data)) {
-            make_generic_error("Can't delete block {} from the database, error = {}", block_id, mma_mdb_strerror(rc)).do_throw();
+        if (int rc = mdb_del(transaction_, dbi, &key, &data)) {
+            make_generic_error("Can't delete block {} from the database, error = {}", block_id, mdb_strerror(rc)).do_throw();
         }
     }
 

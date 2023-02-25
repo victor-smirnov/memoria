@@ -31,7 +31,7 @@
 #include <memory>
 #include <absl/container/btree_map.h>
 
-#include <mdb/mma_lmdb.h>
+#include <lmdb.h>
 
 namespace memoria {
 
@@ -230,7 +230,7 @@ public:
     }
 
     virtual SnapshotID snaphsot_Id() const {
-        return SnapshotID{0, mma_mdb_txn_id(transaction_)};
+        return SnapshotID{0, mdb_txn_id(transaction_)};
     }
 
     // memory pool allocator
@@ -354,7 +354,7 @@ public:
     //=================================== R/O Commit Stuff ===========================
 
     virtual SnapshotID snapshot_id() {
-        return SnapshotID::make_type2(SnapshotID(), 0, mma_mdb_txn_id(transaction_));
+        return SnapshotID::make_type2(SnapshotID(), 0, mdb_txn_id(transaction_));
     }
 
 
@@ -464,13 +464,13 @@ protected:
         MDB_val key = {sizeof(block_id), ptr_cast<void>(&block_id)};
         MDB_val data;
 
-        if (int rc = mma_mdb_get(transaction_, dbi, &key, &data)) {
+        if (int rc = mdb_get(transaction_, dbi, &key, &data)) {
             if (rc == MDB_NOTFOUND) {
                 //No value found
                 return MDB_val{0, nullptr};
             }
             else {
-                make_generic_error("Can't read data block {}, error = {}", block_id, mma_mdb_strerror(rc)).do_throw();
+                make_generic_error("Can't read data block {}, error = {}", block_id, mdb_strerror(rc)).do_throw();
             }
         }
         else {

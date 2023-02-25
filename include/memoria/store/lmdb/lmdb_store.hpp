@@ -27,7 +27,7 @@
 #include <unordered_set>
 #include <functional>
 
-#include <mdb/mma_lmdb.h>
+#include <lmdb.h>
 
 namespace memoria {
 
@@ -83,59 +83,59 @@ public:
         file_name_(file_name)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (int rc = mma_mdb_env_create(&mdb_env_)) {
-                return make_generic_error("Can't create LMDB environment, error = {}", mma_mdb_strerror(rc));
+            if (int rc = mdb_env_create(&mdb_env_)) {
+                return make_generic_error("Can't create LMDB environment, error = {}", mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_set_maxdbs(mdb_env_, 50)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't set LMDB number of databases in the environment, error = {}", mma_mdb_strerror(rc));
+            if (int rc = mdb_env_set_maxdbs(mdb_env_, 50)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't set LMDB number of databases in the environment, error = {}", mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_set_maxreaders(mdb_env_, 1024)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't set LMDB maximum number of readers in the environment to 1024, error = {}", mma_mdb_strerror(rc));
+            if (int rc = mdb_env_set_maxreaders(mdb_env_, 1024)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't set LMDB maximum number of readers in the environment to 1024, error = {}", mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_set_mapsize(mdb_env_, MB * file_size_mb)) { // 1MB * 100000
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't set LMDB's maximal file size in the environment, error = {}", mma_mdb_strerror(rc));
+            if (int rc = mdb_env_set_mapsize(mdb_env_, MB * file_size_mb)) { // 1MB * 100000
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't set LMDB's maximal file size in the environment, error = {}", mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSUBDIR | MDB_CREATE | MDB_NOTLS, 0664)) { //MDB_NOSYNC
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't create LMDB database {}, error = {}", file_name_, mma_mdb_strerror(rc));
+            if (int rc = mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSUBDIR | MDB_CREATE | MDB_NOTLS, 0664)) { //MDB_NOSYNC
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't create LMDB database {}, error = {}", file_name_, mdb_strerror(rc));
             }
 
             MDB_txn* transaction{};
 
-            if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, 0, &transaction)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't start read-write transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_begin(mdb_env_, nullptr, 0, &transaction)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't start read-write transaction, error = {}", mdb_strerror(rc));
             }
 
-            if (const int rc = mma_mdb_dbi_open(transaction, "memoria_system", MDB_CREATE, &system_db_)) {
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't create memoria_system database, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_dbi_open(transaction, "memoria_system", MDB_CREATE, &system_db_)) {
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't create memoria_system database, error = {}", mdb_strerror(rc));
             }
 
-            if (const int rc = mma_mdb_dbi_open(transaction, "memoria_data", MDB_CREATE, &data_db_)) {
-                mma_mdb_dbi_close(mdb_env_, system_db_);
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't create memoria_data database, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_dbi_open(transaction, "memoria_data", MDB_CREATE, &data_db_)) {
+                mdb_dbi_close(mdb_env_, system_db_);
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't create memoria_data database, error = {}", mdb_strerror(rc));
             }
 
             superblock_ = ptr_cast<Superblock>(::malloc(BASIC_BLOCK_SIZE));
             superblock_->init(BASIC_BLOCK_SIZE);
 
-            if (const int rc = mma_mdb_txn_commit(transaction)) {
-                mma_mdb_dbi_close(mdb_env_, system_db_);
-                mma_mdb_dbi_close(mdb_env_, data_db_);
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't commit transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_commit(transaction)) {
+                mdb_dbi_close(mdb_env_, system_db_);
+                mdb_dbi_close(mdb_env_, data_db_);
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't commit transaction, error = {}", mdb_strerror(rc));
             }
 
             return VoidResult::of();
@@ -147,74 +147,74 @@ public:
         file_name_(file_name)
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
-            if (int rc = mma_mdb_env_create(&mdb_env_)) {
+            if (int rc = mdb_env_create(&mdb_env_)) {
                 return make_generic_error("Can't create LMDB environment");
             }
 
-            if (int rc = mma_mdb_env_set_maxdbs(mdb_env_, 50)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't set LMDB number of databases in the environment, error = {}", mma_mdb_strerror(rc));
+            if (int rc = mdb_env_set_maxdbs(mdb_env_, 50)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't set LMDB number of databases in the environment, error = {}", mdb_strerror(rc));
             }
 
-            if (int rc = mma_mdb_env_set_maxreaders(mdb_env_, 1024)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't set LMDB maximum number of readers in the environment to 1024, error = {}", mma_mdb_strerror(rc));
+            if (int rc = mdb_env_set_maxreaders(mdb_env_, 1024)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't set LMDB maximum number of readers in the environment to 1024, error = {}", mdb_strerror(rc));
             }
 
             int32_t is_readonly = read_only ? MDB_RDONLY : 0;
-            if (int rc = mma_mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSUBDIR | MDB_NOTLS | is_readonly, 0664)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't open LMDB database {}, error = {}", file_name_, mma_mdb_strerror(rc));
+            if (int rc = mdb_env_open(mdb_env_, file_name_.data(), MDB_NOSUBDIR | MDB_NOTLS | is_readonly, 0664)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't open LMDB database {}, error = {}", file_name_, mdb_strerror(rc));
             }
 
             MDB_txn* transaction{};
 
-            if (const int rc = mma_mdb_txn_begin(mdb_env_, nullptr, MDB_RDONLY, &transaction)) {
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't start read-only transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_begin(mdb_env_, nullptr, MDB_RDONLY, &transaction)) {
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't start read-only transaction, error = {}", mdb_strerror(rc));
             }
 
-            if (const int rc = mma_mdb_dbi_open(transaction, "memoria_system", 0, &system_db_)) {
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't open memoria_system database, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_dbi_open(transaction, "memoria_system", 0, &system_db_)) {
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't open memoria_system database, error = {}", mdb_strerror(rc));
             }
 
-            if (const int rc = mma_mdb_dbi_open(transaction, "memoria_data", 0, &data_db_)) {
-                mma_mdb_dbi_close(mdb_env_, system_db_);
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't open memoria_data database, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_dbi_open(transaction, "memoria_data", 0, &data_db_)) {
+                mdb_dbi_close(mdb_env_, system_db_);
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't open memoria_data database, error = {}", mdb_strerror(rc));
             }
 
             MDB_val key = {sizeof(DirectoryCtrID), (void*)&DirectoryCtrID};
             MDB_val val{};
 
-            if (const int rc = mma_mdb_get(transaction, system_db_, &key, &val)) {
-                mma_mdb_dbi_close(mdb_env_, system_db_);
-                mma_mdb_dbi_close(mdb_env_, data_db_);
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't read superblock from the memoria_system database, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_get(transaction, system_db_, &key, &val)) {
+                mdb_dbi_close(mdb_env_, system_db_);
+                mdb_dbi_close(mdb_env_, data_db_);
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't read superblock from the memoria_system database, error = {}", mdb_strerror(rc));
             }
 
             if (val.mv_size != BASIC_BLOCK_SIZE) {
-                mma_mdb_dbi_close(mdb_env_, system_db_);
-                mma_mdb_dbi_close(mdb_env_, data_db_);
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
+                mdb_dbi_close(mdb_env_, system_db_);
+                mdb_dbi_close(mdb_env_, data_db_);
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
                 return make_generic_error("Superblock size doesn't match, expected = {}, actual = {}", BASIC_BLOCK_SIZE, val.mv_size);
             }
 
             superblock_ = ptr_cast<Superblock>(::malloc(BASIC_BLOCK_SIZE));
             std::memcpy(superblock_, val.mv_data, BASIC_BLOCK_SIZE);
 
-            if (const int rc = mma_mdb_txn_commit(transaction)) {
-                mma_mdb_dbi_close(mdb_env_, system_db_);
-                mma_mdb_dbi_close(mdb_env_, data_db_);
-                mma_mdb_txn_abort(transaction);
-                mma_mdb_env_close(mdb_env_);
-                return make_generic_error("Can't commit reead-only transaction, error = {}", mma_mdb_strerror(rc));
+            if (const int rc = mdb_txn_commit(transaction)) {
+                mdb_dbi_close(mdb_env_, system_db_);
+                mdb_dbi_close(mdb_env_, data_db_);
+                mdb_txn_abort(transaction);
+                mdb_env_close(mdb_env_);
+                return make_generic_error("Can't commit reead-only transaction, error = {}", mdb_strerror(rc));
             }
 
             return VoidResult::of();
@@ -222,28 +222,28 @@ public:
     }
 
     virtual ~LMDBStore() noexcept {
-        mma_mdb_env_close(mdb_env_);
+        mdb_env_close(mdb_env_);
         ::free(superblock_);
     }
 
     virtual void set_async(bool async)
     {
         std::lock_guard<std::recursive_mutex> lock(store_mutex_);
-        if (const int rc = mma_mdb_env_set_flags(mdb_env_, MDB_NOSYNC, async ? 1 : 0)) {
-            make_generic_error("Can't set asynchronous mode ({}), error = {}", async, mma_mdb_strerror(rc)).do_throw();
+        if (const int rc = mdb_env_set_flags(mdb_env_, MDB_NOSYNC, async ? 1 : 0)) {
+            make_generic_error("Can't set asynchronous mode ({}), error = {}", async, mdb_strerror(rc)).do_throw();
         }        
     }
 
     virtual void copy_to(U8String path, bool with_compaction)
     {
-        if (const int rc = mma_mdb_env_copy2(mdb_env_, path.data(), with_compaction ? MDB_CP_COMPACT : 0)) {
-            return make_generic_error("Can't copy database to '{}', error = {}", path, mma_mdb_strerror(rc)).do_throw();
+        if (const int rc = mdb_env_copy2(mdb_env_, path.data(), with_compaction ? MDB_CP_COMPACT : 0)) {
+            return make_generic_error("Can't copy database to '{}', error = {}", path, mdb_strerror(rc)).do_throw();
         }
     }
 
     virtual void flush(bool force) {
-        if (const int rc = mma_mdb_env_sync(mdb_env_, force)) {
-            return make_generic_error("Can't sync the environment error = {}", mma_mdb_strerror(rc)).do_throw();
+        if (const int rc = mdb_env_sync(mdb_env_, force)) {
+            return make_generic_error("Can't sync the environment error = {}", mdb_strerror(rc)).do_throw();
         }
     }
 
