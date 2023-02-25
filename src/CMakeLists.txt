@@ -87,6 +87,7 @@ execute_process(
         ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
         --dry-run
         -I ${CMAKE_SOURCE_DIR}/include
+        -I ${CMAKE_SOURCE_DIR}/core/lib/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
@@ -190,8 +191,6 @@ endif()
 
 message ("Reusing codegen config is ${REUSE_GENERATED_SOURCES}")
 
-add_compile_options()
-
 add_custom_command(
     IMPLICIT_DEPENDS C++ ../codegen/include/codegen_memoria.hpp
     OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
@@ -201,6 +200,7 @@ add_custom_command(
     COMMAND
         ${CMAKE_BINARY_DIR}/src/codegen/MemoriaCodeGen
         -I ${CMAKE_SOURCE_DIR}/include
+        -I ${CMAKE_SOURCE_DIR}/core/lib/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
@@ -217,26 +217,27 @@ add_custom_command(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-add_subdirectory(containers)
 add_subdirectory(stores)
 
 
 get_property(GLOBAL_INIT_SRCS GLOBAL PROPERTY GLOBAL_INIT_SOURCES)
 get_property(GLOBAL_CONTAINERS_SRCS GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES)
 
-add_library(MemoriaInit STATIC ${GLOBAL_INIT_SRCS})
-add_library(MemoriaCtrs STATIC ${GLOBAL_CONTAINERS_SRCS} ${GENERATED_MAIN_SOURCES} none.cpp)
-
+add_library(MemoriaInit STATIC)
+target_sources(MemoriaInit PRIVATE ${GLOBAL_INIT_SRCS})
 
 SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
+add_library(MemoriaCtrs STATIC )
+target_sources(MemoriaCtrs PRIVATE ${GENERATED_MAIN_SOURCES} none.cpp)
+
+
 SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
-
-target_link_libraries(MemoriaCore ${MEMORIA_LIBS})
 target_link_libraries(MemoriaCtrs MemoriaCore)
+
+
 target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
 
 set_property(TARGET MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})

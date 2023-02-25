@@ -195,15 +195,7 @@ link_libraries(Boost::program_options Boost::serialization Boost::filesystem)
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
 
-find_package(absl CONFIG REQUIRED)
-link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 
-find_package(fmt CONFIG REQUIRED)
-link_libraries(fmt::fmt)
-
-find_package(unofficial-hash-library CONFIG REQUIRED)
-
-link_libraries(unofficial::hash-library)
 
 find_package(Catch2 CONFIG REQUIRED)
 

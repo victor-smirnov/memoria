@@ -94,17 +94,20 @@ STRING( REPLACE "^^" ";" MEMORIA_CORE_SRCS "${MEMORIA_CORE_SRCS_STR}" )
 
 set(CORE_PATH ../../core)
 
-file(GLOB_RECURSE  MEMORIA_CORE_LIB_SRCS ${CORE_PATH}/lib/*.*)
+file(GLOB_RECURSE  MEMORIA_CORE_LIB_SRCS ${CORE_PATH}/lib/*.* include)
 
 
 file(GLOB CTRGEN_SRCS *.cpp)
 add_executable(MemoriaCodeGen ${CTRGEN_SRCS} ${MEMORIA_CORE_SRCS} ${MEMORIA_CORE_LIB_SRCS})
 
-target_include_directories(MemoriaCodeGen PRIVATE ${CORE_PATH}/include)
+target_include_directories(MemoriaCodeGen PRIVATE ${CORE_PATH}/lib/include)
 target_include_directories(MemoriaCodeGen PRIVATE ../../include)
 target_include_directories(MemoriaCodeGen PRIVATE ../codegen/include)
 target_include_directories(MemoriaCodeGen PRIVATE include)
 target_include_directories(MemoriaCodeGen PRIVATE ${CLANG_INCLUDE_DIRS})
+
+
+target_compile_options(MemoriaCodeGen PRIVATE -v)
 
 target_link_libraries(MemoriaCodeGen PRIVATE Boost::program_options Boost::filesystem)
 target_link_libraries(MemoriaCodeGen PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
