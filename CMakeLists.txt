@@ -47,12 +47,10 @@ option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
-option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
 
 option(BUILD_WITH_STATIC_BOOST     "Use static boost libraries" OFF)
-option(BUILD_EXTRA_CONTAINERS      "Build additional containers" ON)
 option(BUILD_REUSE_CODEGEN_CONFIG  "Reuse previously generated codegen configuration (faster iteration)" OFF)
 
 option(BUILD_COW_PROFILE        "Build CowProfile" ON)
@@ -67,88 +65,23 @@ option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
 option(BUILD_TESTS_HRPC         "Build HRPC Protocol tests" ON)
 
-option(BUILD_CODEGENERATOR_EXPLICITLY  "Build code generator explictly (for its development)" OFF)
-
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
+add_definitions(-Wno-unknown-warning-option)
+
+# FIXME: Must be target-specific (containers, mostly)!
+add_definitions(-fstrict-aliasing)
 
 
-set (BUILD_POSIX  FALSE)
-set (BUILD_MSVC   FALSE)
-set (BUILD_MACOSX FALSE)
-
-if(APPLE)
-    set (BUILD_MACOSX TRUE)
-    set (BUILD_POSIX  TRUE)
-elseif (UNIX)
-    set (BUILD_POSIX  TRUE)
-elseif(MSVC)
-    set (BUILD_MSVC   TRUE)
-else()
-    message(FATAL_ERROR "This platform is not explicitly supported")
-endif()
-
-# Global definitions
-
-add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
-add_definitions(-DMMA_ICU_CXX_NS=icu)
-
-if (BUILD_POSIX)
-    if (BUILD_EXTRA_CONTAINERS)
-        add_definitions(-DMEMORIA_BUILD_EXTRA_CONTAINERS)
-    endif()
-
-    add_definitions(-DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6)
-
-    add_definitions(-march=native -Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
-    add_definitions(-Wno-old-style-cast)
-
-    add_definitions(-Wstringop-overflow=1 -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
-    add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
-    add_definitions(-Wno-unused-function -Wno-unused-but-set-variable)
-    add_definitions(-Wno-unused-private-field -Wno-pessimizing-move -Wno-deprecated-comma-subscript)
-    add_definitions(-Wno-missing-braces -Wno-ambiguous-reversed-operator)
-    add_definitions(-Wno-variables -Wno-deprecated-declarations)
-    add_definitions(-Werror=unused-result)
-    add_definitions(-faligned-new)
-    add_definitions(-Wno-class-memaccess)
-    add_definitions(-Werror=return-type)
-    
-    add_definitions(-pthread)
-    
-    if (USE_ASAN)
-        add_definitions(-fsanitize=address -fsanitize-address-use-after-scope -DMEMORIA_USE_ASAN -DMEMORIA_USE_UCONTEXT)
-        add_global_linker(-fsanitize=address)
-    endif()
-    
-    if (USE_USAN) 
-        add_definitions(-fsanitize=undefined)
-        add_global_linker(-fsanitize=undefined)
-    endif()
-    
-    if (USE_TSAN) 
-        add_definitions(-fsanitize=thread)
-        add_global_linker(-fsanitize=thread)
-    endif()
-    
-    add_global_libs(dl pthread)
-
-    if (BUILD_STATIC)
-        add_definitions(-static)
-        add_global_linker(-static) #-static-libgcc -static-libstdc++
-    endif()
-else()
-    add_definitions(/W3 /Zc:__cplusplus -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-D_REENTRANT)
-    add_definitions(-DDLLEXPORT -DNOMINMAX /bigobj)
-endif()
 
 find_package(Boost 1.74.0 COMPONENTS filesystem program_options serialization unit_test_framework REQUIRED)
 
-find_package(Catch2 CONFIG REQUIRED)
+if (BUILD_TESTS)
+    find_package(Catch2 CONFIG REQUIRED)
+endif()
 
 find_package(Qt5 COMPONENTS Widgets QUIET)
 

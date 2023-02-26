@@ -3,6 +3,6 @@
   "name": "memoria",
   "version": "0.1.0",
   "dependencies": [
-    "abseil", "yaml-cpp", "hash-library", "seastar", "catch2", "lmdb"
+    "abseil", "hash-library", "seastar", "catch2", "lmdb"
   ]
 }

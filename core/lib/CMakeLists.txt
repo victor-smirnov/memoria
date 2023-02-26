@@ -24,7 +24,6 @@ add_library(MemoriaCore STATIC )
 target_include_directories(MemoriaCore PUBLIC ../../include)
 target_include_directories(MemoriaCore PUBLIC include)
 
-SET_TARGET_PROPERTIES(MemoriaCore PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 
 target_link_libraries(MemoriaCore PUBLIC absl::base absl::strings absl::hash absl::meta absl::time)
@@ -33,6 +32,30 @@ target_link_libraries(MemoriaCore PUBLIC Boost::filesystem)
 target_link_libraries(MemoriaCore PUBLIC ICU::i18n ICU::uc ICU::data)
 
 target_link_libraries(MemoriaCore PRIVATE unofficial::hash-library)
+
+target_compile_definitions(MemoriaCore PUBLIC  -DMMA_ICU_CXX_NS=icu)
+target_compile_definitions(MemoriaCore PRIVATE -DMEMORIA_SRC=${CMAKE_SOURCE_DIR})
+target_compile_definitions(MemoriaCore PUBLIC  -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
+
+target_compile_options(MemoriaCore PUBLIC -pthread)
+
+
+if (USE_ASAN)
+    target_compile_definitions(MemoriaCore PUBLIC -DMEMORIA_USE_ASAN)
+    target_compile_options(MemoriaCore PUBLIC -fsanitize=address -fsanitize-address-use-after-scope)
+    target_link_options(MemoriaCore PUBLIC -fsanitize=address)
+endif()
+
+if (USE_USAN)
+    target_compile_options(MemoriaCore PUBLIC -fsanitize=undefined)
+    target_link_options(MemoriaCore PUBLIC -fsanitize=undefined)
+endif()
+
+if (USE_TSAN)
+    target_compile_options(MemoriaCore PUBLIC -fsanitize=thread)
+    target_link_options(MemoriaCore PUBLIC -fsanitize=thread)
+endif()
+
 
 file(GLOB_RECURSE LIB_HEADERS "include/*.*" "../../include/*.*")
 target_sources(

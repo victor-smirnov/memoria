@@ -21,11 +21,14 @@ add_library(MemoriaSeastar STATIC )
 
 SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+set_target_properties(MemoriaSeastar PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+
 
 target_link_libraries(MemoriaSeastar MemoriaCore Seastar::seastar)
 target_include_directories(MemoriaSeastar PUBLIC include)
 
-set_target_properties(MemoriaSeastar PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+target_compile_definitions(MemoriaSeastar PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6)
+
 
 target_sources(
     MemoriaSeastar
