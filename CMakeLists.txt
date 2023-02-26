@@ -149,6 +149,7 @@ execute_process(
         --dry-run
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/core/lib/include
+        -I ${CMAKE_SOURCE_DIR}/containers/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
@@ -266,6 +267,7 @@ add_custom_command(
         ${CMAKE_BINARY_DIR}/mbt-explicit/mbt
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/core/lib/include
+        -I ${CMAKE_SOURCE_DIR}/containers/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
         -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1

@@ -265,7 +265,7 @@ class [[clang::annotate(R"(
         "profiles": ["CowLiteProfile"],
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/container/cow.hpp",
+            "memoria/core/tools/cow.hpp",
             "memoria/core/tools/uid_64.hpp",
             "memoria/core/tools/uid_256.hpp"
         ]
@@ -280,7 +280,7 @@ class [[clang::annotate(R"(
         "profiles": ["CowProfile"],
         "includes": [
             "memoria/api/map/map_api.hpp",
-            "memoria/core/container/cow.hpp",
+            "memoria/core/tools/cow.hpp",
             "memoria/core/tools/uid_256.hpp"
         ]
     }

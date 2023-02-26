@@ -22,6 +22,10 @@
 
 namespace memoria {
 
+std::ostream& operator<<(std::ostream& os, const IDValue& id) {
+    os << id.str();
+    return os;
+}
 
 void Expand(std::ostream& os, size_t level)
 {

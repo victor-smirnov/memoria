@@ -24,7 +24,7 @@
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/tools/uid_64.hpp>
 #include <memoria/core/tools/uid_256.hpp>
-#include <memoria/core/container/cow.hpp>
+#include <memoria/core/tools/cow.hpp>
 
 #include <ostream>
 #include <tuple>

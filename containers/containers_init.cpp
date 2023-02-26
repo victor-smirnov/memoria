@@ -1,5 +1,5 @@
 
-// Copyright 2019-2023 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
 // limitations under the License.
 
 
+#include <memoria/profiles/impl/no_cow_profile.hpp>
+#include <memoria/profiles/impl/cow_lite_profile.hpp>
 #include <memoria/memoria_core.hpp>
 
 namespace memoria {
 
-void InitMemoriaCoreExplicit() {
-    InitCoreLDDatatypes();
-    InitCoreDatatypes();
-    InitSimpleNumericDatatypes();
-
-    InitTypeReflections();
+void InitContainersExplicit() {
+    InitProfileMetadata();
 }
 
 }

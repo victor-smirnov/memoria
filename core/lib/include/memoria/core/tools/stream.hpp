@@ -18,7 +18,7 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/string.hpp>
-#include <memoria/core/container/cow.hpp>
+#include <memoria/core/tools/cow.hpp>
 
 #include <boost/filesystem/path.hpp>
 

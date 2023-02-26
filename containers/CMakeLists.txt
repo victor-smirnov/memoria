@@ -16,6 +16,17 @@
 
 #add_library(Containers STATIC)
 #target_sources(Containers PRIVATE ${GENERATED_MAIN_SOURCES})
-target_link_libraries(Containers Core)
+
 set_target_properties(Containers PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(Containers PROPERTIES OUTPUT_NAME memoria_containers)
+
+target_link_libraries(Containers Core)
+target_include_directories(Containers PUBLIC include)
+
+file(GLOB CTR_SOURCES *.cpp)
+file(GLOB_RECURSE CTR_HEADERS include/*.*)
+
+target_sources(Containers
+    PUBLIC ${CTR_HEADERS}
+    PRIVATE ${GENERATED_MAIN_SOURCES} ${CTR_SOURCES}
+)

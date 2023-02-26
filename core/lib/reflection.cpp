@@ -16,7 +16,7 @@
 
 
 #include <memoria/core/strings/string.hpp>
-#include <memoria/profiles/common/container_operations.hpp>
+//#include <memoria/profiles/common/container_operations.hpp>
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 #include <memoria/core/reflection/reflection.hpp>
@@ -136,10 +136,7 @@ void for_each_type_reflection(std::function<void (const ShortTypeCode&, TypeRefl
 }
 
 
-std::ostream& operator<<(std::ostream& os, const IDValue& id) {
-    os << id.str();
-    return os;
-}
+
 
 
 hermes::Object TypeReflection::datatype_convert_to(
