@@ -21,26 +21,11 @@ include_directories(../codegen)
 
 add_subdirectory(app_init)
 
-add_subdirectory(stores)
+
 
 get_property(GLOBAL_INIT_SRCS GLOBAL PROPERTY GLOBAL_INIT_SOURCES)
-get_property(GLOBAL_CONTAINERS_SRCS GLOBAL PROPERTY GLOBAL_CONTAINERS_SOURCES)
-
 add_library(MemoriaInit STATIC)
 target_sources(MemoriaInit PRIVATE ${GLOBAL_INIT_SRCS})
-
-SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-SET_TARGET_PROPERTIES(MemoriaInit PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
-add_library(MemoriaCtrs STATIC )
-target_sources(MemoriaCtrs PRIVATE ${GENERATED_MAIN_SOURCES} none.cpp)
-
-
-SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-SET_TARGET_PROPERTIES(MemoriaCtrs PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(MemoriaCtrs MemoriaCore)
-
-
 target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
 
 set_property(TARGET MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})

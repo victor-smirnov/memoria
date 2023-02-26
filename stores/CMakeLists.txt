@@ -58,7 +58,7 @@ file (GLOB_RECURSE COMMON_HEADERS common/*.hpp)
 SET_TARGET_PROPERTIES(MemoriaStores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 set_property(TARGET MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 target_link_libraries(MemoriaStores PUBLIC MemoriaCore)
-target_include_directories(MemoriaStores PUBLIC ../../include)
+target_include_directories(MemoriaStores PUBLIC ../include)
 
 file (GLOB LIB_SOURCES *.cpp)
 file (GLOB LIB_HEADERS *.hpp)

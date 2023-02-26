@@ -260,7 +260,7 @@ add_custom_command(
     BYPRODUCTS ${GENERATED_MAIN_BYPRODUCTS} ${GENERATED_STORE_BYPRODUCTS} ${GENERATED_OTHER_BYPRODUCTS}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
-        ${CMAKE_BINARY_DIR}/mbt-exlicit/mbt
+        ${CMAKE_BINARY_DIR}/mbt-explicit/mbt
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/core/lib/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
@@ -279,7 +279,11 @@ add_custom_command(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
+add_library(MemoriaCtrs STATIC )
+target_sources(MemoriaCtrs PRIVATE ${GENERATED_MAIN_SOURCES} src/none.cpp)
+target_link_libraries(MemoriaCtrs MemoriaCore)
 
+add_subdirectory(stores)
 
 add_subdirectory(seastar)
 add_subdirectory(src)
@@ -292,7 +296,7 @@ if (BUILD_TESTS)
     add_subdirectory(tests-core)
 
     if (BUILD_TESTS_HRPC)
-            add_subdirectory(tests-other/hrpc)
+        add_subdirectory(tests-other/hrpc)
     endif()
 endif()
 
