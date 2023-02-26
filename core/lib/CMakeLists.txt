@@ -39,7 +39,6 @@ target_compile_definitions(MemoriaCore PUBLIC  -DBOOST_CONFIG_SUPPRESS_OUTDATED_
 
 target_compile_options(MemoriaCore PUBLIC -pthread)
 
-
 if (USE_ASAN)
     target_compile_definitions(MemoriaCore PUBLIC -DMEMORIA_USE_ASAN)
     target_compile_options(MemoriaCore PUBLIC -fsanitize=address -fsanitize-address-use-after-scope)

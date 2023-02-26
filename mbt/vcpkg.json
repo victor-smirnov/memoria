@@ -3,6 +3,6 @@
   "name": "memoria",
   "version": "0.1.0",
   "dependencies": [
-    "abseil", "hash-library", "seastar", "catch2", "lmdb", "icu", "inja"
+    "abseil", "hash-library", "fmt", "icu", "inja"
   ]
 }

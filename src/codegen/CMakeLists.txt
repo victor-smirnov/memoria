@@ -46,25 +46,6 @@ include_directories(../../core/include)
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu)
 
-#if (BUILD_POSIX)
-    add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
-    add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
-    add_definitions(-Wno-unused-function -Wno-unused-but-set-variable)
-    add_definitions(-Wno-unused-private-field -Wno-pessimizing-move)
-    add_definitions(-Wno-missing-braces)
-    add_definitions(-Wno-variables)
-    add_definitions(-Werror=unused-result)
-    add_definitions(-faligned-new)
-    add_definitions(-Wno-class-memaccess)
-    add_definitions(-Werror=return-type)
-
-    add_definitions(-pthread)
-
-    add_global_libs(dl pthread)
-#else()
-
-#endif()
-
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    ON)
     set (Boost_USE_STATIC_LIBS       ON)

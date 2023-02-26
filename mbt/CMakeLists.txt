@@ -1,0 +1,73 @@
+# Copyright 2022-2023 Victor Smirnov
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+if (NOT MEMORIA_HAS_TOP_LEVEL)
+    cmake_minimum_required (VERSION 3.16)
+    project (MBT)
+
+    find_package(absl CONFIG REQUIRED)
+    find_package(fmt CONFIG REQUIRED)
+    find_package(unofficial-hash-library CONFIG REQUIRED)
+    find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
+
+    find_package(Boost 1.74.0 COMPONENTS filesystem program_options REQUIRED)
+
+    SET(CORE_LIB ../core/lib)
+    SET(MEMORIA_API_CXX_STANDARD 17)
+    SET(MEMORIA_INTERNAL_CXX_STANDARD 20)
+
+    file(GLOB_RECURSE LIB_SOURCES ${CORE_LIB}/*.cpp)
+
+    add_library(MemoriaCore STATIC )
+    target_include_directories(MemoriaCore PUBLIC ../include)
+    target_include_directories(MemoriaCore PUBLIC ${CORE_LIB}/include)
+
+    set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
+
+    target_link_libraries(MemoriaCore PUBLIC absl::base absl::strings absl::hash absl::meta absl::time)
+    target_link_libraries(MemoriaCore PUBLIC fmt::fmt)
+    target_link_libraries(MemoriaCore PUBLIC Boost::filesystem)
+    target_link_libraries(MemoriaCore PUBLIC ICU::i18n ICU::uc ICU::data)
+
+    target_link_libraries(MemoriaCore PRIVATE unofficial::hash-library)
+
+    target_compile_definitions(MemoriaCore PUBLIC  -DMMA_ICU_CXX_NS=icu)
+    target_compile_definitions(MemoriaCore PRIVATE -DMEMORIA_SRC=${CMAKE_SOURCE_DIR})
+    target_compile_definitions(MemoriaCore PUBLIC  -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
+
+    target_compile_options(MemoriaCore PUBLIC -pthread)
+
+    target_sources(
+        MemoriaCore
+        PRIVATE ${LIB_SOURCES}
+    )
+endif()
+
+find_package(inja CONFIG REQUIRED)
+find_package(Clang CONFIG REQUIRED)
+
+file (GLOB MBT_SOURCES *.cpp *.hpp)
+file (GLOB_RECURSE MBT_HEDERS include/*.hpp)
+
+add_executable(mbt)
+
+target_include_directories(mbt PUBLIC include)
+target_include_directories(mbt PRIVATE ${CLANG_INCLUDE_DIRS})
+
+target_sources(mbt PRIVATE ${MBT_SOURCES} PUBLIC ${MBT_HEADERS})
+
+target_link_libraries(mbt PRIVATE MemoriaCore)
+target_link_libraries(mbt PRIVATE Boost::program_options Boost::filesystem)
+target_link_libraries(mbt PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
+target_link_libraries(mbt PRIVATE pantor::inja)

@@ -17,8 +17,6 @@
 
 #include <memoria/core/types.hpp>
 
-#include <memoria/api/common/packed_api.hpp>
-
 #include <memoria/core/tools/span.hpp>
 #include <memoria/core/tools/arena_buffer.hpp>
 #include <memoria/core/strings/u8_string.hpp>
