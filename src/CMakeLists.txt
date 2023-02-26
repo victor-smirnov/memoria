@@ -239,24 +239,3 @@ target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
 
 set_property(TARGET MemoriaInit MemoriaCtrs MemoriaStores PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
-export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores MemoriaSeastar FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
-
-if (BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
-
-if (BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
-endif()
-
-if (BUILD_TESTS)     
-    add_subdirectory(tests-core)
-
-    if (BUILD_TESTS_HRPC)
-            add_subdirectory(tests-other/hrpc)
-    endif()
-endif()
-
-if (BUILD_SANDBOX)
-    add_subdirectory(sandbox)
-endif()

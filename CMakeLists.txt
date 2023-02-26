@@ -96,3 +96,27 @@ get_property(GLOBAL_SEASTAR_SRCS GLOBAL PROPERTY GLOBAL_SEASTAR_SOURCES)
 add_subdirectory(core)
 add_subdirectory(seastar)
 add_subdirectory(src)
+
+if (BUILD_SANDBOX)
+    add_subdirectory(sandbox)
+endif()
+
+if (BUILD_TESTS)
+    add_subdirectory(tests-core)
+
+    if (BUILD_TESTS_HRPC)
+            add_subdirectory(tests-other/hrpc)
+    endif()
+endif()
+
+
+if (BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
+if (BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
+
+export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores MemoriaSeastar FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
+
