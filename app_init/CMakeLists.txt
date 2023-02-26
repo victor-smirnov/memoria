@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS1 *.cpp)
+file(GLOB INIT_SOURCES *.cpp *.hpp)
 
-set_property(GLOBAL APPEND PROPERTY GLOBAL_INIT_SOURCES ${SRCS1})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_INIT_SOURCES_REACTOR ${SRCS1})
-
+add_library(MemoriaInit STATIC)
+target_sources(MemoriaInit PRIVATE ${GLOBAL_INIT_SRCS} ${INIT_SOURCES})
+target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
+set_property(TARGET MemoriaInit PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
