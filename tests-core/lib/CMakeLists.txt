@@ -13,19 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
 file(GLOB TOOLS_LIB_SRC *.cpp)
 
-add_library(MemoriaTests2 STATIC )
-SET_TARGET_PROPERTIES(MemoriaTests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-set_property(TARGET MemoriaTests2 PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
-target_link_libraries(MemoriaTests2 MemoriaCore MemoriaSeastar )
-target_include_directories(MemoriaTests2 PUBLIC ../include)
+add_library(Tests2 STATIC )
+set_target_properties(Tests2 PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_target_properties(Tests2 PROPERTIES OUTPUT_NAME memoria_tests2)
+
+target_link_libraries(Tests2 Core Reactor)
+target_include_directories(Tests2 PUBLIC ../include)
 
 file(GLOB_RECURSE _HDRS "../include/*.*")
 target_sources(
-    MemoriaTests2
+    Tests2
     PRIVATE ${TOOLS_LIB_SRC}
     PUBLIC ${_HDRS}
 )

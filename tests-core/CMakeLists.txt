@@ -13,15 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#include_directories(include)
-
-#file(GLOB TOOLS_LIB_SRC lib/*.cpp)
-
-#add_library(MemoriaTests2 STATIC ${TOOLS_LIB_SRC})
-#SET_TARGET_PROPERTIES(MemoriaTests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-#set_property(TARGET MemoriaTests2 PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
-#target_link_libraries(MemoriaTests2 MemoriaCore MemoriaSeastar yaml-cpp::yaml-cpp)
-
 add_subdirectory(lib)
 add_subdirectory(tests)
 

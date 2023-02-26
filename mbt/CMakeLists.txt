@@ -29,27 +29,27 @@ if (NOT MEMORIA_HAS_TOP_LEVEL)
 
     file(GLOB_RECURSE LIB_SOURCES ${CORE_LIB}/*.cpp)
 
-    add_library(MemoriaCore STATIC )
-    target_include_directories(MemoriaCore PUBLIC ../include)
-    target_include_directories(MemoriaCore PUBLIC ${CORE_LIB}/include)
+    add_library(Core STATIC )
+    target_include_directories(Core PUBLIC ../include)
+    target_include_directories(Core PUBLIC ${CORE_LIB}/include)
 
-    set_property(TARGET MemoriaCore PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
+    set_property(TARGET Core PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 
-    target_link_libraries(MemoriaCore PUBLIC absl::base absl::strings absl::hash absl::meta absl::time)
-    target_link_libraries(MemoriaCore PUBLIC fmt::fmt)
-    target_link_libraries(MemoriaCore PUBLIC Boost::filesystem)
-    target_link_libraries(MemoriaCore PUBLIC ICU::i18n ICU::uc ICU::data)
+    target_link_libraries(Core PUBLIC absl::base absl::strings absl::hash absl::meta absl::time)
+    target_link_libraries(Core PUBLIC fmt::fmt)
+    target_link_libraries(Core PUBLIC Boost::filesystem)
+    target_link_libraries(Core PUBLIC ICU::i18n ICU::uc ICU::data)
 
-    target_link_libraries(MemoriaCore PRIVATE unofficial::hash-library)
+    target_link_libraries(Core PRIVATE unofficial::hash-library)
 
-    target_compile_definitions(MemoriaCore PUBLIC  -DMMA_ICU_CXX_NS=icu)
-    target_compile_definitions(MemoriaCore PRIVATE -DMEMORIA_SRC=${CMAKE_SOURCE_DIR})
-    target_compile_definitions(MemoriaCore PUBLIC  -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
+    target_compile_definitions(Core PUBLIC  -DMMA_ICU_CXX_NS=icu)
+    target_compile_definitions(Core PRIVATE -DMEMORIA_SRC=${CMAKE_SOURCE_DIR})
+    target_compile_definitions(Core PUBLIC  -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 
-    target_compile_options(MemoriaCore PUBLIC -pthread)
+    target_compile_options(Core PUBLIC -pthread)
 
     target_sources(
-        MemoriaCore
+        Core
         PRIVATE ${LIB_SOURCES}
     )
 endif()
@@ -67,7 +67,7 @@ target_include_directories(mbt PRIVATE ${CLANG_INCLUDE_DIRS})
 
 target_sources(mbt PRIVATE ${MBT_SOURCES} PUBLIC ${MBT_HEADERS})
 
-target_link_libraries(mbt PRIVATE MemoriaCore)
+target_link_libraries(mbt PRIVATE Core)
 target_link_libraries(mbt PRIVATE Boost::program_options Boost::filesystem)
 target_link_libraries(mbt PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
 target_link_libraries(mbt PRIVATE pantor::inja)

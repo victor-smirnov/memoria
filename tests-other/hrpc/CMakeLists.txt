@@ -19,10 +19,10 @@ file(GLOB SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *_test.cpp hrpc_tests_common
 add_executable(hrpc_tests_server hrpc_tests_server.cpp ${SRCS})
 SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(hrpc_tests_server MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit Catch2::Catch2)
+target_link_libraries(hrpc_tests_server Containers Stores Reactor AppInit Catch2::Catch2)
 
 
 add_executable(hrpc_tests_client hrpc_tests_client.cpp ${SRCS})
 SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(hrpc_tests_client MemoriaCtrs MemoriaStores MemoriaSeastar MemoriaInit Catch2::Catch2)
+target_link_libraries(hrpc_tests_client Containers Stores Reactor AppInit Catch2::Catch2)

@@ -17,21 +17,18 @@ find_package(Seastar REQUIRED)
 file(GLOB_RECURSE LIB_SOURCES *.cpp)
 file(GLOB_RECURSE LIB_HEADERS *.hpp)
 
-add_library(MemoriaSeastar STATIC )
+add_library(Reactor STATIC)
 
-SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-SET_TARGET_PROPERTIES(MemoriaSeastar PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-set_target_properties(MemoriaSeastar PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_target_properties(Reactor PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_target_properties(Reactor PROPERTIES OUTPUT_NAME memoria_reactor)
 
+target_link_libraries(Reactor Core Seastar::seastar)
+target_include_directories(Reactor PUBLIC include)
 
-target_link_libraries(MemoriaSeastar MemoriaCore Seastar::seastar)
-target_include_directories(MemoriaSeastar PUBLIC include)
-
-target_compile_definitions(MemoriaSeastar PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6)
-
+target_compile_definitions(Reactor PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6)
 
 target_sources(
-    MemoriaSeastar
+    Reactor
     PRIVATE ${LIB_SOURCES} ${LIB_HEADERS}
 )
 

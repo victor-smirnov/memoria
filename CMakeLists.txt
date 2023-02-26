@@ -36,7 +36,7 @@ endif()
 
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" ON)
+    option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
 else()
     option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
 ENDIF()
@@ -179,9 +179,9 @@ SET (ACTIVE_PROFILES)
 foreach(FNAME ${GENERATED_SOURCES})
     if (FNAME MATCHES "^BYPRODUCT:")
         string(SUBSTRING ${FNAME} 10 -1 FNAME_OUT)
-        if (FNAME_OUT MATCHES "src/containers")
+        if (FNAME_OUT MATCHES "containers")
             list(APPEND GENERATED_MAIN_BYPRODUCTS ${FNAME_OUT})
-        elseif (FNAME_OUT MATCHES "src/stores")
+        elseif (FNAME_OUT MATCHES "stores")
             list(APPEND GENERATED_STORE_BYPRODUCTS ${FNAME_OUT})
         else()
             list(APPEND GENERATED_OTHER_BYPRODUCTS ${FNAME_OUT})
@@ -192,9 +192,9 @@ foreach(FNAME ${GENERATED_SOURCES})
         string(SUBSTRING ${FNAME} 7 -1 FNAME_OUT)
         list(APPEND GENERATED_CTR_SOURCES ${FNAME_OUT})
 
-        if (FNAME_OUT MATCHES "src/containers")
+        if (FNAME_OUT MATCHES "containers")
             list(APPEND GENERATED_MAIN_SOURCES ${FNAME_OUT})
-        elseif (FNAME_OUT MATCHES "src/stores")
+        elseif (FNAME_OUT MATCHES "stores")
             list(APPEND GENERATED_STORE_SOURCES ${FNAME_OUT})
         else()
             message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
@@ -241,9 +241,9 @@ message ("")
 message ("======================== MBT  MAIN SRC: |${GENERATED_MAIN_SOURCES}|============================")
 message ("======================== MBT STORE SRC: |${GENERATED_STORE_SOURCES}|===========================")
 
-#message ("======================== MBT  MAIN BP: |${GENERATED_MAIN_BYPRODUCTS}|============================")
-#message ("======================== MBT STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
-#message ("======================== MBT OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
+message ("======================== MBT  MAIN BP: |${GENERATED_MAIN_BYPRODUCTS}|============================")
+message ("======================== MBT STORE BP: |${GENERATED_STORE_BYPRODUCTS}|===========================")
+message ("======================== MBT OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|===========================")
 
 message ("======================== MBT ACTIVE PROFILES: |${ACTIVE_PROFILES} |===========================")
 
@@ -253,6 +253,9 @@ endif()
 
 message ("Reusing codegen config is ${REUSE_GENERATED_SOURCES}")
 
+# Note that this command is run at build time,
+# providing that there are some targents consuming generated
+# files.
 add_custom_command(
     IMPLICIT_DEPENDS C++ codegen/include/codegen_memoria.hpp
     OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
@@ -275,15 +278,30 @@ add_custom_command(
         --project-output ${CMAKE_BINARY_DIR}/generated
         --components-output-base ${CMAKE_BINARY_DIR}
         ${BUILD_REUSE_CODEGEN_CONFIG_OPT}
-
     COMMAND_ERROR_IS_FATAL ANY
 )
 
+add_library(Containers STATIC)
+target_sources(Containers PRIVATE ${GENERATED_MAIN_SOURCES})
+
+
 add_subdirectory(containers)
+
+#target_link_libraries(Containers Core)
+#set_target_properties(Containers PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+#set_target_properties(Containers PROPERTIES OUTPUT_NAME memoria_containers)
+
+add_library(Stores STATIC)
+target_sources(
+    Stores
+    PRIVATE
+        ${GENERATED_STORE_SOURCES}
+)
+
 
 add_subdirectory(stores)
 
-add_subdirectory(seastar)
+add_subdirectory(reactor)
 add_subdirectory(app_init)
 
 if (BUILD_SANDBOX)
@@ -307,5 +325,5 @@ if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
-export(TARGETS MemoriaCore MemoriaInit MemoriaCtrs MemoriaStores MemoriaSeastar FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
+export(TARGETS Core AppInit Containers Stores Reactor FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 

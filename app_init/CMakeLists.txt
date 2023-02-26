@@ -15,7 +15,8 @@
 
 file(GLOB INIT_SOURCES *.cpp *.hpp)
 
-add_library(MemoriaInit STATIC)
-target_sources(MemoriaInit PRIVATE ${GLOBAL_INIT_SRCS} ${INIT_SOURCES})
-target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
-set_property(TARGET MemoriaInit PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+add_library(AppInit STATIC)
+target_sources(AppInit PRIVATE ${GLOBAL_INIT_SRCS} ${INIT_SOURCES})
+target_link_libraries(AppInit Core Containers Stores)
+set_target_properties(AppInit PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_target_properties(AppInit PROPERTIES OUTPUT_NAME memoria_app_init)

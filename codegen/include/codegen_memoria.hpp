@@ -37,16 +37,16 @@ class [[clang::annotate(R"(
         "groups": {
             "default": {
                 "datatypes": @FileGenerator = {
-                    "filename": "src/containers/generated/ctr_datatypes.cpp",
+                    "filename": "containers/generated/ctr_datatypes.cpp",
                     "handler": "codegen.datatype_init.DatatypeInitGenerator"
                 },
                 "containers": @TypeInstance = {
-                    "path": "src/containers/generated",
+                    "path": "containers/generated",
                     "init": @FileGenerator = {
                         "includes": [
                             "memoria/codegen/codegen_ctrinit.hpp"
                         ],
-                        "filename": "src/containers/generated/ctr_init.cpp",
+                        "filename": "containers/generated/ctr_init.cpp",
                         "handler": "codegen.ctr_init.CtrInitGenerator",
                         "function": "init_core_containers"
                     }
@@ -55,16 +55,16 @@ class [[clang::annotate(R"(
 
             "stores": {
                 "datatypes": @FileGenerator = {
-                    "filename": "src/stores/generated/ctr_datatypes.cpp",
+                    "filename": "stores/generated/ctr_datatypes.cpp",
                     "handler": "codegen.datatype_init.DatatypeInitGenerator"
                 },
                 "containers": @TypeInstance = {
-                    "path": "src/stores/generated",
+                    "path": "stores/generated",
                     "init": @FileGenerator = {
                         "includes": [
                             "memoria/codegen/codegen_ctrinit.hpp"
                         ],
-                        "filename": "src/stores/generated/ctr_init.cpp",
+                        "filename": "stores/generated/ctr_init.cpp",
                         "handler": "codegen.ctr_init.CtrInitGenerator",
                         "function": "init_store_containers"
                     }

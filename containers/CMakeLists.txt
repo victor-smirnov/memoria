@@ -14,7 +14,8 @@
 # limitations under the License.
 
 
-add_library(MemoriaCtrs STATIC)
-target_sources(MemoriaCtrs PRIVATE ${GENERATED_MAIN_SOURCES})
-target_link_libraries(MemoriaCtrs MemoriaCore)
-set_target_properties(MemoriaCtrs PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+#add_library(Containers STATIC)
+#target_sources(Containers PRIVATE ${GENERATED_MAIN_SOURCES})
+target_link_libraries(Containers Core)
+set_target_properties(Containers PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_target_properties(Containers PROPERTIES OUTPUT_NAME memoria_containers)

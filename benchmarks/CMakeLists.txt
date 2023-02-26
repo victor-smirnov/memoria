@@ -17,7 +17,7 @@ SET(MEMORIA_BENCHMARKS)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_BENCHMARKS})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    target_link_libraries(${MEMORIA_TARGET} MemoriaCore MemoriaCoreCtrs MemoriaCoreStores)
+    target_link_libraries(${MEMORIA_TARGET} Core CoreCtrs CoreStores)
 ENDFOREACH()
 
 
