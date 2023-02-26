@@ -279,10 +279,7 @@ add_custom_command(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-add_library(MemoriaCtrs STATIC)
-target_sources(MemoriaCtrs PRIVATE ${GENERATED_MAIN_SOURCES})
-target_link_libraries(MemoriaCtrs MemoriaCore)
-set_target_properties(MemoriaCtrs PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+add_subdirectory(containers)
 
 add_subdirectory(stores)
 

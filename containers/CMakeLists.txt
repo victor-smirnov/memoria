@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB INIT_SOURCES *.cpp *.hpp)
 
-add_library(MemoriaInit STATIC)
-target_sources(MemoriaInit PRIVATE ${GLOBAL_INIT_SRCS} ${INIT_SOURCES})
-target_link_libraries(MemoriaInit MemoriaCore MemoriaCtrs MemoriaStores)
-set_property(TARGET MemoriaInit PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+add_library(MemoriaCtrs STATIC)
+target_sources(MemoriaCtrs PRIVATE ${GENERATED_MAIN_SOURCES})
+target_link_libraries(MemoriaCtrs MemoriaCore)
+set_target_properties(MemoriaCtrs PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
