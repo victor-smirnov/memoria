@@ -64,3 +64,5 @@ target_sources(
     PUBLIC ${LIB_HEADERS}
 )
 
+
+target_compile_options(Core PUBLIC -march=native -fstrict-aliasing -Wstrict-aliasing=2)

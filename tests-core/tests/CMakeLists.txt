@@ -1,5 +1,7 @@
 set (SRCS )
 
+add_executable(tests2)
+
 #if(BUILD_TESTS_REACTOR)
 #    set (SRCS ${SRCS} reactor/file_stream_test.cpp)
 #    set (SRCS ${SRCS} reactor/pipe_test.cpp)
@@ -21,7 +23,10 @@ if(BUILD_TESTS_PACKED)
     #set (SRCS ${SRCS} packed/codecs/packed_codecs_test_suite.cpp)
     set (SRCS ${SRCS} packed/tree/packed_tree_test_suite.cpp)
     #set (SRCS ${SRCS} packed/sequence/fse/pseq_test_suite.cpp)
-    set (SRCS ${SRCS} packed/sequence/ssrle/ssrleseq_test_suite.cpp)
+    #set (SRCS ${SRCS} packed/sequence/ssrle/ssrleseq_test_suite.cpp)
+
+    file (GLOB_RECURSE PSEQ_SRCS packed/sequence/ssrle/*.cpp packed/sequence/ssrle/*.hpp)
+    target_sources(tests2 PRIVATE ${PSEQ_SRCS})
 endif()
 
 if(BUILD_TESTS_CONTAINERS AND BUILD_COW_PROFILE)
@@ -39,9 +44,10 @@ if(BUILD_TESTS_STORES)
     set (SRCS ${SRCS} store/swmr_store_test_suite.cpp)
 endif()
 
-add_executable(tests2 tests2.cpp ${SRCS})
-set_property(TARGET tests2 PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+
+set_target_properties(tests2 PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(tests2 PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(tests2 PROPERTIES LINK_FLAGS    "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(tests2 Stores Containers AppInit Tests2 )
+target_link_libraries(tests2 PUBLIC Stores Containers AppInit Tests2 )
 
+target_sources(tests2 PRIVATE tests2.cpp ${SRCS})

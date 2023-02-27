@@ -119,8 +119,8 @@ public:
     {
         StoreT store = store_ops_->create_store();
 
-        CheckResultConsumerFn callback = [](CheckSeverity svr, const LDDocument& doc){
-            std::cout << doc.to_string() << std::endl;
+        CheckResultConsumerFn callback = [](CheckSeverity svr, const hermes::HermesCtr& doc){
+            std::cout << doc.to_pretty_string() << std::endl;
             if (svr == CheckSeverity::ERROR) {
                 MEMORIA_MAKE_GENERIC_ERROR("Container check error").do_throw();
             }
@@ -303,10 +303,10 @@ public:
     virtual StoreT create_store()
     {
         if (remove_existing_) {
-            filesystem::remove(file_name_.data());
+            boost::filesystem::remove(file_name_.data());
         }
 
-        if (!filesystem::exists(file_name_.data())) {
+        if (!boost::filesystem::exists(file_name_.data())) {
             return create_lite_swmr_store(file_name_, store_size_);
         }
         else {
@@ -339,7 +339,7 @@ public:
     virtual StoreT create_store()
     {
         if (remove_existing_) {
-            filesystem::remove(file_name_.data());
+            boost::filesystem::remove(file_name_.data());
         }
 
         return create_swmr_store(file_name_, store_size_);
@@ -370,7 +370,7 @@ public:
     virtual StoreT create_store()
     {
         if (remove_existing_) {
-            filesystem::remove(file_name_.data());
+            boost::filesystem::remove(file_name_.data());
         }
 
         return create_lmdb_store(file_name_, store_size_);

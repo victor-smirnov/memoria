@@ -1,5 +1,5 @@
 
-// Copyright 2013-2021 Victor Smirnov
+// Copyright 2013-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #include <memoria/core/types.hpp>
 #include <memoria/profiles/common/common.hpp>
 
-#include <memoria/core/container/names.hpp>
 #include <memoria/profiles/common/block.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 

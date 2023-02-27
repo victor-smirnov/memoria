@@ -60,7 +60,7 @@ file (GLOB_RECURSE STORE_HEADERS include/*.hpp)
 SET_TARGET_PROPERTIES(Stores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 set_target_properties(Stores PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(Stores PROPERTIES OUTPUT_NAME memoria_stores)
-target_link_libraries(Stores PUBLIC Core Containers)
+target_link_libraries(Stores PUBLIC StoresApi Containers)
 target_include_directories(Stores PUBLIC ../include include)
 
 file (GLOB LIB_SOURCES *.cpp)

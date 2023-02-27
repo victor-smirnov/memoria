@@ -45,8 +45,8 @@ option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
-option(BUILD_EXAMPLES   "Build project examples" OFF)
-option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
+option(BUILD_EXAMPLES   "Build project examples" ON)
+option(BUILD_BENCHMARKS "Build project benchmarks" ON)
 
 option(BUILD_WITH_STATIC_BOOST     "Use static boost libraries" OFF)
 option(BUILD_REUSE_CODEGEN_CONFIG  "Reuse previously generated codegen configuration (faster iteration)" OFF)
@@ -69,9 +69,6 @@ option(Boost_DEBUG "Debug FindBoost" OFF)
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_definitions(-Wno-unknown-warning-option)
-
-# FIXME: Must be target-specific (containers, mostly)!
-add_definitions(-fstrict-aliasing)
 
 SET(MEMORIA_HAS_TOP_LEVEL ON)
 
@@ -149,6 +146,7 @@ execute_process(
         --dry-run
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/core/lib/include
+        -I ${CMAKE_SOURCE_DIR}/containers-api/include
         -I ${CMAKE_SOURCE_DIR}/containers/include
         -I ${CMAKE_SOURCE_DIR}/stores/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
@@ -268,6 +266,7 @@ add_custom_command(
         ${CMAKE_BINARY_DIR}/mbt-explicit/mbt
         -I ${CMAKE_SOURCE_DIR}/include
         -I ${CMAKE_SOURCE_DIR}/core/lib/include
+        -I ${CMAKE_SOURCE_DIR}/containers-api/include
         -I ${CMAKE_SOURCE_DIR}/containers/include
         -I ${CMAKE_SOURCE_DIR}/stores/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
@@ -288,25 +287,18 @@ add_custom_command(
 add_library(Containers STATIC)
 target_sources(Containers PRIVATE ${GENERATED_MAIN_SOURCES})
 
-
+add_subdirectory(containers-api)
 add_subdirectory(containers)
 
-#target_link_libraries(Containers Core)
-#set_target_properties(Containers PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
-#set_target_properties(Containers PROPERTIES OUTPUT_NAME memoria_containers)
-
 add_library(Stores STATIC)
-target_sources(
-    Stores
-    PRIVATE
-        ${GENERATED_STORE_SOURCES}
-)
+target_sources(Stores PRIVATE ${GENERATED_STORE_SOURCES})
 
-
+add_subdirectory(stores-api)
 add_subdirectory(stores)
 
 add_subdirectory(reactor)
 add_subdirectory(app_init)
+
 
 if (BUILD_SANDBOX)
     add_subdirectory(sandbox)
@@ -329,5 +321,5 @@ if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
-export(TARGETS Core AppInit Containers Stores Reactor FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
+export(TARGETS Core AppInit Containers ContainersApi Stores StoresApi Reactor FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 

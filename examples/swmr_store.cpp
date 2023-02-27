@@ -18,7 +18,7 @@
 #include <memoria/api/set/set_api.hpp>
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/random.hpp>
-#include <memoria/filesystem/operations.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <memoria/memoria.hpp>
 
 #include "store_tools.hpp"
@@ -33,6 +33,8 @@ using StorePtrT = AllocSharedPtr<ISWMRStore<CoreApiProfile>>;
 
 
 int main(void) {
+
+    InitMemoriaExplicit();
 
     Seed(123456);
     SeedBI(123456);

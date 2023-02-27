@@ -13,16 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set_target_properties(Containers PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
-set_target_properties(Containers PROPERTIES OUTPUT_NAME memoria_containers)
 
-target_link_libraries(Containers PUBLIC ContainersApi)
-target_include_directories(Containers PUBLIC include)
+add_library(ContainersApi STATIC)
 
-file(GLOB CTR_SOURCES *.cpp)
-file(GLOB_RECURSE CTR_HEADERS include/*.*)
+set_target_properties(ContainersApi PROPERTIES CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
+set_target_properties(ContainersApi PROPERTIES OUTPUT_NAME memoria_containers_api)
 
-target_sources(Containers
-    PUBLIC ${CTR_HEADERS}
-    PRIVATE ${GENERATED_MAIN_SOURCES} ${CTR_SOURCES}
+target_link_libraries(ContainersApi PUBLIC Core)
+target_include_directories(ContainersApi PUBLIC include)
+
+file(GLOB CTR_API_SOURCES *.cpp)
+file(GLOB_RECURSE CTR_API_HEADERS include/*.*)
+
+target_sources(ContainersApi
+    PUBLIC ${CTR_API_HEADERS}
+    PRIVATE ${CTR_API_SOURCES}
 )

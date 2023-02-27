@@ -92,7 +92,6 @@ class [[clang::annotate(R"(
     }
 )")]] CodegenConfig<> {};
 
-#ifdef MEMORIA_BUILD_EXTRA_CONTAINERS
 
 template<>
 class [[clang::annotate(R"(
@@ -188,8 +187,6 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Multimap<Varchar, Varchar>> {};
 
-
-#endif
 
 template<>
 class [[clang::annotate(R"(

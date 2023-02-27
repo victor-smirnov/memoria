@@ -1,4 +1,4 @@
-// Copyright 2011 Victor Smirnov
+// Copyright 2011-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 namespace memoria {
 
-//MMA_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticAppInit);
+MMA_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticAppInit);
 
 void InitMemoriaExplicit();
 

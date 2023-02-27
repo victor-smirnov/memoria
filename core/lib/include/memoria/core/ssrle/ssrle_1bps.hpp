@@ -135,7 +135,7 @@ struct SSRLERunTraits<1>: SSRLERunCommonTraits<1> {
         uint64_t mask = 1;
         uint64_t rr{};
         ++rank;
-        for (size_t c = 0; c < 64; c++) {
+        for (size_t c = 0; c < 64; c++, mask <<= 1) {
             rr += (arg & mask) != 0;
             if (rr == rank) {
                 return c;
