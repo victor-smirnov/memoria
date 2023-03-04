@@ -176,7 +176,7 @@ public:
 
     static size_t compute_index_block_size(size_t capacity)
     {
-        if (Ordering == DTOrdering::SUM) {
+        if (Ordering == DTOrdering::SUM && capacity > IndexSpan) {
             return compute_block_size(div_up(capacity, IndexSpan));
         }
         else {

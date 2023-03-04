@@ -25,7 +25,7 @@ target_include_directories(StoresApi PUBLIC include)
 file(GLOB STORE_API_SOURCES *.cpp)
 file(GLOB_RECURSE STORE_API_HEADERS include/*.*)
 
-target_sources(ContainersApi
+target_sources(StoresApi
     PUBLIC ${STORE_API_HEADERS}
     PRIVATE ${STORE_API_SOURCES}
 )

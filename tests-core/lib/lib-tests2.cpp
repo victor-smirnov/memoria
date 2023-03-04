@@ -18,7 +18,7 @@
 #include <memoria/tests/tests.hpp>
 #include <memoria/tests/arg_helper.hpp>
 
-#include <seastar/core/thread.hh>
+//#include <seastar/core/thread.hh>
 
 namespace memoria {
 namespace tests {
@@ -172,7 +172,7 @@ void ThreadsArgHelper::fix_thread_arg()
 }
 
 void yield() {
-    seastar::thread::yield();
+    //seastar::thread::yield();
 }
 
 }}

@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/core/tools/uid_256.hpp>
-#include <memoria/core/hrpc/hrpc.hpp>
+#include <memoria/hrpc/hrpc.hpp>
 
 #include <memoria/seastar/seastar.hpp>
 #include <seastar/core/thread.hh>

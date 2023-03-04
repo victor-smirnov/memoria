@@ -19,6 +19,16 @@
 # MEMORIA_LINK_FLAGS               Additional flags for linker
 
 cmake_minimum_required (VERSION 3.16)
+
+
+if (LINUX)
+    option (BUILD_SEASTAR "Build Seastar Framework supporting library" ON)
+    if(BUILD_SEASTAR)
+      list(APPEND VCPKG_MANIFEST_FEATURES "seastar")
+    endif()
+endif()
+
+
 project (Memoria)
 
 set(VERSION "0.1.0")
@@ -63,16 +73,26 @@ option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
 option(BUILD_TESTS_HRPC         "Build HRPC Protocol tests" ON)
 
-option(ICU_DEBUG   "Debug FindICU" OFF)
-option(Boost_DEBUG "Debug FindBoost" OFF)
-
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_definitions(-Wno-unknown-warning-option)
 
 SET(MEMORIA_HAS_TOP_LEVEL ON)
 
-find_package(Boost 1.74.0 COMPONENTS filesystem program_options serialization unit_test_framework REQUIRED)
+#set (Boost_USE_STATIC_RUNTIME    ON)
+set (Boost_USE_STATIC_LIBS       ON)
+
+find_package(Boost 1.74.0
+    COMPONENTS
+        filesystem
+        program_options
+        serialization
+        program_options
+        context
+        fiber
+    REQUIRED
+)
+
 
 if (BUILD_TESTS)
     find_package(Catch2 CONFIG REQUIRED)
@@ -87,6 +107,8 @@ set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_SEASTAR ${MAIN_INCLUDES}
 
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 get_property(GLOBAL_SEASTAR_SRCS GLOBAL PROPERTY GLOBAL_SEASTAR_SOURCES)
+
+add_library(Core STATIC)
 
 add_subdirectory(core)
 add_subdirectory(mbt)
@@ -296,7 +318,16 @@ target_sources(Stores PRIVATE ${GENERATED_STORE_SOURCES})
 add_subdirectory(stores-api)
 add_subdirectory(stores)
 
-add_subdirectory(reactor)
+if (BUILD_SEASTAR)
+    add_library(SeastarLib STATIC)
+endif()
+
+add_library(AsioLib STATIC)
+add_library(RuntimeApi STATIC)
+add_library(ReactorLib STATIC)
+
+add_subdirectory(runtimes)
+
 add_subdirectory(app_init)
 
 
@@ -306,6 +337,7 @@ endif()
 
 if (BUILD_TESTS)
     add_subdirectory(tests-core)
+    add_subdirectory(tests-reactor)
 
     if (BUILD_TESTS_HRPC)
         add_subdirectory(tests-other/hrpc)
@@ -321,5 +353,9 @@ if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
-export(TARGETS Core AppInit Containers ContainersApi Stores StoresApi Reactor FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
+export(TARGETS
+    Core AppInit Containers ContainersApi Stores
+    StoresApi SeastarLib RuntimeApi
+    FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake
+)
 

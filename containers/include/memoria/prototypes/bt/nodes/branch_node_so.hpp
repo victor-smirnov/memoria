@@ -474,7 +474,6 @@ public:
         MEMORIA_ASSERT(idx, <=, size);
 
         UpdateState update_state = make_update_state();
-
         PrepareInsertFn prepare_insert_fn;
         Dispatcher(state()).dispatchNotEmpty(allocator(), prepare_insert_fn, idx, keys, update_state);
 

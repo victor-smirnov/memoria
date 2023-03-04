@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/core/hrpc/hrpc.hpp>
+#include <memoria/hrpc/hrpc.hpp>
 
 #include <memoria/memoria.hpp>
 

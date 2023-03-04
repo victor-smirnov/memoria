@@ -1,0 +1,100 @@
+
+// Copyright 2017 Victor Smirnov
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#pragma once
+
+#include <boost/fiber/context.hpp>
+
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/reactor/mpmc_queue.hpp>
+#include <memoria/reactor/message.hpp>
+
+#include <memoria/reactor/message_queue.hpp>
+
+#include <vector>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+
+namespace memoria {
+namespace reactor {
+
+using WorkerMessageQueue    = MPMCQueue<Message*, 1024>;
+using WorkerMessageQueuePtr = std::unique_ptr<WorkerMessageQueue>;
+
+template <typename MyType>
+class SmpBase: public std::enable_shared_from_this<MyType> {
+    
+    using Base = std::enable_shared_from_this<MyType>;
+    
+    using Base::shared_from_this;
+    
+    int cpu_num_;
+    
+    std::vector<WorkerMessageQueuePtr> inboxes_;
+    
+public:
+    SmpBase(int cpu_num): 
+        cpu_num_(cpu_num) 
+    {
+        if (cpu_num > 0) 
+        {
+            for (int c = 0; c < cpu_num; c++)
+            {
+                inboxes_.push_back(std::make_unique<WorkerMessageQueue>());
+            }
+        }
+        else {
+            MMA_THROW(RuntimeException()) << format_ex("Number of threads (--threads) must be greather than zero: {}", cpu_num);
+        }
+    }
+    
+    bool submit_to(int cpu, Message* msg) 
+    {
+        if (cpu < 0 || cpu >= cpu_num_) {
+            std::cout << "here!" << std::endl;
+        }
+
+        BOOST_ASSERT_MSG(cpu >= 0 && cpu < cpu_num_, "Invalid cpu number");
+        return inboxes_[cpu]->send(msg);
+    }
+    
+    template <typename Fn>
+    size_t receive(int cpu, size_t max_batch_size, Fn&& consumer) 
+    {
+        BOOST_ASSERT_MSG(cpu >= 0 && cpu < cpu_num_, "Invalid cpu number");
+        return inboxes_[cpu]->get(max_batch_size, std::forward<Fn>(consumer));
+    }
+    
+    template <typename Fn>
+    size_t receive_all(int cpu, Fn&& consumer) 
+    {
+        BOOST_ASSERT_MSG(cpu >= 0 && cpu < cpu_num_, "Invalid cpu number");
+        return inboxes_[cpu]->get_all(std::forward<Fn>(consumer));
+    }
+    
+    int cpu_num() const {return cpu_num_;}
+
+    friend class Application;
+    friend class Reactor;
+    
+protected:
+    
+    std::shared_ptr<MyType> self() {
+        return shared_from_this();
+    }
+};
+    
+}}

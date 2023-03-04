@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package(yaml-cpp REQUIRED)
+
 file(GLOB TOOLS_LIB_SRC *.cpp)
 
 add_library(Tests2 STATIC )
 set_target_properties(Tests2 PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(Tests2 PROPERTIES OUTPUT_NAME memoria_tests2)
 
-target_link_libraries(Tests2 Core Reactor)
+target_link_libraries(Tests2 Core AsioLib yaml-cpp)
 target_include_directories(Tests2 PUBLIC ../include)
 
 file(GLOB_RECURSE _HDRS "../include/*.*")

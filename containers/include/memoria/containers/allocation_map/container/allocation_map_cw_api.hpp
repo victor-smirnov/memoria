@@ -196,10 +196,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
 
             auto new_leaf = self.ctr_create_node(0, false, true);
 
-            auto leaf_inserted = self.ctr_enlarge_leaf(new_leaf, size);
-
-            auto leaf_max = self.ctr_get_node_max_keys(new_leaf.as_immutable());
-
+            auto leaf_inserted   = self.ctr_enlarge_leaf(new_leaf, size);
+            auto leaf_max        = self.ctr_get_node_max_keys(new_leaf.as_immutable());
             auto branch_capacity = self.ctr_get_branch_node_capacity(path[1]);
 
             int32_t parent_idx;

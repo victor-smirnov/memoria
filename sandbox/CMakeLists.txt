@@ -32,6 +32,6 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
     set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit Reactor)
+    target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit SeastarLib)
 ENDFOREACH(MEMORIA_TARGET )
 

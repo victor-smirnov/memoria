@@ -19,10 +19,12 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/strings/format.hpp>
 
-//#include <memoria/core/packed/tools/packed_allocator_types.hpp>
-
 #include <memoria/core/hermes/hermes.hpp>
 
+#include <boost/fiber/all.hpp>
+#include <boost/fiber/asio/round_robin.hpp>
+#include <boost/fiber/asio/yield.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -33,7 +35,6 @@ namespace memoria {
 namespace tests {
 
 namespace bp = boost::process;
-namespace ss = seastar;
 
 using fs::path;
 
@@ -65,8 +66,7 @@ namespace {
 
 fs::path get_tests_config_path()
 {
-    auto& app = get_current_app();
-    auto& config = app.configuration();
+    auto& config = get_config();
 
     fs::path config_path;
 
@@ -86,8 +86,7 @@ fs::path get_tests_config_path()
 
 fs::path get_tests_output_path()
 {
-    auto& app = get_current_app();
-    auto& config = app.configuration();
+    auto& config = get_config();
 
     fs::path output_path;
 
@@ -105,8 +104,7 @@ fs::path get_tests_output_path()
 
 U8String get_test_coverage_str()
 {
-    auto& app = get_current_app();
-    auto& config = app.configuration();
+    auto& config = get_config();
 
     if (config.count("coverage") > 0) {
         return U8String(config["coverage"].as<std::string>());
@@ -118,8 +116,7 @@ U8String get_test_coverage_str()
 
 Optional<TestCoverage> get_test_coverage()
 {
-    auto& app = get_current_app();
-    auto& config = app.configuration();
+    auto& config = get_config();
 
     if (config.count("coverage") > 0) {
         return coverage_from_string(get_test_coverage_str().to_u8());
@@ -348,127 +345,7 @@ bool is_test_enabled(EnablementType global, EnablementType suite, EnablementType
         return true; // enabled by default
     }
 }
-
 }
-
-/*
-void run_tests()
-{
-    fs::path output_dir_base = get_tests_output_path();
-
-    fs::path config_path    = get_tests_config_path();
-    U8String config_file           = U8String(config_path.string());
-
-    YAML::Node tests_config;
-
-    if (fs::is_regular_file(config_path)) {
-        tests_config = YAML::Load(config_path.string());
-    }
-
-    auto global_enabled = is_enabled(tests_config);
-    const auto& suites  = tests_registry().suites();
-
-    for (auto& suite: suites)
-    {
-        auto suite_node     = tests_config[suite.first.to_u8().data()];
-        auto suite_enabled  = is_enabled(suite_node);
-
-        std::vector<U8String> failed;
-        std::vector<U8String> crashed;
-		
-        int32_t tests_run{};
-        int32_t passed{};
-
-        for (auto& test: suite.second->tests())
-        {
-            auto test_node     = suite_node[test.first.to_u8().data()];
-            auto test_enabled  = is_enabled(test_node);
-
-            if (is_test_enabled(global_enabled, suite_enabled, test_enabled))
-            {
-                tests_run++;
-
-                fs::path test_output_dir = output_dir_base;
-                test_output_dir.append(suite.first.to_u8().to_std_string());
-                test_output_dir.append(test.first.to_u8().to_std_string());
-
-                fs::create_directories(test_output_dir);
-
-                U8String test_path = suite.first + "/" + test.first;
-
-                std::vector<std::string> args;
-
-                args.emplace_back("--test");
-                args.emplace_back(test_path);
-
-                if (!config_file.is_empty()) {
-                    args.emplace_back("--config");
-                    args.emplace_back(config_file);
-                }
-
-                if (test_node["threads"])
-                {
-                    args.emplace_back("-t");
-                    args.emplace_back(test_node["threads"].as<std::string>());
-                }
-                else {
-                    auto state = test.second->create_state();
-                    args.emplace_back("-t");
-                    args.emplace_back(std::to_string(state->threads()));
-                }
-
-                args.emplace_back("--output");
-                args.emplace_back(U8String(output_dir_base.string()));
-
-                args.emplace_back("--coverage");
-                args.emplace_back(get_test_coverage_str());
-
-                fs::path std_output = test_output_dir;
-                std_output.append("stdout.txt");
-
-                fs::path std_error = test_output_dir;
-                std_error.append("stderr.txt");
-
-                Process process(get_program_path().string(), args, std_output.string(), std_error.string());
-                Status status = process.join();
-
-                if (!(status == Status::EXITED && process.exit_code() == 0))
-                {
-                    if (status == Status::CRASHED)
-                    {
-                        crashed.push_back(test.first);
-                    }
-                    else {
-                        failed.push_back(test.first);
-                    }
-                }
-                else {
-                    passed++;
-                }
-            }
-        }
-
-        if (tests_run > 0)
-        {
-            if (failed.size() == 0 && crashed.size() == 0)
-            {
-                println("{}: PASSED ({})", suite.first, passed);
-            }
-            else if (failed.size() > 0 && crashed.size() > 0)
-            {
-                println("{}: PASSED ({}); FAILED {}; CRASHED {}", suite.first, passed, to_string(failed), to_string(crashed));
-            }
-            else if (failed.size() > 0) {
-                println("{}: PASSED ({}); FAILED {}", suite.first, passed, to_string(failed));
-            }
-            else {
-                println("{}: PASSED ({}); CRASHED {}", suite.first, passed, to_string(crashed));
-            }
-        }
-    }
-}
-
-*/
 
 void Test::run(TestContext *context) noexcept
 {
@@ -555,11 +432,10 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
 
 void MultiProcessRunner::start()
 {
-    ss::listen_options opts;
-    opts.reuse_address = true;
+//    ss::listen_options opts;
+//    opts.reuse_address = true;
 
     const auto& suites  = tests_registry().suites();
-
 
     for (const auto& suite: suites)
     {
@@ -569,10 +445,10 @@ void MultiProcessRunner::start()
         }
     }
 
-    socket_ = ss::listen(
-        ss::socket_address(ss::ipv4_addr(address_.to_std_string(), port_)),
-        opts
-    );
+//    socket_ = ss::listen(
+//        ss::socket_address(ss::ipv4_addr(address_.to_std_string(), port_)),
+//        opts
+//    );
 
     if (tests_.size() < workers_num_) {
         workers_num_ = tests_.size();
@@ -598,7 +474,7 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
     output_dir_base.append(std::to_string(num));
     fs::create_directories(output_dir_base);
 
-    auto proc = std::make_shared<WorkerProcess>(address_, socket_.local_address().port(), output_dir_base, num);
+    auto proc = std::make_shared<WorkerProcess>(address_, 0, output_dir_base, num);
 
     proc->set_status_listener([weak_self = weak_from_this(), address = address_, port = port_, num, output_dir_base, this](auto status, auto exit_code)
     {
@@ -644,31 +520,85 @@ std::shared_ptr<WorkerProcess> MultiProcessRunner::create_worker(size_t num)
     return proc;
 }
 
-void write_message(ss::output_stream<char>& output, const U8StringView& msg)
+bool write_data(net::ip::tcp::socket& socket, const void* data, size_t size)
+{
+    boost::system::error_code ec;
+    net::async_write(
+            socket,
+            net::buffer(data, size),
+            boost::fibers::asio::yield[ec]);
+
+    if ( ec == net::error::eof) {
+        return false;
+    }
+    else if (ec) {
+        throw boost::system::system_error(ec);
+    }
+    return true;
+}
+
+size_t read_data(net::ip::tcp::socket& socket, uint8_t* data, size_t size)
+{
+    boost::system::error_code ec;
+    size_t reply_length = socket.async_read_some(
+            boost::asio::buffer(data, size),
+            boost::fibers::asio::yield[ec]);
+
+    if (ec == boost::asio::error::eof) {
+        return 0;
+    }
+    else if (ec) {
+        throw boost::system::system_error(ec);
+    }
+
+    return reply_length;
+}
+
+
+bool read_data_fully(net::ip::tcp::socket& socket, void* data, size_t size)
+{
+    uint8_t* udata = reinterpret_cast<uint8_t*>(data);
+    size_t cnt = 0;
+    while (cnt < size)
+    {
+        size_t rr = read_data(socket, udata + cnt, size - cnt);
+        if (rr == 0) {
+            return false;
+        }
+        cnt += rr;
+    }
+    return cnt;
+}
+
+bool write_message(net::ip::tcp::socket& socket, const U8StringView& msg)
 {
     uint64_t size = msg.size();
-    output.write(ptr_cast<const char>(&size), sizeof(size)).get();
-    output.write(ptr_cast<const char>(msg.data()), size).get();
-    output.flush().get();
+    if (write_data(socket, &size, sizeof(size))) {
+        return write_data(socket, msg.data(), msg.size());
+    }
+    return false;
 }
 
-hermes::HermesCtr read_message(ss::input_stream<char>& input)
+hermes::HermesCtr read_message(net::ip::tcp::socket& socket)
 {
-    uint64_t size{0};
-    auto buf = input.read_exactly(sizeof(size)).get();
-    std::memcpy(&size, buf.get(), sizeof(size));
+    uint64_t size{};
+    if (read_data_fully(socket, &size, sizeof(size)))
+    {
+        auto buf = allocate_system_zeroed<char>(size + 1);
+        if (read_data_fully(socket, buf.get(), size)) {
+            return hermes::HermesCtr::parse_document(U8String(buf.get(), size));
+        }
+    }
 
-    auto msg = input.read_exactly(size).get();
-    U8String str(msg.get(), size);
-
-    return hermes::HermesCtrView::parse_document(str);
+    return {};
 }
+
 
 
 template <typename StreamT>
 struct StreamCloser {
     StreamT* stream_{};
-    ~StreamT() {
+    ~StreamCloser() {
         if (stream_) {
             stream_->close().get();
         }
@@ -685,36 +615,24 @@ void MultiProcessRunner::handle_connections()
     std::set<U8String> sent_tasks;
     std::set<U8String> processed_tasks;
 
+    using SocketPtr = std::unique_ptr<net::ip::tcp::socket>;
 
     while (processed + crashes_ < total_tests)
     {
-        ss::accept_result conn;
-        try {
-            conn = socket_.accept().get();
-        }
-        catch (const std::system_error& err) {
-            if (err.code().value() != 103) {
-                throw err;
-            }
-            else {
-                break;
-            }
-        }
-
-        auto fn = [&](ss::accept_result conn_data) {
+        auto fn = [&](SocketPtr conn) {
             std::shared_ptr<WorkerProcess> worker_process;
             size_t worker_num = -1ull;
 
             try {
-                auto input  = conn_data.connection.input();
-                auto output = conn_data.connection.output();
+                //auto input  = conn_data.connection.input();
+                //auto output = conn_data.connection.output();
 
-                StreamCloser<ss::input_stream<char>> is_closer{&input};
-                StreamCloser<ss::output_stream<char>> os_closer{&output};
+                //StreamCloser<ss::input_stream<char>> is_closer{&input};
+                //StreamCloser<ss::output_stream<char>> os_closer{&output};
 
                 while (tests_.size() || heads_.count(worker_num) > 0)
                 {
-                    auto msg = read_message(input);
+                    auto msg = read_message(*conn);
                     U8String code = msg.root().search("code").as_varchar();
 
                     if (code == "GREETING")
@@ -731,7 +649,7 @@ void MultiProcessRunner::handle_connections()
                             heads_[worker_num] = new_test;
 
                             sent_tasks.insert(new_test);
-                            write_message(output, format_u8("{{'code': 'RUN_TASK', 'test_path': '{}'}}", new_test));
+                            write_message(*conn, format_u8("{{'code': 'RUN_TASK', 'test_path': '{}'}}", new_test));
                             sent++;
                         }
                         else {
@@ -759,11 +677,11 @@ void MultiProcessRunner::handle_connections()
                 }
 
                 if (worker_num != -1ull) {
-                    write_message(output, "{'code': 'TERMINATE'}");
+                    write_message(*conn, "{'code': 'TERMINATE'}");
                 }
 
                 if (processed + crashes_ >= total_tests) {
-                    socket_.abort_accept();
+                    socket_.close();
                 }
             }
             catch (const std::system_error& ex)
@@ -799,9 +717,11 @@ void MultiProcessRunner::handle_connections()
             }
         };
 
-        ss::thread_attributes ta;
-        ta.stack_size = 1024*1024;
-        auto thread = seastar::async(ta, std::move(fn), std::move(conn));
+        SocketPtr conn = std::make_unique<net::ip::tcp::socket>(ios_);
+
+        //ss::thread_attributes ta;
+        //ta.stack_size = 1024*1024;
+        auto thread = boost::fibers::async(std::move(fn), std::move(conn));
 
         threads_.push_back(std::make_pair(format_u8("WorkerFacacde"), std::move(thread)));
     }
@@ -835,20 +755,17 @@ void MultiProcessRunner::handle_connections()
 
 void MultiProcessRunner::ping_socket()
 {
-    ss::connected_socket c_socket = ss::engine().connect(ss::socket_address(ss::ipv4_addr(address_, port_))).get();
-    auto output = c_socket.output();
+//    ss::connected_socket c_socket = ss::engine().connect(ss::socket_address(ss::ipv4_addr(address_, port_))).get();
+//    auto output = c_socket.output();
 
-    write_message(output, "{'code': 'NONE'}");
+//    write_message(output, "{'code': 'NONE'}");
 
-    output.close().get();
+//    output.close().get();
 }
-
-
-
 
 WorkerProcess::~WorkerProcess() noexcept {}
 
-ss::future<> WorkerProcess::start()
+boost::fibers::future<void> WorkerProcess::start()
 {
     fs::path output_dir_base(output_folder_);
 
@@ -876,7 +793,7 @@ ss::future<> WorkerProcess::start()
 
     process_ = std::make_unique<Process>(get_program_path().string(), args, std_output.string(), std_error.string());
 
-    return ss::async([&]() {
+    return boost::fibers::async([&]() {
         auto holder = this->shared_from_this();
 
         int32_t code{-1};
@@ -907,44 +824,33 @@ ss::future<> WorkerProcess::start()
     });
 }
 
-
-void Worker::run()
-{
+void AbstractWorker::handle_messages() {
     try {
-    socket_ = seastar::connect(ss::socket_address(server_address_)).get();
+        write_message(format_u8("{{'code': 'GREETING', 'worker_id':{}}}", worker_num_));
 
-    auto input = socket_.input();
-    auto output = socket_.output();
+        while (true)
+        {
+            write_message("{'code': 'GET_TASK'}");
 
-    StreamCloser<ss::input_stream<char>> is_closer{&input};
-    StreamCloser<ss::output_stream<char>> os_closer{&output};
+            auto msg = read_message();
+            U8String code = msg.root().search("code").as_varchar();
 
-    write_message(output, format_u8("{{'code': 'GREETING', 'worker_id':{}}}", worker_num_));
+            if (code == "RUN_TASK")
+            {
+                U8String test_path = msg.root().search("test_path").as_varchar();
+                TestStatus status = run_single_test(test_path);
 
-    while (true)
-    {
-        write_message(output, "{'code': 'GET_TASK'}");
-
-        auto msg = read_message(input);
-        U8String code = msg.root().search("code").as_varchar();
-
-        if (code == "RUN_TASK")
-        {            
-            U8String test_path = msg.root().search("test_path").as_varchar();
-
-            TestStatus status = run_single_test(test_path);
-
-            write_message(output, format_u8(
+                write_message(format_u8(
 R"({{
     'code': 'TASK_RESULT',
     'test_path': '{}',
     'status': {}
 }})", test_path, (int)status));
+            }
+            else {
+                return;
+            }
         }
-        else {
-            return;
-        }
-    }
     }
     catch(const std::system_error& err) {
         if (err.code().value() != 111) {
@@ -953,29 +859,46 @@ R"({{
     }
 }
 
-void run_tests2(size_t threads)
+
+void ASIOWorker::run()
 {
-    auto runner = std::make_shared<MultiProcessRunner>(threads);
+    using net::ip::tcp;
+
+    tcp::resolver resolver(ios_);
+    tcp::resolver::query query( tcp::v4(), "127.0.0.1", "9999");
+    tcp::resolver::iterator iterator = resolver.resolve( query);
+    net::connect(socket_, iterator);
+
+    handle_messages();
+
+    socket_.close();
+}
+
+
+bool ASIOWorker::write_message(U8String msg)
+{
+    return memoria::tests::write_message(socket_, msg);
+}
+
+
+hermes::HermesCtr ASIOWorker::read_message()
+{
+    return memoria::tests::read_message(socket_);
+}
+
+
+
+void run_tests2(net::io_service& ios, size_t threads) {
+    auto runner = std::make_shared<MultiProcessRunner>(ios, threads);
     runner->start();
 }
 
-seastar::app_template* appt = nullptr;
 
-void set_current_app(seastar::app_template* app) {
-    appt = app;
+boost::program_options::variables_map vmap_;
+
+boost::program_options::variables_map& get_config() {
+    return vmap_;
 }
-
-seastar::app_template& get_current_app()
-{
-    if (appt) {
-        return *appt;
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Seastar application is not set").do_throw();
-     }
-}
-
-
 
 namespace {
 
@@ -1238,12 +1161,12 @@ Process::Process(
 }
 
 void Process::terminate() {
-    ss::engine().kill(process_.id(), SIGTERM);
+    //ss::engine().kill(process_.id(), SIGTERM);
 }
 
 Status Process::join()
 {
-    int status = ss::engine().waitpid(process_.id()).get();
+    int status = 0;//ss::engine().waitpid(process_.id()).get();
 
     Status ss = Status::EXITED;
 
@@ -1251,22 +1174,17 @@ Status Process::join()
     {
         int sign = WTERMSIG(status);
         if (sign == SIGTERM) {
-            //println("TERMINATED");
             ss = Status::TERMINATED;
         }
         else {
-            //println("CRASHED");
             ss = Status::CRASHED;
         }
     }
     else if (WEXITSTATUS(status)) {
         ss = Status::FAILED;
-        //println("FAILED");
     }
 
     return ss;
-
-
 }
 
 }}

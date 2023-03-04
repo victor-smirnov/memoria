@@ -66,8 +66,6 @@ int main(int argc, char** argv, char** envp)
         ta.stack_size = 1024*1024;
 
         return seastar::async(ta, [&]() -> int {
-            std::cout << "Hello world\n";
-
             auto& config = app.configuration();
 
             std::string coverage = config["coverage"].as<std::string>();
@@ -115,8 +113,8 @@ int main(int argc, char** argv, char** envp)
 
                 boost::filesystem::path output_folder(config["output"].as<std::string>());
 
-                tests::Worker worker(seastar::ipv4_addr(address, port), worker_num, output_folder);
-                worker.run();
+                //tests::Worker worker(seastar::ipv4_addr(address, port), worker_num, output_folder);
+                //worker.run();
                 return 0;
             }
             else {

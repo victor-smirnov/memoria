@@ -15,32 +15,39 @@
 
 #pragma once
 
-
 #include <memoria/tests/tests.hpp>
+
+#include <memoria/core/hermes/hermes.hpp>
 
 #ifdef IOCB_FLAG_RESFD
 #undef IOCB_FLAG_RESFD
 #endif
 
-#include <seastar/core/app-template.hh>
-#include <seastar/core/seastar.hh>
-#include <seastar/core/thread.hh>
-#include <seastar/core/reactor.hh>
+//#include <seastar/core/app-template.hh>
+//#include <seastar/core/seastar.hh>
+//#include <seastar/core/thread.hh>
+//#include <seastar/core/reactor.hh>
 
-#include <seastar/net/api.hh>
-#include <seastar/net/tcp.hh>
-#include <seastar/net/stack.hh>
+//#include <seastar/net/api.hh>
+//#include <seastar/net/tcp.hh>
+//#include <seastar/net/stack.hh>
 
+#include <boost/asio.hpp>
+#include <boost/fiber/all.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
+
+#include <boost/program_options.hpp>
 
 #include <yaml-cpp/yaml.h>
 
 namespace memoria {
 namespace tests {
 
-namespace ss = seastar;
+//namespace ss = seastar;
+
+namespace net = boost::asio;
 
 class NOOPConfigurator: public TestConfigurator {
     YAML::Node configuration_;
@@ -124,29 +131,63 @@ public:
         return seed_;
     }
 };
-#include <seastar/core/seastar.hh>
 
 void dump_exception(std::ostream& out, std::exception_ptr& ex);
 TestStatus run_single_test(const U8String& test_path);
 TestStatus replay_single_test(const U8String& test_path);
 
-void run_tests();
-void run_tests2(size_t threads);
 
-class Worker {
-    seastar::connected_socket socket_;
-    seastar::ipv4_addr server_address_;
+void run_tests2(net::io_service& ios, size_t threads);
+
+
+class AbstractWorker {
+protected:
+    U8String server_address_;
+    uint16_t port_;
     size_t worker_num_;
     fs::path output_folder_;
 public:
-    Worker(seastar::ipv4_addr server_address, size_t worker_num, fs::path output_folder):
-        server_address_(server_address),        
+    AbstractWorker(U8String address, uint16_t port, size_t worker_num, fs::path output_folder):
+        server_address_(address),
+        port_(port),
         worker_num_(worker_num),
         output_folder_(output_folder)
-    {}
+    {
+    }
 
-    void run();
+    virtual void handle_messages();
+
+    virtual bool write_message(U8String msg) = 0;
+    virtual hermes::HermesCtr read_message() = 0;
+
+    virtual void run() = 0;
 };
+
+
+class ASIOWorker: public AbstractWorker {
+    net::io_service& ios_;
+    net::ip::tcp::socket socket_;
+
+
+public:
+    ASIOWorker(net::io_service& ios, U8String address, uint16_t port, size_t worker_num, fs::path output_folder):
+        AbstractWorker(address, port, worker_num, output_folder),
+        ios_(ios),
+        socket_(ios)
+    {
+    }
+
+    void run() override;
+
+    bool write_message(U8String msg) override;
+    hermes::HermesCtr read_message() override;
+
+    bool write_data(const void* data, size_t size);
+    size_t read_data(uint8_t* data, size_t size);
+    bool read_data_fully(void* data, size_t size);
+};
+
+
 
 enum class Status {
     RUNNING, EXITED, TERMINATED, CRASHED, FAILED, UNKNOWN
@@ -223,7 +264,7 @@ public:
         status_listener_ = ll;
     }
 
-    ss::future<> start();
+    boost::fibers::future<void> start();
 
     Status join() {
         return process_->join();
@@ -240,7 +281,8 @@ public:
 
 
 class MultiProcessRunner: public std::enable_shared_from_this<MultiProcessRunner> {
-    seastar::server_socket socket_;
+    net::io_service& ios_;
+    net::ip::tcp::socket socket_;
     std::vector<std::shared_ptr<WorkerProcess>> worker_processes_;
     size_t workers_num_;
     U8String address_;
@@ -249,14 +291,16 @@ class MultiProcessRunner: public std::enable_shared_from_this<MultiProcessRunner
     size_t crashes_{};
     std::map<size_t, U8String> heads_;
 
-    std::list<std::pair<U8String, ss::future<>>> threads_;
+    std::list<std::pair<U8String, boost::fibers::future<void>>> threads_;
 
     bool respawn_workers_{true};
 
     std::list<U8String> tests_;
 
 public:
-    MultiProcessRunner(size_t workers_num, const U8String& address = "0.0.0.0", uint16_t port = 0):
+    MultiProcessRunner(net::io_service& ios, size_t workers_num, const U8String& address = "0.0.0.0", uint16_t port = 0):
+        ios_(ios),
+        socket_(ios),
         workers_num_(workers_num),
         address_(address),
         port_(port)
@@ -272,15 +316,9 @@ private:
     void ping_socket();
 };
 
-void set_current_app(seastar::app_template* app);
-seastar::app_template& get_current_app();
-
+boost::program_options::variables_map& get_config();
 
 fs::path get_program_path();
 fs::path get_image_name();
-
-
-
-
 
 }}

@@ -170,46 +170,43 @@ public:
         arena_(),
         header_()
     {
-        if (MMA_UNLIKELY(mem_holder_->mem_data().index() == 0)) {
-            segment_size_ = 0;
-            arena_ = boost::variant2::get<0>(mem_holder_->mem_data());
-            header_ = reinterpret_cast<DocumentHeader*>(arena_->tail().memory.get());
-        }
-        else if (mem_holder_->mem_data().index() == 1) {
-            auto span = boost::variant2::get<1>(mem_holder_->mem_data());
-            segment_size_ = span.size();
-            header_ = reinterpret_cast<DocumentHeader*>(span.data());
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "Invalid mem_data: {}",
-                mem_holder_->mem_data().index()
-            ).do_throw();
-        }
+        unpack_memholder(mem_holder_);
     }
 
     HermesCtrView(LWMemHolder* mem_holder) noexcept:
         Base(mem_holder)
     {
-        if (mem_holder->mem_data().index() == 0) {
-            segment_size_ = 0;
-            arena_ = boost::variant2::get<0>(mem_holder->mem_data());
-            header_ = reinterpret_cast<DocumentHeader*>(arena_->root());
-        }
-        else if (mem_holder->mem_data().index() == 1) {
-            auto span = boost::variant2::get<1>(mem_holder->mem_data());
-            segment_size_ = span.size();
-            header_ = reinterpret_cast<DocumentHeader*>(span.data());
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR(
-                "Invalid mem_data: {}",
-                mem_holder->mem_data().index()
-            ).do_throw();
-        }
+        unpack_memholder(mem_holder_);
     }
 
     virtual ~HermesCtrView() noexcept = default;
+
+    void unpack_memholder(LWMemHolder* mem_holder)
+    {
+        if (mem_holder_) {
+            if (mem_holder->mem_data().index() == 0) {
+                segment_size_ = 0;
+                arena_ = boost::variant2::get<0>(mem_holder->mem_data());
+                header_ = reinterpret_cast<DocumentHeader*>(arena_->root());
+            }
+            else if (mem_holder->mem_data().index() == 1) {
+                auto span = boost::variant2::get<1>(mem_holder->mem_data());
+                segment_size_ = span.size();
+                header_ = reinterpret_cast<DocumentHeader*>(span.data());
+            }
+            else {
+                MEMORIA_MAKE_GENERIC_ERROR(
+                            "Invalid mem_data: {}",
+                            mem_holder->mem_data().index()
+                            ).do_throw();
+            }
+        }
+        else {
+            arena_ = nullptr;
+            segment_size_ = 0;
+            header_ = nullptr;
+        }
+    }
 
     static size_t minimum_ctr_size() {
         return sizeof(DocumentHeader);
@@ -335,7 +332,6 @@ public:
     }
 
     static HermesCtr parse_datatype(U8StringView view) {
-        //println("Parse Datatype: {}", view);
         return parse_datatype(view.begin(), view.end());
     }
 

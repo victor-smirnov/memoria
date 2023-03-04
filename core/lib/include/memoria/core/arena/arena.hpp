@@ -157,11 +157,9 @@ protected:
     friend class AddrResolver;
 
     void on_create() {
-        //println("Creating ArenaAllocator: {}", ++DebugCounter);
     }
 
     void on_destroy() {
-        //println("Destroying ArenaAllocator: {}", --DebugCounter);
     }
 
 public:
@@ -369,20 +367,40 @@ public:
 
 
     Chunk& head() noexcept {
-        return chunks_[chunks_.size() - 1];
+        if (chunks_.size()) {
+            return chunks_[chunks_.size() - 1];
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Arena is empty").do_throw();
+        }
     }
 
     Chunk& tail() noexcept {
-        return chunks_[0];
+        if (chunks_.size()) {
+            return chunks_[0];
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Arena is empty").do_throw();
+        }
     }
 
 
     const Chunk& head() const noexcept {
-        return chunks_[chunks_.size() - 1];
+        if (chunks_.size()) {
+            return chunks_[chunks_.size() - 1];
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Arena is empty").do_throw();
+        }
     }
 
     const Chunk& tail() const noexcept {
-        return chunks_[0];
+        if (chunks_.size()) {
+            return chunks_[0];
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR("Arena is empty").do_throw();
+        }
     }
 
 

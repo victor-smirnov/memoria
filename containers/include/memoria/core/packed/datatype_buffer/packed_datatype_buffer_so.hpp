@@ -899,7 +899,6 @@ public:
     {
         MEMORIA_ASSERT(row_at, <=, this->size());
         size_t data_size{};
-
         for (size_t column = 0; column < Columns; column++)
         {
             DataLengths data_lengths{};

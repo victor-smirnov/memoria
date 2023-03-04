@@ -40,7 +40,6 @@ HermesCtr HermesCtrView::compactify(bool make_immutable, size_t header_size) con
     auto arena = TL_allocate_shared<arena::PoolableArena>(alc_type, arena_->chunk_size(), header_size);
 
     HermesCtr ctr(&arena->mem_holder(), arena.get());
-
     ctr.deep_copy_from(header_, mem_holder_);
 
     return ctr;
@@ -72,7 +71,6 @@ HermesCtr HermesCtrView::clone(bool as_mutable) const
                         arena_->chunk_size(), head.memory.get(), head.size);
 
             HermesCtr ctr(&arena->mem_holder());
-
             if (as_mutable) {
                 arena->switch_to_chunked_mode();
             }
@@ -85,7 +83,6 @@ HermesCtr HermesCtrView::clone(bool as_mutable) const
                                                       arena::AllocationType::GROWABLE_SINGLE_CHUNK;
 
         auto arena = TL_allocate_shared<arena::PoolableArena>(alc_type, 4096, header_, segment_size_);
-
         HermesCtr ctr(&arena->mem_holder());
         return ctr;
     }

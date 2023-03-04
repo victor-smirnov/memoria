@@ -261,7 +261,8 @@ public:
         MEMORIA_ASSERT(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
-        return allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries);
+        auto m_s = sizeof(MyType);
+        return allocator_.init(block_size - m_s + PackedAllocator::my_size(), entries);
     }
 
     void resizeBlock(int32_t new_size)
@@ -445,7 +446,8 @@ public:
         size_t mem_size = 0;
 
         for (size_t c = 0; c < StreamsStart; c++) {
-            mem_size += allocator_.element_size(c);
+            auto size = allocator_.element_size(c);
+            mem_size += size;
         }
 
         return mem_size;
@@ -547,7 +549,8 @@ private:
 
         size_t block_size(size_t items_number) const
         {
-            return MyType::block_size(items_number, active_streams_);
+            auto vv = MyType::block_size(items_number, active_streams_);
+            return vv;
         }
 
         size_t max_elements(size_t block_size) const
@@ -604,7 +607,8 @@ private:
         {
             if (active_streams & (1ull << StreamIndex))
             {
-                size_ += Node::compute_block_size(tree_size);
+                auto vvv = Node::compute_block_size(tree_size);
+                size_ += vvv;
             }
         }
     };

@@ -20,7 +20,6 @@ find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 
 file(GLOB_RECURSE LIB_SOURCES *.cpp *.hpp hermes/*.cpp platforms/posix/*.cpp)
 
-add_library(Core STATIC )
 target_include_directories(Core PUBLIC ../../include)
 target_include_directories(Core PUBLIC include)
 
@@ -41,7 +40,7 @@ target_compile_definitions(Core PUBLIC  -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
 target_compile_options(Core PUBLIC -pthread)
 
 if (USE_ASAN)
-    target_compile_definitions(Core PUBLIC -DMEMORIA_USE_ASAN)
+    target_compile_definitions(Core PUBLIC -DBOOST_USE_ASAN -DBOOST_USE_UCONTEXT)
     target_compile_options(Core PUBLIC -fsanitize=address -fsanitize-address-use-after-scope)
     target_link_options(Core PUBLIC -fsanitize=address)
 endif()
@@ -52,6 +51,7 @@ if (USE_USAN)
 endif()
 
 if (USE_TSAN)
+    target_compile_definitions(Core PUBLIC -DBOOST_USE_TSAN -DBOOST_USE_UCONTEXT)
     target_compile_options(Core PUBLIC -fsanitize=thread)
     target_link_options(Core PUBLIC -fsanitize=thread)
 endif()

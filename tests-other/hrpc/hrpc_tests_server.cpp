@@ -16,10 +16,10 @@
 
 #include <memoria/core/tools/time.hpp>
 
-#include <memoria/core/hrpc/hrpc.hpp>
-#include <memoria/core/hrpc/hrpc_async.hpp>
+#include <memoria/hrpc/hrpc.hpp>
+#include <memoria/hrpc/hrpc_async.hpp>
 
-#include <memoria/core/hrpc/hrpc.hpp>
+#include <memoria/hrpc/hrpc.hpp>
 
 #include <memoria/memoria.hpp>
 

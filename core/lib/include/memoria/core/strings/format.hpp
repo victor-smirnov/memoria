@@ -21,6 +21,8 @@
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/exceptions/core.hpp>
 
+#include <boost/filesystem/path.hpp>
+
 #include <string>
 #include <sstream>
 #include <memory>
@@ -139,6 +141,16 @@ struct formatter<memoria::NamedTypedCode<T>> {
         else {
             return format_to(ctx.out(), "{}", d.code());
         }
+    }
+};
+
+template <>
+struct formatter<boost::filesystem::path> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const boost::filesystem::path& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.string());
     }
 };
 

@@ -95,7 +95,8 @@ public:
     }
 
     size_t client_area() const noexcept {
-        return block_size_ - my_size() - layout_size_ - bitmap_size_;
+        size_t m_s = my_size();
+        return block_size_ - m_s - layout_size_ - bitmap_size_;
     }
 
     size_t free_space() const noexcept {

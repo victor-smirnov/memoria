@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SET(MEMORIA_BENCHMARKS)
-
-FOREACH(MEMORIA_TARGET ${MEMORIA_BENCHMARKS})
-    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    target_link_libraries(${MEMORIA_TARGET} Core CoreCtrs CoreStores)
-ENDFOREACH()
-
-
+add_executable(boost_fibers)
+target_link_libraries(boost_fibers PRIVATE Core Boost::context Boost::fiber)
+target_sources(boost_fibers PRIVATE boost_fibers.cpp)

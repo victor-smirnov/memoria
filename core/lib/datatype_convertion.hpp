@@ -251,6 +251,17 @@ struct DatatypeConverter<FromDT, Varchar>: IDatatypeConverter {
     }
 };
 
+
+template <>
+struct DatatypeConverter<Varchar, Varchar>: IDatatypeConverter {
+    hermes::Object convert(const void* view) const
+    {
+        DTTViewType<Varchar> typed_view = *reinterpret_cast<const DTTViewType<Varchar>*>(view);
+        return hermes::HermesCtrView::wrap_dataobject<Varchar>(typed_view);
+    }
+};
+
+
 template <typename FromDT, typename ToDT>
 struct NumericConverter: IDatatypeConverter {
     hermes::Object convert(const void* view) const

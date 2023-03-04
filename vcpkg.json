@@ -1,8 +1,20 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "memoria",
-  "version": "0.1.0",
-  "dependencies": [
-    "abseil", "hash-library", "seastar", "catch2", "lmdb", "icu", "inja"
-  ]
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "memoria",
+    "version": "0.1.0",
+    "dependencies": [
+        "abseil", "hash-library", "catch2", "lmdb", "icu", "inja", "yaml-cpp"
+    ],
+    "default-features": [],
+    "features": {
+        "seastar": {
+            "description": "Seastar Framework",
+            "dependencies": [
+                {
+                    "name": "seastar",
+                    "platform": "linux"
+                }
+            ]
+        }
+    }
 }

@@ -19,8 +19,6 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
 
-#include <seastar/core/thread.hh>
-
 
 namespace memoria {
 namespace tests {
@@ -32,7 +30,7 @@ std::ostream& TestState::out() const {
 }
 
 void TestState::yield() {
-    seastar::thread::yield();
+    //seastar::thread::yield();
 }
 
 Optional<TestCoverage> coverage_from_string(const U8String& str)

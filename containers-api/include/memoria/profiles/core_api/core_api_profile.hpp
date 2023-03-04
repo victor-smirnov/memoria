@@ -52,4 +52,7 @@ struct CtrReferenceable<CoreApiProfileT<TT>>: CtrReferenceableBase<CoreApiProfil
     //virtual void traverse_ctr(void* node_handler) const = 0;
 };
 
+template <>
+struct TypeHash<CoreApiProfileT<>>: UInt64Value<594836793845763ull> {};
+
 }

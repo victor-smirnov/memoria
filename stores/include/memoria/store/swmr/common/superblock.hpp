@@ -198,9 +198,8 @@ public:
 
 
     void init_metadata(const hermes::HermesCtr& doc)
-    {
+    {        
         auto new_doc = doc.compactify(true);
-
         auto span = new_doc.span();
 
         if (span.length() <= METADATA_SIZE) {

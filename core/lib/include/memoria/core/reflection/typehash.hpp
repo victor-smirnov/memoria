@@ -146,19 +146,6 @@ template <> struct TypeHash<void>:      UInt64Value<11> {};
 // LinkedData: 40 - 44
 // Reserved for Linked Data : 249 - 255
 
-template <
-    template <typename> class Profile,
-    typename T
->
-struct TypeHash<Profile<T>> {
-    // FIXME need template assigning unique code to the each profile level
-    using VList = UInt64List<100, TypeHash<T>::Value>;
-    static constexpr uint64_t Value = md5::Md5Sum<VList>::Type::Value64;
-};
-
-
-
-
 
 template <uint64_t Base, uint64_t ... Values>
 static constexpr uint64_t HashHelper = md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64;
