@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_call.hpp"
-#include "hrpc_impl_session.hpp"
+#include <memoria/hrpc/hrpc_impl_call.hpp>
+#include <memoria/hrpc/hrpc_impl_session.hpp>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
 PoolSharedPtr<Session> HRPCCallImpl::session() {
     return session_;
@@ -34,16 +34,18 @@ HRPCCallImpl::HRPCCallImpl(
     batch_size_limit_(session->channel_buffer_size()),
     completion_fn_(completion_fn)
 {
-    for (size_t c = 0; c < request.input_channels(); c++) {
+}
+
+void HRPCCallImpl::post_create()
+{
+    for (size_t c = 0; c < request_.input_channels(); c++) {
         input_channels_.push_back(make_input_channel(c));
     }
 
-    for (size_t c = 0; c < request.output_channels(); c++) {
+    for (size_t c = 0; c < request_.output_channels(); c++) {
         output_channels_.push_back(make_output_channel(c));
     }
 }
-
-
 
 Response HRPCCallImpl::response() {
     return response_;
@@ -53,9 +55,7 @@ void HRPCCallImpl::wait()
 {
     if (response_.is_null())
     {
-        waiter_.wait([&](){
-            return response_.is_not_null();
-        }).get();
+        wait_for_response();
     }
 }
 
@@ -77,10 +77,12 @@ void HRPCCallImpl::cancel()
 void HRPCCallImpl::set_response(Response rs)
 {
     response_ = rs;
-    waiter_.broadcast();
+    notify_response_ready();
 
     if (completion_fn_) {
-        seastar::async(completion_fn_, response_).get();
+        run_async([this]{
+            completion_fn_(response_);
+        });
     }
 }
 
@@ -111,22 +113,5 @@ void HRPCCallImpl::reset_output_channel_buffer(ChannelCode code)
         output_channels_[code]->reset_buffer_size();
     }
 }
-
-InputChannelImplPtr HRPCCallImpl::make_input_channel(ChannelCode code)
-{
-    static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputChannelImpl>>();
-
-    return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, true);
-}
-
-OutputChannelImplPtr HRPCCallImpl::make_output_channel(ChannelCode code)
-{
-    static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputChannelImpl>>();
-
-    return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, true);
-}
-
 
 }

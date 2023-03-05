@@ -15,25 +15,37 @@
 
 #pragma once
 
-#include "hrpc_impl_common.hpp"
+#include <memoria/hrpc/hrpc_impl_common.hpp>
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 #include <memoria/core/tools/optional.hpp>
 
+#include <seastar/core/seastar.hh>
+#include <seastar/core/reactor.hh>
+#include <seastar/core/thread.hh>
+#include <seastar/core/shared_mutex.hh>
+#include <seastar/net/api.hh>
+
 #include <boost/asio.hpp>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::ss {
 
 namespace net = boost::asio::ip;
 namespace bsys = boost::system;
+namespace ss = seastar;
 
+//class SeastarClientSocket;
+//using SeastarClientSocketPtr = PoolSharedPtr<SeastarClientSocket>;
 
-class HRPCServerSocketImpl final:
-        public Server,
-        public pool::enable_shared_from_this<HRPCServerSocketImpl>
+class SeastarServerSocket;
+using SeastarServerSocketPtr = PoolSharedPtr<SeastarServerSocket>;
+
+class SeastarServerSocket final:
+        public st::Server,
+        public pool::enable_shared_from_this<SeastarServerSocket>
 {
     TCPServerSocketConfig cfg_;
-    PoolSharedPtr<EndpointRepository> endpoints_;
+    PoolSharedPtr<st::EndpointRepository> endpoints_;
 
     seastar::server_socket socket_;
 
@@ -50,9 +62,9 @@ class HRPCServerSocketImpl final:
     }
 
 public:
-    HRPCServerSocketImpl(
+    SeastarServerSocket(
             const TCPServerSocketConfig& cfg,
-            PoolSharedPtr<EndpointRepository> endpoints
+            PoolSharedPtr<st::EndpointRepository> endpoints
     ):
         cfg_(cfg), endpoints_(endpoints),
         socket_(make_socket(cfg_.host().data(), cfg_.port()))
@@ -62,7 +74,7 @@ public:
 
 
 
-    PoolSharedPtr<EndpointRepository> service() {
+    PoolSharedPtr<st::EndpointRepository> service() {
         return endpoints_;
     }
 
@@ -72,14 +84,14 @@ public:
 
     void listen() override {}
 
-    PoolSharedPtr<Session> new_session() override;
+    PoolSharedPtr<st::Session> new_session() override;
 };
 
 
 
 
 
-class TCPMessageProviderBase: public MessageProvider  {
+class TCPMessageProviderBase: public st::MessageProvider  {
 protected:
     ss::input_stream<char> input_stream_;
     ss::output_stream<char> output_stream_;
@@ -108,8 +120,8 @@ public:
     void write_message(const MessageHeader& header, const uint8_t* data) override;
 };
 
-
-class ASIOSocketMessageProvider final: public MessageProvider  {
+/*
+class ASIOSocketMessageProvider final: public st::MessageProvider  {
 protected:
     net::tcp::socket socket_;
 public:
@@ -141,19 +153,19 @@ public:
         return !socket_.is_open();
     }
 
-    static PoolSharedPtr<MessageProvider> make_instance(
+    static PoolSharedPtr<st::MessageProvider> make_instance(
         net::tcp::socket&& socket
     );
 };
+*/
 
 
 
-
-class TCPClientMessageProviderImpl final: public TCPMessageProviderBase {
+class SeastarTCPClientMessageProvider final: public TCPMessageProviderBase {
     seastar::connected_socket socket_;
 
 public:
-    TCPClientMessageProviderImpl(seastar::connected_socket socket);
+    SeastarTCPClientMessageProvider(seastar::connected_socket socket);
 
     void close() noexcept override {
         try {
@@ -167,17 +179,17 @@ public:
     }
 
 
-    static PoolSharedPtr<MessageProvider> make_instance(TCPClientSocketConfig config);
+    static PoolSharedPtr<st::MessageProvider> make_instance(TCPClientSocketConfig config);
 };
 
 
-class TCPServerMessageProviderImpl final: public TCPMessageProviderBase {
-    ServerSocketImplPtr socket_;
+class SeastarTCPServerMessageProvider final: public TCPMessageProviderBase {
+    SeastarServerSocketPtr socket_;
     ss::accept_result connection_;
 
 public:
-    TCPServerMessageProviderImpl(
-        ServerSocketImplPtr socket,
+    SeastarTCPServerMessageProvider(
+        SeastarServerSocketPtr socket,
         ss::accept_result connection
     );
 
@@ -193,7 +205,7 @@ public:
     }
 
     static PoolSharedPtr<MessageProvider> make_instance(
-        ServerSocketImplPtr socket,
+        SeastarServerSocketPtr socket,
         ss::accept_result connection
     );
 };

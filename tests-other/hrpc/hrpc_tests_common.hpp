@@ -34,8 +34,8 @@ constexpr UID256 INPUT_CHANNEL_TEST  = UID256{3809053522172463906ull, 7190220530
 constexpr UID256 OUTPUT_CHANNEL_TEST = UID256{6671401374715659763ull, 1623900077831920038ull, 17292896288624218196ull, 88380478914819099ull};
 constexpr UID256 CANCEL_RQ_TEST      = UID256{6023599194013054336ull, 8480974567391737759ull, 16398945128188874689ull, 79721979216655488ull};
 
-using ContextPtr = PoolSharedPtr<hrpc::Context>;
-using SessionPtr = PoolSharedPtr<hrpc::Session>;
+using ContextPtr = PoolSharedPtr<hrpc::st::Context>;
+using SessionPtr = PoolSharedPtr<hrpc::st::Session>;
 
 constexpr NamedCode ARG1 = NamedCode(1, "arg1");
 constexpr NamedCode ARG2 = NamedCode(2, "arg2");

@@ -15,15 +15,15 @@
 
 #pragma once
 
-#include "hrpc_impl_session_base.hpp"
+#include <memoria/hrpc/hrpc_impl_session_base.hpp>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
-class HRPCSessionImpl:
-        public HRPCSessionBase,
-        public pool::enable_shared_from_this<HRPCSessionImpl>
-{    
+class HRPCSessionImpl: public HRPCSessionBase
+{
     using Base = HRPCSessionBase;
+
+protected:
     MessageProviderPtr message_provider_;
 
 public:
@@ -75,17 +75,12 @@ public:
         return message_provider_->is_closed();
     }
 
-private:
-    virtual SessionImplPtr self() override {
-        return shared_from_this();
-    }
+protected:
 
 
     void write_message(const MessageHeader& header, const uint8_t* data) override {
         message_provider_->write_message(header, data);
     }
-
-
 
 
     void do_session_close() noexcept override {

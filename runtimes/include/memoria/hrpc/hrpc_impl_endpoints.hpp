@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include "hrpc_impl_common.hpp"
+#include <memoria/hrpc/hrpc_impl_common.hpp>
 
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 #include <memoria/core/tools/optional.hpp>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
 class HRPCEndpointRepositoryImpl final:
         public EndpointRepository,

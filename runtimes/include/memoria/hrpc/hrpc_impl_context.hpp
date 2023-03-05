@@ -15,14 +15,15 @@
 
 #pragma once
 
-#include "hrpc_impl_common.hpp"
 
-namespace memoria::hrpc {
+#include <memoria/hrpc/hrpc_impl_common.hpp>
 
-class HRPCContextImpl final:
-        public Context,
-        public pool::enable_shared_from_this<HRPCContextImpl>
-{
+#include <vector>
+
+namespace memoria::hrpc::st {
+
+class HRPCContextImpl: public Context {
+protected:
     SessionImplPtr session_;
     CallID call_id_;
     EndpointID endpoint_id_;
@@ -39,6 +40,8 @@ class HRPCContextImpl final:
 
 public:
     HRPCContextImpl(SessionImplPtr session, CallID call_id, const EndpointID& endpoint_id, Request request);
+
+    void post_create();
 
     PoolSharedPtr<Session> session() override;
 
@@ -100,8 +103,6 @@ public:
 
     void reset_output_channel_buffer(ChannelCode code);
 
-    InputChannelImplPtr  make_input_channel(ChannelCode code);
-    OutputChannelImplPtr make_output_channel(ChannelCode code);
 
     bool is_cancelled() override {
         return cancelled_;
@@ -116,6 +117,12 @@ public:
             cancel_listener_ = fn;
         }
     }
+
+protected:
+
+    virtual void run_async(std::function<void()> fn) = 0;
+    virtual InputChannelImplPtr  make_input_channel(ChannelCode code)  = 0;
+    virtual OutputChannelImplPtr make_output_channel(ChannelCode code) = 0;
 };
 
 }

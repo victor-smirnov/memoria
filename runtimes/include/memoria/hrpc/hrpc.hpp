@@ -26,7 +26,7 @@
 
 #include <functional>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
 using RequestHandlerFn = std::function<Response (PoolSharedPtr<Context>)>;
 
@@ -191,14 +191,6 @@ public:
 };
 
 
-PoolSharedPtr<Session> open_tcp_session(
-    const TCPClientSocketConfig& cfg,
-    const PoolSharedPtr<EndpointRepository>& endpoints
-);
 
-PoolSharedPtr<Server> make_tcp_server(
-    const TCPServerSocketConfig& cfg,
-    const PoolSharedPtr<EndpointRepository>& endpoints
-);
 
 }

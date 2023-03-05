@@ -15,16 +15,15 @@
 
 #pragma once
 
-#include "hrpc_impl_common.hpp"
+
+#include <memoria/hrpc/hrpc_impl_common.hpp>
 
 #include <vector>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
-class HRPCCallImpl final:
-        public Call,
-        public pool::enable_shared_from_this<HRPCCallImpl>
-{
+class HRPCCallImpl: public Call {
+protected:
     SessionImplPtr session_;
     Request request_;
     Response response_;
@@ -37,8 +36,6 @@ class HRPCCallImpl final:
 
     CallCompletionFn completion_fn_;
 
-    seastar::condition_variable waiter_;
-
 public:
     HRPCCallImpl(
             const SessionImplPtr& session,
@@ -46,6 +43,12 @@ public:
             Request request,
             CallCompletionFn completion_fn
     );
+
+    void post_create();
+
+    virtual void wait_for_response()     = 0;
+    virtual void notify_response_ready() = 0;
+    virtual void run_async(std::function<void()> fn) = 0;
 
     PoolSharedPtr<Session> session() override;
 
@@ -112,9 +115,9 @@ public:
 
     void reset_output_channel_buffer(ChannelCode code);
 
-private:
-    InputChannelImplPtr make_input_channel(ChannelCode code);
-    OutputChannelImplPtr make_output_channel(ChannelCode code);
+protected:
+    virtual InputChannelImplPtr make_input_channel(ChannelCode code) = 0;
+    virtual OutputChannelImplPtr make_output_channel(ChannelCode code) = 0;
 };
 
 

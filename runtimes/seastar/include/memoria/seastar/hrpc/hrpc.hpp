@@ -13,13 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_endpoints.hpp"
+#pragma once
 
-namespace memoria::hrpc {
+#include <memoria/hrpc/hrpc.hpp>
 
-PoolSharedPtr<EndpointRepository> EndpointRepository::make() {
-    static thread_local auto pool = boost::make_local_shared<pool::SimpleObjectPool<HRPCEndpointRepositoryImpl>>();
-    return pool->allocate_shared();
-}
+namespace memoria::hrpc::ss {
+
+PoolSharedPtr<st::Session> open_tcp_session(
+    const TCPClientSocketConfig& cfg,
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
+);
+
+PoolSharedPtr<st::Server> make_tcp_server(
+    const TCPServerSocketConfig& cfg,
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
+);
+
 
 }

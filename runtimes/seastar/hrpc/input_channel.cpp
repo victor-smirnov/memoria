@@ -13,33 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_input_channel.hpp"
-#include "hrpc_impl_session.hpp"
+#include <memoria/seastar/hrpc/input_channel.hpp>
+#include <memoria/hrpc/hrpc_impl_session.hpp>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::ss {
 
-HRPCInputChannelImpl::HRPCInputChannelImpl(
-        SessionImplPtr session,
-        CallID call_id,
-        ChannelCode channel_code,
-        uint64_t batch_size_limit,
-        bool call_side
-):
-    session_(session), call_id_(call_id),
-    channel_code_(channel_code), closed_(),
-    call_side_(call_side),
-    batch_size_limit_(batch_size_limit)
-{}
 
-PoolSharedPtr<Session> HRPCInputChannelImpl::session() {
+PoolSharedPtr<st::Session> SeastarHRPCInputChannel::session() {
     return session_;
 }
 
-bool HRPCInputChannelImpl::is_closed() {
+bool SeastarHRPCInputChannel::is_closed() {
     return channel_.is_closed();
 }
 
-bool HRPCInputChannelImpl::pop(Message& msg)
+bool SeastarHRPCInputChannel::pop(Message& msg)
 {
     bool success = channel_.pop(msg);
     if (success)
@@ -53,7 +41,7 @@ bool HRPCInputChannelImpl::pop(Message& msg)
     return success;
 }
 
-void HRPCInputChannelImpl::close()
+void SeastarHRPCInputChannel::close()
 {
     channel_.clean_and_close();
 
@@ -75,14 +63,14 @@ void HRPCInputChannelImpl::close()
     );
 }
 
-void HRPCInputChannelImpl::new_message(Message&& msg)
+void SeastarHRPCInputChannel::new_message(Message&& msg)
 {
     if (!channel_.is_closed()) {
         channel_.push(std::move(msg));
     }
 }
 
-void HRPCInputChannelImpl::do_close_channel() {
+void SeastarHRPCInputChannel::do_close_channel() {
     channel_.close();
 }
 

@@ -20,6 +20,8 @@
 
 #include "hrpc_tests_common.hpp"
 
+#include <memoria/seastar/hrpc/hrpc.hpp>
+
 #include <seastar/core/app-template.hh>
 #include <seastar/core/thread.hh>
 
@@ -46,10 +48,10 @@ int main(int argc, char** argv, char** envp)
         return ss::async([&]{
             println("HRPC Client running Catch2 tests");
 
-            auto endpoints = hrpc::EndpointRepository::make();
+            auto endpoints = hrpc::st::EndpointRepository::make();
 
             auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
-            auto session = hrpc::open_tcp_session(client_cfg, endpoints);
+            auto session = hrpc::ss::open_tcp_session(client_cfg, endpoints);
 
             set_session(session);
             auto dtr = MakeOnScopeExit([]{

@@ -25,6 +25,7 @@
 
 #include "hrpc_tests_common.hpp"
 
+#include <memoria/seastar/hrpc/hrpc.hpp>
 
 #include <seastar/core/app-template.hh>
 #include <seastar/core/thread.hh>
@@ -53,7 +54,7 @@ int main(int argc, char** argv, char** envp) {
 
             println("HRPC Server");
 
-            auto endpoints = hrpc::EndpointRepository::make();
+            auto endpoints = hrpc::st::EndpointRepository::make();
 
             endpoints->add_handler(NORMAL_RQ_TEST, normal_rq_handler);
             endpoints->add_handler(ERRORS_TEST, errors_handler);
@@ -62,7 +63,7 @@ int main(int argc, char** argv, char** envp) {
             endpoints->add_handler(CANCEL_RQ_TEST, cancel_rq_handler);
 
             auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
-            auto server = hrpc::make_tcp_server(server_cfg, endpoints);
+            auto server = memoria::hrpc::ss::make_tcp_server(server_cfg, endpoints);
 
             seastar::thread ff_server([&](){
                 auto conn = server->new_session();

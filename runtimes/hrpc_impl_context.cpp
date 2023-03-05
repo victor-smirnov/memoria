@@ -13,11 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_context.hpp"
-#include "hrpc_impl_session.hpp"
+#include <memoria/hrpc/hrpc_impl_context.hpp>
+#include <memoria/hrpc/hrpc_impl_session.hpp>
 
-
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
 HRPCContextImpl::HRPCContextImpl(
         SessionImplPtr session,
@@ -31,13 +30,18 @@ HRPCContextImpl::HRPCContextImpl(
     request_(request),
     batch_size_limit_(session_->channel_buffer_size())
 {
+
+}
+
+void HRPCContextImpl::post_create()
+{
     // Output stream at the Call side becomes input stream
     // here at the Context die and vice versa.
-    for (size_t c = 0; c < request.output_channels(); c++) {
+    for (size_t c = 0; c < request_.output_channels(); c++) {
         input_channels_.push_back(make_input_channel(c));
     }
 
-    for (size_t c = 0; c < request.input_channels(); c++) {
+    for (size_t c = 0; c < request_.input_channels(); c++) {
         output_channels_.push_back(make_output_channel(c));
     }
 }
@@ -72,7 +76,7 @@ void HRPCContextImpl::cancel_call()
 
     cancelled_ = true;
     if (cancel_listener_) {
-        (void)seastar::async(cancel_listener_);
+        run_async(cancel_listener_);
     }
 }
 
@@ -88,22 +92,6 @@ void HRPCContextImpl::reset_output_channel_buffer(ChannelCode code)
     if (code < output_channels_.size() && !output_channels_[code].is_null()) {
         output_channels_[code]->reset_buffer_size();
     }
-}
-
-InputChannelImplPtr HRPCContextImpl::make_input_channel(ChannelCode code)
-{
-    static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCInputChannelImpl>>();
-
-    return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, false);
-}
-
-OutputChannelImplPtr HRPCContextImpl::make_output_channel(ChannelCode code)
-{
-    static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCOutputChannelImpl>>();
-
-    return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, false);
 }
 
 }

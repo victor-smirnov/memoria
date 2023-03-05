@@ -13,30 +13,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_tcp.hpp"
-#include "hrpc_impl_session.hpp"
+#include <memoria/seastar/hrpc/tcp.hpp>
+#include <memoria/seastar/hrpc/session.hpp>
+#include <memoria/seastar/hrpc/hrpc.hpp>
 
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::ss {
 
-PoolSharedPtr<Session> open_tcp_session(
+PoolSharedPtr<st::Session> open_tcp_session(
     const TCPClientSocketConfig& cfg,
-    const PoolSharedPtr<EndpointRepository>& endpoints
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
 )
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<SeastarHRPCSession>>();
 
-    auto conn = TCPClientMessageProviderImpl::make_instance(cfg);
+    auto conn = SeastarTCPClientMessageProvider::make_instance(cfg);
     return pool->allocate_shared(endpoints, conn, cfg, SessionSide::CLIENT);
 }
 
 
-PoolSharedPtr<MessageProvider> TCPClientMessageProviderImpl::
+PoolSharedPtr<st::MessageProvider> SeastarTCPClientMessageProvider::
     make_instance(TCPClientSocketConfig config)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<TCPClientMessageProviderImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<SeastarTCPClientMessageProvider>>();
 
     auto socket = ss::engine().connect(ss::socket_address(
         ss::ipv4_addr(config.host().to_std_string(), config.port())
@@ -46,46 +47,44 @@ PoolSharedPtr<MessageProvider> TCPClientMessageProviderImpl::
 }
 
 
-
-
-PoolSharedPtr<Server> make_tcp_server(
+PoolSharedPtr<st::Server> make_tcp_server(
     const TCPServerSocketConfig& cfg,
-    const PoolSharedPtr<EndpointRepository>& endpoints
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
 ) {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCServerSocketImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<SeastarServerSocket>>();
 
     return pool->allocate_shared(cfg, endpoints);
 }
 
 
 
-PoolSharedPtr<Session> HRPCServerSocketImpl::new_session()
+PoolSharedPtr<st::Session> SeastarServerSocket::new_session()
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<HRPCSessionImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<SeastarHRPCSession>>();
 
     auto conn_data = socket_.accept().get();
-    auto conn = TCPServerMessageProviderImpl::make_instance(this->shared_from_this(), std::move(conn_data));
+    auto conn = SeastarTCPServerMessageProvider::make_instance(this->shared_from_this(), std::move(conn_data));
 
     return pool->allocate_shared(endpoints_, conn, cfg_, SessionSide::SERVER);
 }
 
 
-PoolSharedPtr<MessageProvider> TCPServerMessageProviderImpl::
+PoolSharedPtr<st::MessageProvider> SeastarTCPServerMessageProvider::
     make_instance(
-        ServerSocketImplPtr socket,
+        SeastarServerSocketPtr socket,
         ss::accept_result conn_data
     )
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<TCPServerMessageProviderImpl>>();
+            boost::make_local_shared<pool::SimpleObjectPool<SeastarTCPServerMessageProvider>>();
 
     return pool->allocate_shared(socket, std::move(conn_data));
 }
 
-TCPClientMessageProviderImpl::
-TCPClientMessageProviderImpl(ss::connected_socket socket):
+SeastarTCPClientMessageProvider::
+SeastarTCPClientMessageProvider(ss::connected_socket socket):
     TCPMessageProviderBase(socket.input(), socket.output()),
     socket_(std::move(socket))
 {
@@ -129,9 +128,9 @@ void TCPMessageProviderBase::write_message(
 }
 
 
-TCPServerMessageProviderImpl::
-TCPServerMessageProviderImpl(
-    ServerSocketImplPtr socket,
+SeastarTCPServerMessageProvider::
+SeastarTCPServerMessageProvider(
+    SeastarServerSocketPtr socket,
     ss::accept_result conn_data
 ):
     socket_(socket),
@@ -142,7 +141,7 @@ TCPServerMessageProviderImpl(
 }
 
 
-
+/*
 
 bool ASIOSocketMessageProvider::read(uint8_t* buf, size_t size)
 {
@@ -234,5 +233,5 @@ PoolSharedPtr<MessageProvider> ASIOSocketMessageProvider::make_instance(
 
     return pool->allocate_shared(std::move(socket));
 }
-
+*/
 }

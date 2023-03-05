@@ -17,23 +17,9 @@
 
 #include <memoria/hrpc/hrpc.hpp>
 
-#include <memoria/core/tools/iostreams.hpp>
+namespace memoria::hrpc::st {
 
-#include <seastar/core/seastar.hh>
-#include <seastar/core/reactor.hh>
-#include <seastar/core/thread.hh>
-#include <seastar/core/shared_mutex.hh>
-#include <seastar/net/api.hh>
 
-namespace memoria::hrpc {
-
-namespace ss = seastar;
-
-class HRPCClientSocketImpl;
-using ClientSocketImplPtr = PoolSharedPtr<HRPCClientSocketImpl>;
-
-class HRPCServerSocketImpl;
-using ServerSocketImplPtr = PoolSharedPtr<HRPCServerSocketImpl>;
 
 class HRPCEndpointRepositoryImpl;
 using EndpointRepositoryImplPtr = PoolSharedPtr<EndpointRepository>;
@@ -46,7 +32,6 @@ using ContextImplWeakPtr = pool::WeakPtr<HRPCContextImpl>;
 class HRPCSessionBase;
 using SessionImplPtr = PoolSharedPtr<HRPCSessionBase>;
 using SessionImplWeakPtr = pool::WeakPtr<HRPCSessionBase>;
-
 
 class HRPCCallImpl;
 using CallImplPtr = PoolSharedPtr<HRPCCallImpl>;

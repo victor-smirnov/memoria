@@ -31,6 +31,7 @@ using SessionID     = UID256;
 using ShardID       = uint64_t;
 using ChannelCode   = uint16_t;
 
+namespace st {
 
 class Context;
 class EndpointRepoitory;
@@ -38,6 +39,8 @@ class Call;
 class Session;
 class Client;
 class Server;
+
+}
 
 
 class ProtocolVersion {

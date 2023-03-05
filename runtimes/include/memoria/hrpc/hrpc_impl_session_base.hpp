@@ -15,16 +15,18 @@
 
 #pragma once
 
+#include <memoria/hrpc/hrpc_impl_common.hpp>
+
 #include <memoria/core/flat_map/flat_hash_map.hpp>
 
-#include "hrpc_impl_context.hpp"
-#include "hrpc_impl_call.hpp"
-#include "hrpc_impl_input_channel.hpp"
-#include "hrpc_impl_output_channel.hpp"
+#include <memoria/hrpc/hrpc_impl_context.hpp>
+#include <memoria/hrpc/hrpc_impl_call.hpp>
+#include <memoria/hrpc/hrpc_impl_input_channel.hpp>
+#include <memoria/hrpc/hrpc_impl_output_channel.hpp>
 
 #include <boost/exception/exception.hpp>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::st {
 
 class HRPCSessionBase: public Session {
 protected:
@@ -45,9 +47,8 @@ protected:
 
     using HeaderFn = std::function<void(MessageHeader&)>;
 
-    bool negotiated_{};
-    seastar::condition_variable ngt_cvar_;
 
+    bool negotiated_{};
     bool set_session_id_attr_;
 
     SessionID session_id_;
@@ -79,19 +80,29 @@ public:
         }
     }
 
+    virtual void wait_for_negotiation() = 0;
+    virtual void notify_negotiated() = 0;
+    virtual void run_async(std::function<void()> fn) = 0;
+    virtual void write_message(const MessageHeader& header, const uint8_t* data) = 0;
+    virtual bool is_transport_closed() = 0;
+
+    virtual CallImplPtr create_call(
+            CallID call_id,
+            Request request,
+            CallCompletionFn completion_fn
+    ) = 0;
+
+
     virtual void start_session() {
         if (session_side_ == SessionSide::CLIENT) {
             send_session_metadata();
         }
     }
 
-    virtual void write_message(const MessageHeader& header, const uint8_t* data) = 0;
-
     virtual bool is_closed() override {
         return closed_ || is_transport_closed();
     }
 
-    virtual bool is_transport_closed() = 0;
 
     uint64_t channel_buffer_size() const {
         return channel_buffer_size_;
@@ -101,16 +112,13 @@ public:
         return endpoints_;
     }
 
+
     PoolSharedPtr<Call> call(
             const EndpointID& endpoint_id,
             Request request,
             Optional<ShardID> shard_id,
-            CallCompletionFn completion_fn = CallCompletionFn{}
+            CallCompletionFn completion_fn
     ) override {
-        static thread_local auto pool = boost::make_local_shared<
-            pool::SimpleObjectPool<HRPCCallImpl>
-        >();
-
         CallID call_id = next_call_id();
 
         HeaderOptF shard = shard_id ? HeaderOptF::SHARD_ID : HeaderOptF::NONE;
@@ -126,8 +134,7 @@ public:
             header.set_opt_endpoint_id(endpoint_id);
         });
 
-        auto call = pool->allocate_shared(self(), call_id, request, completion_fn);
-
+        auto call = create_call(call_id, request, completion_fn);
         calls_[call_id] = CallImplWeakPtr(call);
 
         return call;
@@ -250,9 +257,7 @@ public:
     {
         if (MMA_UNLIKELY((!negotiated_) && !force))
         {
-            ngt_cvar_.wait([this](){
-                return negotiated_;
-            }).get();
+            wait_for_negotiation();
         }
 
         optionals |= default_header_opt_fields_;
@@ -455,15 +460,15 @@ protected:
         return {};
     }
 
-    ContextImplPtr make_context(CallID call_id, const EndpointID& endpoint_id, Request rq)
-    {
-        static thread_local auto pool
-            = boost::make_local_shared<
-                pool::SimpleObjectPool<HRPCContextImpl>
-            >();
+    virtual ContextImplPtr make_context(CallID call_id, const EndpointID& endpoint_id, Request rq) = 0;
+//    {
+//        static thread_local auto pool
+//            = boost::make_local_shared<
+//                pool::SimpleObjectPool<HRPCContextImpl>
+//            >();
 
-        return pool->allocate_shared(self(), call_id, endpoint_id, rq);
-    }
+//        return pool->allocate_shared(self(), call_id, endpoint_id, rq);
+//    }
 
     void prepare_server_session(const MessageHeader& header, hermes::HermesCtr&& msg)
     {
@@ -481,7 +486,7 @@ protected:
 
         // TODO: Handle protocoll mismatches gracefully!
         negotiated_ = true;
-        ngt_cvar_.broadcast();
+        notify_negotiated();
     }
 
     void prepare_client_session(const MessageHeader& header, hermes::HermesCtr&& msg)
@@ -500,7 +505,7 @@ protected:
 
         // TODO: Handle protocoll mismatches gracefully!
         negotiated_ = true;
-        ngt_cvar_.broadcast();
+        notify_negotiated();
     }
 
     void invoke_handler(const MessageHeader& header, hermes::HermesCtr&& msg)
@@ -540,10 +545,9 @@ protected:
     };
     friend struct CtxCleaner;
 
-
     void run_handler(RequestHandlerFn handler, const ContextImplPtr& ctx, CallID call_id)
     {
-        (void)seastar::async([=](){
+        run_async([=](){
             CtxCleaner cleaner{self(), call_id};
             try {
                 Response rs = handler(ctx);

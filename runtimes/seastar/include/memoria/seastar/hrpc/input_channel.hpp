@@ -15,24 +15,20 @@
 
 #pragma once
 
-#include "hrpc_impl_common.hpp"
+#include <memoria/hrpc/hrpc_impl_input_channel.hpp>
 
-#include <list>
+#include <seastar/core/condition-variable.hh>
+#include <seastar/core/thread.hh>
 
-namespace memoria::hrpc {
+namespace memoria::hrpc::ss {
 
-class HRPCInputChannelImpl final:
-        public InputChannel,
-        public pool::enable_shared_from_this<HRPCInputChannelImpl>
+class SeastarHRPCInputChannel final:
+        public st::HRPCInputChannelImpl,
+        public pool::enable_shared_from_this<SeastarHRPCInputChannel>
 {
-    SessionImplPtr session_;
-    CallID call_id_;
-    ChannelCode channel_code_;
-    bool closed_;
-    bool call_side_;
+    using Base = st::HRPCInputChannelImpl;
 
-    uint64_t batch_size_{};
-    uint64_t batch_size_limit_;
+protected:
 
     class UnboundedChannel {
         std::list<Message> messages_;
@@ -89,19 +85,20 @@ class HRPCInputChannelImpl final:
     UnboundedChannel channel_;
 
 public:
-    HRPCInputChannelImpl(
-        SessionImplPtr session,
+    SeastarHRPCInputChannel(
+        st::SessionImplPtr session,
         CallID call_id,
         ChannelCode stream_id,
         uint64_t batch_size_limit,
         bool call_side
-    );
+    ): Base(session, call_id, stream_id, batch_size_limit, call_side)
+    {}
 
     ChannelCode code() override {
         return channel_code_;
     }
 
-    PoolSharedPtr<Session> session() override;
+    PoolSharedPtr<st::Session> session() override;
 
     bool is_closed() override;
 
@@ -109,9 +106,10 @@ public:
 
     void close() override;
 
-    void new_message(Message&& msg);
-    void do_close_channel();
+    void new_message(Message&& msg) override;
+    void do_close_channel() override;
 private:
 };
+
 
 }

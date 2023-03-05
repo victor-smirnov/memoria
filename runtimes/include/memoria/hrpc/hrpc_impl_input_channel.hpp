@@ -15,51 +15,45 @@
 
 #pragma once
 
-#include "hrpc_impl_common.hpp"
 
-namespace memoria::hrpc {
+#include <memoria/hrpc/hrpc_impl_common.hpp>
 
-class HRPCOutputChannelImpl final:
-        public OutputChannel,
-        public pool::enable_shared_from_this<HRPCOutputChannelImpl>
+#include <list>
+
+namespace memoria::hrpc::st {
+
+class HRPCInputChannelImpl:
+        public InputChannel,
+        public pool::enable_shared_from_this<HRPCInputChannelImpl>
 {
+protected:
     SessionImplPtr session_;
     CallID call_id_;
-    ChannelCode code_;
+    ChannelCode channel_code_;
     bool closed_;
     bool call_side_;
 
-    uint64_t batch_size_limit_{};
     uint64_t batch_size_{};
-
-    seastar::condition_variable flow_control_;
-
+    uint64_t batch_size_limit_;
 
 public:
-    HRPCOutputChannelImpl(
-        const SessionImplPtr& session,
-        CallID call_id, ChannelCode code,
-        uint64_t batch_size_limit, bool call_side
+    HRPCInputChannelImpl(
+        SessionImplPtr session,
+        CallID call_id,
+        ChannelCode stream_id,
+        uint64_t batch_size_limit,
+        bool call_side
     );
 
     ChannelCode code() override {
-        return code_;
+        return channel_code_;
     }
 
     PoolSharedPtr<Session> session() override;
 
-    void push(const Message& msg) override;
-
-    void close() override;
-    void do_close();
-
-    bool is_closed() override {
-        return closed_;
-    }
-
-    void do_close_channel();
-
-    void reset_buffer_size();
+    virtual void new_message(Message&& msg) = 0;
+    virtual void do_close_channel() = 0;
+private:
 };
 
 }

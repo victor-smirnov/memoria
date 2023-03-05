@@ -13,10 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hrpc_impl_output_channel.hpp"
-#include "hrpc_impl_session.hpp"
+#include <memoria/hrpc/hrpc_impl_session.hpp>
+#include <memoria/hrpc/hrpc_impl_output_channel.hpp>
 
-namespace memoria::hrpc {
+
+namespace memoria::hrpc::st {
 
 HRPCOutputChannelImpl::HRPCOutputChannelImpl(
     const SessionImplPtr& session,
@@ -44,9 +45,7 @@ void HRPCOutputChannelImpl::push(const Message& msg)
     {
         if (batch_size_ >= batch_size_limit_)
         {
-            flow_control_.wait([&](){
-                return batch_size_ >= batch_size_limit_;
-            }).get();
+            wait_for_lease();
         }
 
         MessageType msg_type = call_side_ ? MessageType::CALL_CHANNEL_MESSAGE : MessageType::CONTEXT_CHANNEL_MESSAGE;
@@ -86,7 +85,7 @@ void HRPCOutputChannelImpl::do_close_channel() {
 
 void HRPCOutputChannelImpl::reset_buffer_size() {
     batch_size_ = 0;
-    flow_control_.broadcast();
+    notify_lease_ready();
 }
 
 
