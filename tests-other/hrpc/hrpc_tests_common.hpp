@@ -18,9 +18,6 @@
 #include <memoria/core/tools/uid_256.hpp>
 #include <memoria/hrpc/hrpc.hpp>
 
-#include <memoria/seastar/seastar.hpp>
-#include <seastar/core/thread.hh>
-
 #include <catch2/catch_test_macros.hpp>
 
 namespace memoria {

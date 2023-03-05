@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *_test.cpp hrpc_tests_common.cpp)
+file(GLOB LIB_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *_test.cpp hrpc_tests_common.cpp *.hpp)
+
+add_library(HRPCTestsLib STATIC)
+target_link_libraries(HRPCTestsLib PRIVATE RuntimeApi Catch2::Catch2)
+target_sources(HRPCTestsLib PRIVATE ${LIB_SOURCES})
 
 
-add_executable(hrpc_tests_server)
-SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-SET_TARGET_PROPERTIES(hrpc_tests_server PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(hrpc_tests_server PRIVATE Containers Stores SeastarLib AppInit Catch2::Catch2)
-target_sources(hrpc_tests_server PRIVATE hrpc_tests_server.cpp ${SRCS})
+add_executable(seastar_hrpc_tests_server)
+target_link_libraries(seastar_hrpc_tests_server PRIVATE SeastarLib HRPCTestsLib)
+target_sources(seastar_hrpc_tests_server PRIVATE seastar_hrpc_tests_server.cpp)
 
-add_executable(hrpc_tests_client)
-SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-SET_TARGET_PROPERTIES(hrpc_tests_client PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(hrpc_tests_client PRIVATE Containers Stores SeastarLib AppInit Catch2::Catch2)
-target_sources(hrpc_tests_client PRIVATE hrpc_tests_client.cpp ${SRCS})
+add_executable(seastar_hrpc_tests_client)
+target_link_libraries(seastar_hrpc_tests_client PRIVATE SeastarLib HRPCTestsLib)
+target_sources(seastar_hrpc_tests_client PRIVATE seastar_hrpc_tests_client.cpp)

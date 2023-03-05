@@ -14,17 +14,13 @@
 // limitations under the License.
 
 
-#include <memoria/core/tools/time.hpp>
+#include <memoria/hrpc/hrpc.hpp>
 
-#include <memoria/core/hrpc/hrpc.hpp>
-#include <memoria/core/hrpc/hrpc_async.hpp>
-
-#include <memoria/core/hrpc/hrpc.hpp>
-
-#include <memoria/memoria.hpp>
+#include <memoria/memoria_core.hpp>
 
 #include "hrpc_tests_common.hpp"
 
+#include <memoria/seastar/hrpc/hrpc.hpp>
 
 #include <seastar/core/app-template.hh>
 #include <seastar/core/thread.hh>
@@ -34,13 +30,11 @@
 using namespace memoria;
 namespace ss = seastar;
 
-int main(int argc, char** argv, char** envp) {
-
-    InitMemoriaExplicit();
-
+int main(int argc, char** argv, char** envp)
+{
+    InitMemoriaCoreExplicit();
 
     ss::app_template::seastar_options opts;
-
     opts.smp_opts.memory_allocator = ss::memory_allocator::standard;
     opts.smp_opts.smp.set_value(1);
     opts.smp_opts.thread_affinity.set_value(false);
@@ -51,33 +45,35 @@ int main(int argc, char** argv, char** envp) {
         argc, argv,
         [&]()
     {
+
         return ss::async([&]{
-            println("HRPC Server2");
+            println("HRPC Client running Catch2 tests");
 
-            int result = Catch::Session().run( argc, argv );
+            auto endpoints = hrpc::st::EndpointRepository::make();
+
+            auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
+            auto session = hrpc::ss::open_tcp_session(client_cfg, endpoints);
+
+            set_session(session);
+            auto dtr = MakeOnScopeExit([]{
+                set_session(SessionPtr{});
+            });
+
+            seastar::thread ff_conn_h([=](){
+                session->handle_messages();
+                println("Client connection is done");
+            });
+
+            const char* argv0[] = {"test", 0};
+            int result = Catch::Session().run( 1, argv0 );
+
+            session->close();
+            println("Session has been closed");
+            ff_conn_h.join().get();
+
+            println("Client is done");
+
             return result;
-
-//            auto endpoints = hrpc::EndpointRepository::make();
-
-//            endpoints->add_handler(NORMAL_RQ_TEST, normal_rq_handler);
-
-//            auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
-//            auto server = hrpc::make_tcp_server(server_cfg, endpoints);
-
-//            seastar::thread ff_server([&](){
-//                auto conn = server->new_session();
-//                println("New server connection");
-
-//                conn->handle_messages();
-//                println("Server connection is done");
-//                conn->close();
-//            });
-
-
-//            server->listen();
-//            ff_server.join().get();
-
-//            return 0;
         });
     });
 }
