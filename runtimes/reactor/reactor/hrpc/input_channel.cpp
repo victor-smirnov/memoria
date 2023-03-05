@@ -13,21 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/seastar/hrpc/input_channel.hpp>
+#include <memoria/reactor/hrpc/input_channel.hpp>
 #include <memoria/hrpc/hrpc_impl_session.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::reactor::hrpc {
 
 
-PoolSharedPtr<st::Session> SeastarHRPCInputChannel::session() {
+PoolSharedPtr<st::Session> ReactorHRPCInputChannel::session() {
     return session_;
 }
 
-bool SeastarHRPCInputChannel::is_closed() {
+bool ReactorHRPCInputChannel::is_closed() {
     return channel_.is_closed();
 }
 
-bool SeastarHRPCInputChannel::pop(Message& msg)
+bool ReactorHRPCInputChannel::pop(Message& msg)
 {
     bool success = channel_.pop(msg);
     if (success)
@@ -41,7 +41,7 @@ bool SeastarHRPCInputChannel::pop(Message& msg)
     return success;
 }
 
-void SeastarHRPCInputChannel::close()
+void ReactorHRPCInputChannel::close()
 {
     channel_.clean_and_close();
 
@@ -63,14 +63,14 @@ void SeastarHRPCInputChannel::close()
     );
 }
 
-void SeastarHRPCInputChannel::new_message(Message&& msg)
+void ReactorHRPCInputChannel::new_message(Message&& msg)
 {
     if (!channel_.is_closed()) {
         channel_.push(std::move(msg));
     }
 }
 
-void SeastarHRPCInputChannel::do_close_channel() {
+void ReactorHRPCInputChannel::do_close_channel() {
     channel_.close();
 }
 

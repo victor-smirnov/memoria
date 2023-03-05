@@ -13,9 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/seastar/hrpc/output_channel.hpp>
+#pragma once
 
-namespace memoria::seastar::hrpc {
+#include <memoria/hrpc/hrpc.hpp>
+
+namespace memoria::reactor::hrpc {
+
+using namespace memoria::hrpc;
+
+PoolSharedPtr<st::Session> open_tcp_session(
+    const TCPClientSocketConfig& cfg,
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
+);
+
+PoolSharedPtr<st::Server> make_tcp_server(
+    const TCPServerSocketConfig& cfg,
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
+);
 
 
 }

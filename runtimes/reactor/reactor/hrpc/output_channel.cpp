@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/seastar/hrpc/output_channel.hpp>
+#include <memoria/reactor/hrpc/output_channel.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::hrpc::ss {
 
 
 }

@@ -25,35 +25,29 @@
 
 #include "hrpc_tests_common.hpp"
 
-#include <memoria/seastar/hrpc/hrpc.hpp>
+#include <memoria/reactor/hrpc/hrpc.hpp>
 
-#include <seastar/core/app-template.hh>
-#include <seastar/core/thread.hh>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/application.hpp>
 
 using namespace memoria;
-namespace ss = ::seastar;
+using namespace memoria::reactor;
 
 int main(int argc, char** argv, char** envp) {
-
     InitMemoriaCoreExplicit();
 
-    ss::app_template::seastar_options opts;
-
-    opts.smp_opts.memory_allocator = ss::memory_allocator::standard;
-    opts.smp_opts.smp.set_value(1);
-    opts.smp_opts.thread_affinity.set_value(false);
-
-    ss::app_template app(std::move(opts));
-
-    return app.run(
+    return Application::run(
         argc, argv,
-        []()
-    {
-        return ss::async([]{
+        [&]() -> int
+    {        
+        ShutdownOnScopeExit hh;
 
+        int result;
+
+        in_fiber([&]{
             println("HRPC Server");
 
-            auto endpoints = hrpc::st::EndpointRepository::make();
+            auto endpoints = memoria::hrpc::st::EndpointRepository::make();
 
             endpoints->add_handler(NORMAL_RQ_TEST, normal_rq_handler);
             endpoints->add_handler(ERRORS_TEST, errors_handler);
@@ -61,10 +55,10 @@ int main(int argc, char** argv, char** envp) {
             endpoints->add_handler(OUTPUT_CHANNEL_TEST, output_stream_handler);
             endpoints->add_handler(CANCEL_RQ_TEST, cancel_rq_handler);
 
-            auto server_cfg = hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
-            auto server = memoria::seastar::hrpc::make_tcp_server(server_cfg, endpoints);
+            auto server_cfg = memoria::hrpc::TCPServerSocketConfig::of_host("0.0.0.0");
+            auto server = memoria::reactor::hrpc::make_tcp_server(server_cfg, endpoints);
 
-            ::seastar::thread ff_server([&](){
+            boost::fibers::fiber ff_server([&](){
                 auto conn = server->new_session();
                 println("New server connection");
 
@@ -75,9 +69,11 @@ int main(int argc, char** argv, char** envp) {
 
 
             server->listen();
-            ff_server.join().get();
+            ff_server.join();
 
-            return 0;
-        });
+            result = 0;
+        }).join();
+
+        return result;
     });
 }

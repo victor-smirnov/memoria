@@ -13,24 +13,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/seastar/hrpc/call.hpp>
-#include <memoria/seastar/hrpc/input_channel.hpp>
-#include <memoria/seastar/hrpc/output_channel.hpp>
+#include <memoria/reactor/hrpc/call.hpp>
+#include <memoria/reactor/hrpc/input_channel.hpp>
+#include <memoria/reactor/hrpc/output_channel.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::reactor::hrpc {
 
-st::InputChannelImplPtr SeastarHRPCCall::make_input_channel(ChannelCode code)
+st::InputChannelImplPtr ReactorHRPCCall::make_input_channel(ChannelCode code)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<SeastarHRPCInputChannel>>();
+            boost::make_local_shared<pool::SimpleObjectPool<ReactorHRPCInputChannel>>();
 
     return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, true);
 }
 
-st::OutputChannelImplPtr SeastarHRPCCall::make_output_channel(ChannelCode code)
+st::OutputChannelImplPtr ReactorHRPCCall::make_output_channel(ChannelCode code)
 {
     static thread_local auto pool =
-            boost::make_local_shared<pool::SimpleObjectPool<SeastarHRPCOutputChannel>>();
+            boost::make_local_shared<pool::SimpleObjectPool<ReactorHRPCOutputChannel>>();
 
     return pool->allocate_shared(session_, call_id_, code, batch_size_limit_, true);
 }

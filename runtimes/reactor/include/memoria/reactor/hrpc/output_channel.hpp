@@ -16,20 +16,24 @@
 #pragma once
 
 #include <memoria/hrpc/hrpc_impl_output_channel.hpp>
-#include <seastar/core/condition-variable.hh>
 
-namespace memoria::seastar::hrpc {
+#include <boost/fiber/condition_variable.hpp>
+#include <boost/fiber/fiber.hpp>
+
+
+namespace memoria::reactor::hrpc {
 
 using namespace memoria::hrpc;
 
-class SeastarHRPCOutputChannel final: public st::HRPCOutputChannelImpl {
+class ReactorHRPCOutputChannel final: public st::HRPCOutputChannelImpl {
 
     using Base = st::HRPCOutputChannelImpl;
 
-    ::seastar::condition_variable flow_control_;
+    boost::fibers::mutex mutex_;
+    boost::fibers::condition_variable flow_control_;
 
 public:
-    SeastarHRPCOutputChannel(
+    ReactorHRPCOutputChannel(
         const st::SessionImplPtr& session,
         CallID call_id, ChannelCode code,
         uint64_t batch_size_limit, bool call_side
@@ -38,13 +42,14 @@ public:
     {}
 
     void wait_for_lease() {
-        flow_control_.wait([&](){
+        std::unique_lock<boost::fibers::mutex> lock(mutex_);
+        flow_control_.wait(lock, [&](){
             return batch_size_ >= batch_size_limit_;
-        }).get();
+        });
     }
 
     void notify_lease_ready() {
-        flow_control_.broadcast();
+        flow_control_.notify_all();
     }
 };
 

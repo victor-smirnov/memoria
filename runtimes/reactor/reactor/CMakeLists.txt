@@ -21,4 +21,6 @@ else()
     file(GLOB LIB_SOURCES *.cpp linux/*.cpp posix/*.cpp)
 endif()
 
-target_sources(ReactorLib PRIVATE ${LIB_SOURCES})
+file(GLOB HRPC_SOURCES hrpc/*.cpp)
+
+target_sources(ReactorLib PRIVATE ${LIB_SOURCES} ${HRPC_SOURCES})

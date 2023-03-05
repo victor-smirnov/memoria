@@ -20,13 +20,15 @@
 #include <seastar/core/condition-variable.hh>
 #include <seastar/core/thread.hh>
 
-namespace memoria::hrpc::ss {
+namespace memoria::seastar::hrpc {
+
+using namespace memoria::hrpc;
 
 class SeastarHRPCContext final: public st::HRPCContextImpl {
 
     using Base = st::HRPCContextImpl;
 
-    seastar::condition_variable waiter_;
+    ::seastar::condition_variable waiter_;
 
 public:
     SeastarHRPCContext(
@@ -39,7 +41,7 @@ public:
     {}
 
     void run_async(std::function<void()> fn) override {
-        (void)seastar::async(fn);
+        (void)::seastar::async(fn);
     }
 
     st::InputChannelImplPtr make_input_channel(ChannelCode code) override;

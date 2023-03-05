@@ -15,43 +15,34 @@
 
 #pragma once
 
-#include <memoria/hrpc/hrpc_impl_call.hpp>
+#include <memoria/hrpc/hrpc_impl_context.hpp>
 
-#include <seastar/core/condition-variable.hh>
-#include <seastar/core/thread.hh>
+#include <boost/fiber/condition_variable.hpp>
+#include <boost/fiber/fiber.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::reactor::hrpc {
 
 using namespace memoria::hrpc;
 
-class SeastarHRPCCall final: public st::HRPCCallImpl {
+class ReactorHRPCContext final: public st::HRPCContextImpl {
 
-    using Base = st::HRPCCallImpl;
+    using Base = st::HRPCContextImpl;
 
-    ::seastar::condition_variable waiter_;
+    boost::fibers::mutex mutex_;
+    boost::fibers::condition_variable waiter_;
 
 public:
-    SeastarHRPCCall(
-            const st::SessionImplPtr& session,
+    ReactorHRPCContext(
+            st::SessionImplPtr session,
             CallID call_id,
-            Request request,
-            st::CallCompletionFn completion_fn
-    ): Base(session, call_id, std::move(request), completion_fn)
+            const EndpointID& endpoint_id,
+            Request request
+    ):
+        Base(session, call_id, endpoint_id, request)
     {}
 
-
-    void wait_for_response() override {
-        waiter_.wait([&](){
-            return response_.is_not_null();
-        }).get();
-    }
-
-    void notify_response_ready() override {
-        waiter_.broadcast();
-    }
-
     void run_async(std::function<void()> fn) override {
-        (void)::seastar::async(fn);
+        boost::fibers::fiber(fn).detach();
     }
 
     st::InputChannelImplPtr make_input_channel(ChannelCode code) override;

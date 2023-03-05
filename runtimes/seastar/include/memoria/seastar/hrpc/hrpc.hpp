@@ -17,7 +17,9 @@
 
 #include <memoria/hrpc/hrpc.hpp>
 
-namespace memoria::hrpc::ss {
+namespace memoria::seastar::hrpc {
+
+using namespace memoria::hrpc;
 
 PoolSharedPtr<st::Session> open_tcp_session(
     const TCPClientSocketConfig& cfg,

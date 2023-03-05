@@ -17,21 +17,22 @@
 
 #include <memoria/hrpc/hrpc_impl_call.hpp>
 
-#include <seastar/core/condition-variable.hh>
-#include <seastar/core/thread.hh>
+#include <boost/fiber/condition_variable.hpp>
+#include <boost/fiber/fiber.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::reactor::hrpc {
 
 using namespace memoria::hrpc;
 
-class SeastarHRPCCall final: public st::HRPCCallImpl {
+class ReactorHRPCCall final: public st::HRPCCallImpl {
 
     using Base = st::HRPCCallImpl;
 
-    ::seastar::condition_variable waiter_;
+    boost::fibers::mutex mutex_;
+    boost::fibers::condition_variable waiter_;
 
 public:
-    SeastarHRPCCall(
+    ReactorHRPCCall(
             const st::SessionImplPtr& session,
             CallID call_id,
             Request request,
@@ -41,17 +42,18 @@ public:
 
 
     void wait_for_response() override {
-        waiter_.wait([&](){
+        std::unique_lock<boost::fibers::mutex> lock(mutex_);
+        waiter_.wait(lock, [&]{
             return response_.is_not_null();
-        }).get();
+        });
     }
 
     void notify_response_ready() override {
-        waiter_.broadcast();
+        waiter_.notify_all();
     }
 
     void run_async(std::function<void()> fn) override {
-        (void)::seastar::async(fn);
+        boost::fibers::fiber(fn).detach();
     }
 
     st::InputChannelImplPtr make_input_channel(ChannelCode code) override;

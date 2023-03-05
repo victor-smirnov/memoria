@@ -13,17 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/seastar/hrpc/session.hpp>
-#include <memoria/seastar/hrpc/context.hpp>
-#include <memoria/seastar/hrpc/call.hpp>
+#include <memoria/reactor/hrpc/session.hpp>
+#include <memoria/reactor/hrpc/context.hpp>
+#include <memoria/reactor/hrpc/call.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::reactor::hrpc {
 
-st::ContextImplPtr SeastarHRPCSession::make_context(CallID call_id, const EndpointID& endpoint_id, Request rq)
+st::ContextImplPtr ReactorHRPCSession::make_context(CallID call_id, const EndpointID& endpoint_id, Request rq)
 {
     static thread_local auto pool
             = boost::make_local_shared<
-                pool::SimpleObjectPool<SeastarHRPCContext>
+                pool::SimpleObjectPool<ReactorHRPCContext>
             >();
 
     auto ptr = pool->allocate_shared(this->shared_from_this(), call_id, endpoint_id, rq);
@@ -31,14 +31,14 @@ st::ContextImplPtr SeastarHRPCSession::make_context(CallID call_id, const Endpoi
     return ptr;
 }
 
-st::CallImplPtr SeastarHRPCSession::create_call(
+st::CallImplPtr ReactorHRPCSession::create_call(
         CallID call_id,
         Request request,
         st::CallCompletionFn completion_fn
 ) {
     static thread_local auto pool
             = boost::make_local_shared<
-                pool::SimpleObjectPool<SeastarHRPCCall>
+                pool::SimpleObjectPool<ReactorHRPCCall>
             >();
 
     auto ptr = pool->allocate_shared(this->shared_from_this(), call_id, request, completion_fn);

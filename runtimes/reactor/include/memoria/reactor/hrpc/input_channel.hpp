@@ -17,16 +17,16 @@
 
 #include <memoria/hrpc/hrpc_impl_input_channel.hpp>
 
-#include <seastar/core/condition-variable.hh>
-#include <seastar/core/thread.hh>
+#include <boost/fiber/condition_variable.hpp>
+#include <boost/fiber/fiber.hpp>
 
-namespace memoria::seastar::hrpc {
+namespace memoria::reactor::hrpc {
 
 using namespace memoria::hrpc;
 
-class SeastarHRPCInputChannel final:
+class ReactorHRPCInputChannel final:
         public st::HRPCInputChannelImpl,
-        public pool::enable_shared_from_this<SeastarHRPCInputChannel>
+        public pool::enable_shared_from_this<ReactorHRPCInputChannel>
 {
     using Base = st::HRPCInputChannelImpl;
 
@@ -34,13 +34,14 @@ protected:
 
     class UnboundedChannel {
         std::list<Message> messages_;
-        ::seastar::condition_variable waiter_;
+        boost::fibers::mutex mutex_;
+        boost::fibers::condition_variable waiter_;
         bool closed_{};
     public:
 
         void push(Message&& msg) {
             messages_.push_front(std::move(msg));
-            waiter_.broadcast();
+            waiter_.notify_all();
         }
 
         bool pop(Message& target)
@@ -62,13 +63,13 @@ protected:
 
         void close() {
             closed_ = true;
-            waiter_.broadcast();
+            waiter_.notify_all();
         }
 
         void clean_and_close() {
             closed_ = true;
             messages_.clear();
-            waiter_.broadcast();
+            waiter_.notify_all();
         }
 
     private:
@@ -78,16 +79,17 @@ protected:
 
         void wait_for_message()
         {
-            waiter_.wait([&]() -> bool {
+            std::unique_lock<boost::fibers::mutex> lock_(mutex_);
+            waiter_.wait(lock_, [&]() -> bool {
                 return messages_.size() > 0 || closed_;
-            }).get();
+            });
         }
     };
 
     UnboundedChannel channel_;
 
 public:
-    SeastarHRPCInputChannel(
+    ReactorHRPCInputChannel(
         st::SessionImplPtr session,
         CallID call_id,
         ChannelCode stream_id,

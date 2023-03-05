@@ -28,14 +28,10 @@
 
 #include <boost/asio.hpp>
 
-namespace memoria::hrpc::ss {
+namespace memoria::seastar::hrpc {
 
-namespace net = boost::asio::ip;
-namespace bsys = boost::system;
-namespace ss = seastar;
-
-//class SeastarClientSocket;
-//using SeastarClientSocketPtr = PoolSharedPtr<SeastarClientSocket>;
+using namespace memoria::hrpc;
+namespace ss = ::seastar;
 
 class SeastarServerSocket;
 using SeastarServerSocketPtr = PoolSharedPtr<SeastarServerSocket>;
@@ -47,15 +43,15 @@ class SeastarServerSocket final:
     TCPServerSocketConfig cfg_;
     PoolSharedPtr<st::EndpointRepository> endpoints_;
 
-    seastar::server_socket socket_;
+    ::seastar::server_socket socket_;
 
-    static seastar::server_socket make_socket(U8String host, int16_t port)
+    static ::seastar::server_socket make_socket(U8String host, int16_t port)
     {
-        seastar::listen_options opts;
+        ::seastar::listen_options opts;
         opts.reuse_address = true;
-        return seastar::listen(
-            seastar::socket_address(
-                seastar::ipv4_addr(host.to_std_string(), port)
+        return ::seastar::listen(
+            ::seastar::socket_address(
+                ::seastar::ipv4_addr(host.to_std_string(), port)
             ),
             opts
         );
@@ -162,10 +158,10 @@ public:
 
 
 class SeastarTCPClientMessageProvider final: public TCPMessageProviderBase {
-    seastar::connected_socket socket_;
+    ::seastar::connected_socket socket_;
 
 public:
-    SeastarTCPClientMessageProvider(seastar::connected_socket socket);
+    SeastarTCPClientMessageProvider(::seastar::connected_socket socket);
 
     void close() noexcept override {
         try {

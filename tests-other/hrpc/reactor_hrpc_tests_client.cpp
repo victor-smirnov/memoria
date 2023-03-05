@@ -20,59 +20,58 @@
 
 #include "hrpc_tests_common.hpp"
 
-#include <memoria/seastar/hrpc/hrpc.hpp>
+#include <memoria/reactor/hrpc/hrpc.hpp>
 
-#include <seastar/core/app-template.hh>
-#include <seastar/core/thread.hh>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/application.hpp>
+
 
 #include <catch2/catch_session.hpp>
 
 using namespace memoria;
-namespace ss = ::seastar;
+using namespace memoria::reactor;
+
 
 int main(int argc, char** argv, char** envp)
 {
     InitMemoriaCoreExplicit();
 
-    ss::app_template::seastar_options opts;
-    opts.smp_opts.memory_allocator = ss::memory_allocator::standard;
-    opts.smp_opts.smp.set_value(1);
-    opts.smp_opts.thread_affinity.set_value(false);
-
-    ss::app_template app(std::move(opts));
-
-    return app.run(
+    return Application::run(
         argc, argv,
-        [&]()
+        [&]() -> int
     {
-        return ss::async([&]{
+        ShutdownOnScopeExit hh;
+
+        int result;
+
+        in_fiber([&]{
             println("HRPC Client running Catch2 tests");
 
-            auto endpoints = hrpc::st::EndpointRepository::make();
+            auto endpoints = memoria::hrpc::st::EndpointRepository::make();
 
-            auto client_cfg = hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
-            auto session = memoria::seastar::hrpc::open_tcp_session(client_cfg, endpoints);
+            auto client_cfg = memoria::hrpc::TCPClientSocketConfig::of_host("127.0.0.1");
+            auto session = memoria::reactor::hrpc::open_tcp_session(client_cfg, endpoints);
 
             set_session(session);
             auto dtr = MakeOnScopeExit([]{
                 set_session(SessionPtr{});
             });
 
-            ::seastar::thread ff_conn_h([=](){
+            boost::fibers::fiber ff_conn_h([=](){
                 session->handle_messages();
                 println("Client connection is done");
             });
 
             const char* argv0[] = {"test", 0};
-            int result = Catch::Session().run( 1, argv0 );
+            result = Catch::Session().run( 1, argv0 );
 
             session->close();
             println("Session has been closed");
-            ff_conn_h.join().get();
+            ff_conn_h.join();
 
             println("Client is done");
+        }).join();
 
-            return result;
-        });
+        return result;
     });
 }

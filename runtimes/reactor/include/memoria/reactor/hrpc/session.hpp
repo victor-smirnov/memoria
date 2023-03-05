@@ -17,25 +17,26 @@
 
 #include <memoria/hrpc/hrpc_impl_session.hpp>
 
-#include <memoria/seastar/hrpc/call.hpp>
+#include <memoria/reactor/hrpc/call.hpp>
+#include <memoria/reactor/hrpc/context.hpp>
 
-#include <seastar/core/condition-variable.hh>
-#include <seastar/core/thread.hh>
 
-namespace memoria::seastar::hrpc {
+#include <boost/fiber/condition_variable.hpp>
+#include <boost/fiber/fiber.hpp>
 
-using namespace memoria::hrpc;
+namespace memoria::reactor::hrpc {
 
-class SeastarHRPCSession:
+class ReactorHRPCSession:
     public st::HRPCSessionImpl,
-    public pool::enable_shared_from_this<SeastarHRPCSession> {
+    public pool::enable_shared_from_this<ReactorHRPCSession> {
 
     using Base = HRPCSessionImpl;
 
-    ::seastar::condition_variable ngt_cvar_;
+    boost::fibers::mutex mutex_;
+    boost::fibers::condition_variable ngt_cvar_;
 
 public:
-    SeastarHRPCSession(
+    ReactorHRPCSession(
         st::EndpointRepositoryImplPtr endpoints,
         st::MessageProviderPtr message_provider,
         ProtocolConfig config,
@@ -47,17 +48,18 @@ public:
     }
 
     void wait_for_negotiation() override {
-        ngt_cvar_.wait([this](){
+        std::unique_lock<boost::fibers::mutex> lock(mutex_);
+        ngt_cvar_.wait(lock, [this](){
             return negotiated_;
-        }).get();
+        });
     }
 
     void notify_negotiated() override {
-        ngt_cvar_.broadcast();
+        ngt_cvar_.notify_all();
     }
 
     void run_async(std::function<void()> fn) override {
-        (void)::seastar::async(std::move(fn));
+        boost::fibers::fiber(fn).detach();
     }
 
     st::SessionImplPtr self() override {
