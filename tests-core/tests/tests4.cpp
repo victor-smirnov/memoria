@@ -20,8 +20,8 @@
 #include <memoria/core/strings/format.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/asio/round_robin.hpp>
-#include <boost/fiber/asio/yield.hpp>
+#include <memoria/asio/round_robin.hpp>
+#include <memoria/asio/yield.hpp>
 
 #include <boost/program_options.hpp>
 
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
         po::notify(config);
 
         std::shared_ptr< boost::asio::io_service > io_svc = std::make_shared< boost::asio::io_service >();
-        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+        boost::fibers::use_scheduling_algorithm< memoria::asio::round_robin >( io_svc);
 
         auto res = boost::fibers::async([&]{
             println("In a fiber!");

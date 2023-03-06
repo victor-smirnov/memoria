@@ -1,3 +1,4 @@
+
 // Copyright 2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +15,21 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
+#include <memoria/hrpc/hrpc.hpp>
 
-namespace memoria::asio {
+namespace memoria::asio::hrpc {
 
-using IOContext = boost::asio::io_context;
-using IOContextPtr = std::shared_ptr<IOContext>;
+using namespace memoria::hrpc;
 
+PoolSharedPtr<st::Session> open_tcp_session(
+    const TCPClientSocketConfig& cfg,
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
+);
 
-IOContext& io_context();
-IOContextPtr io_context_ptr();
-bool has_io_context();
-void set_io_context(IOContextPtr io_context);
+PoolSharedPtr<st::Server> make_tcp_server(
+    const TCPServerSocketConfig& cfg,
+    const PoolSharedPtr<st::EndpointRepository>& endpoints
+);
+
 
 }

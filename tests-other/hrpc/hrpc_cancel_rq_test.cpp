@@ -23,12 +23,15 @@ Response cancel_rq_handler(ContextPtr context)
 {
     bool cancelled = false;
     context->set_cancel_listener([&]{
+        println("RQ Cancelled");
         cancelled = true;
     });
 
     auto ch = context->input_channel(0);
     Message msg;
     while (ch->pop(msg)) {}
+
+    println("Input Stream closed");
 
     if (!context->is_cancelled()) {
         MEMORIA_MAKE_GENERIC_ERROR("'cancelled' flag must be set here").do_throw();

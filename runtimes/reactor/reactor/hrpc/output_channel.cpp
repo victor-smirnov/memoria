@@ -15,7 +15,7 @@
 
 #include <memoria/reactor/hrpc/output_channel.hpp>
 
-namespace memoria::hrpc::ss {
+namespace memoria::reactor::hrpc {
 
 
 }

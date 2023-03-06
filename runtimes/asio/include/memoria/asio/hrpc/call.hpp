@@ -15,34 +15,45 @@
 
 #pragma once
 
-#include <memoria/hrpc/hrpc_impl_context.hpp>
+#include <memoria/hrpc/hrpc_impl_call.hpp>
 
 #include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/fiber.hpp>
 
-namespace memoria::reactor::hrpc {
+namespace memoria::asio::hrpc {
 
 using namespace memoria::hrpc;
 
-class ReactorHRPCContext final: public st::HRPCContextImpl {
+class AsioHRPCCall final: public st::HRPCCallImpl {
 
-    using Base = st::HRPCContextImpl;
+    using Base = st::HRPCCallImpl;
 
     boost::fibers::mutex mutex_;
     boost::fibers::condition_variable waiter_;
 
 public:
-    ReactorHRPCContext(
-            st::SessionImplPtr session,
+    AsioHRPCCall(
+            const st::SessionImplPtr& session,
             CallID call_id,
-            const EndpointID& endpoint_id,
-            Request request
-    ):
-        Base(session, call_id, endpoint_id, request)
+            Request request,
+            st::CallCompletionFn completion_fn
+    ): Base(session, call_id, std::move(request), completion_fn)
     {}
 
+
+    void wait_for_response() override {
+        std::unique_lock<boost::fibers::mutex> lock(mutex_);
+        waiter_.wait(lock, [&]{
+            return response_.is_not_null();
+        });
+    }
+
+    void notify_response_ready() override {
+        waiter_.notify_all();
+    }
+
     void run_async(std::function<void()> fn) override {
-        fn();
+        boost::fibers::fiber(fn).detach();
     }
 
     st::InputChannelImplPtr make_input_channel(ChannelCode code) override;

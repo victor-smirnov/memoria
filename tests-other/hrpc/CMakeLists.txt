@@ -38,3 +38,12 @@ target_sources(reactor_hrpc_tests_server PRIVATE reactor_hrpc_tests_server.cpp $
 add_executable(reactor_hrpc_tests_client)
 target_link_libraries(reactor_hrpc_tests_client PRIVATE ReactorLib HRPCTestsLib)
 target_sources(reactor_hrpc_tests_client PRIVATE reactor_hrpc_tests_client.cpp ${LIB_TEST_SOURCES})
+
+
+add_executable(asio_hrpc_tests_server)
+target_link_libraries(asio_hrpc_tests_server PRIVATE AsioLib HRPCTestsLib)
+target_sources(asio_hrpc_tests_server PRIVATE asio_hrpc_tests_server.cpp ${LIB_TEST_SOURCES})
+
+add_executable(asio_hrpc_tests_client)
+target_link_libraries(asio_hrpc_tests_client PRIVATE AsioLib HRPCTestsLib)
+target_sources(asio_hrpc_tests_client PRIVATE asio_hrpc_tests_client.cpp ${LIB_TEST_SOURCES})

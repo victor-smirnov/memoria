@@ -25,9 +25,7 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-namespace boost {
-namespace fibers {
-namespace asio {
+namespace memoria::asio {
 namespace detail {
 
 //[fibers_asio_yield_completion
@@ -39,7 +37,7 @@ struct yield_completion {
         complete
     };
 
-    typedef fibers::detail::spinlock                    mutex_t;
+    typedef boost::fibers::detail::spinlock             mutex_t;
     typedef std::unique_lock< mutex_t >                 lock_t;
     typedef boost::intrusive_ptr< yield_completion >    ptr_t;
 
@@ -57,7 +55,7 @@ struct yield_completion {
             state_ = waiting;
             // suspend(unique_lock<spinlock>) unlocks the lock in the act of
             // resuming another fiber
-            fibers::context::active()->suspend( lk);
+            boost::fibers::context::active()->suspend( lk);
         }
     }
 
@@ -119,7 +117,7 @@ public:
         // ready.
         if ( yield_completion::waiting == state) {
             // wake the fiber
-            fibers::context::active()->schedule( ctx_);
+            boost::fibers::context::active()->schedule( ctx_);
         }
     }
 
@@ -225,7 +223,7 @@ public:
         // if our yield_handler did not have a bound error_code AND the
         // completion callback passed a non-default error_code.
         if ( ec_) {
-            throw_exception( boost::system::system_error{ ec_ } );
+            boost::throw_exception( boost::system::system_error{ ec_ } );
         }
     }
 
@@ -236,7 +234,7 @@ private:
 };
 //]
 
-}}}}
+}}
 
 namespace boost {
 namespace asio {
@@ -247,15 +245,15 @@ namespace asio {
 // yield_handler, constructs this async_result specialization from it, then
 // returns the result of calling its get() method.
 template< typename ReturnType, typename T >
-class async_result< boost::fibers::asio::yield_t, ReturnType(boost::system::error_code, T) > :
-    public boost::fibers::asio::detail::async_result_base {
+class async_result< memoria::asio::yield_t, ReturnType(boost::system::error_code, T) > :
+    public memoria::asio::detail::async_result_base {
 public:
     // type returned by get()
     using return_type = T;
-    using completion_handler_type = fibers::asio::detail::yield_handler<T>;
+    using completion_handler_type = memoria::asio::detail::yield_handler<T>;
 
-    explicit async_result( boost::fibers::asio::detail::yield_handler< T > & h) :
-        boost::fibers::asio::detail::async_result_base{ h } {
+    explicit async_result( memoria::asio::detail::yield_handler< T > & h) :
+        memoria::asio::detail::async_result_base{ h } {
         // Inject ptr to our value_ member into yield_handler<>: result will
         // be stored here.
         h.value_ = & value_;
@@ -263,7 +261,7 @@ public:
 
     // asio async method returns result of calling get()
     return_type get() {
-        boost::fibers::asio::detail::async_result_base::get();
+        memoria::asio::detail::async_result_base::get();
         return std::move( value_);
     }
 
@@ -276,14 +274,14 @@ private:
 // Without the need to handle a passed value, our yield_handler<void>
 // specialization is just like async_result_base.
 template<>
-class async_result< boost::fibers::asio::yield_t, void(boost::system::error_code) > : 
-    public boost::fibers::asio::detail::async_result_base {
+class async_result< memoria::asio::yield_t, void(boost::system::error_code) > :
+    public memoria::asio::detail::async_result_base {
 public:
     using return_type = void;
-    using completion_handler_type = fibers::asio::detail::yield_handler<void>;
+    using completion_handler_type = memoria::asio::detail::yield_handler<void>;
 
-    explicit async_result( boost::fibers::asio::detail::yield_handler< void > & h):
-        boost::fibers::asio::detail::async_result_base{ h } {
+    explicit async_result( memoria::asio::detail::yield_handler< void > & h):
+        memoria::asio::detail::async_result_base{ h } {
     }
 };
 //]

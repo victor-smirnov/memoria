@@ -29,11 +29,9 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-namespace boost {
-namespace fibers {
-namespace asio {
+namespace memoria::asio {
 
-class round_robin : public algo::algorithm {
+class round_robin : public boost::fibers::algo::algorithm {
 private:
 //[asio_rr_suspend_timer
     std::shared_ptr< boost::asio::io_context >      io_ctx_;
@@ -98,7 +96,7 @@ public:
             });
     }
 
-    void awakened( context * ctx) noexcept {
+    void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         ctx->ready_link( rqueue_); /*< fiber, enqueue on ready queue >*/
@@ -107,15 +105,15 @@ public:
         }
     }
 
-    context * pick_next() noexcept {
-        context * ctx( nullptr);
+    boost::fibers::context * pick_next() noexcept {
+        boost::fibers::context * ctx( nullptr);
         if ( ! rqueue_.empty() ) { /*<
             pop an item from the ready queue
         >*/
             ctx = & rqueue_.front();
             rqueue_.pop_front();
             BOOST_ASSERT( nullptr != ctx);
-            BOOST_ASSERT( context::active() != ctx);
+            BOOST_ASSERT( boost::fibers::context::active() != ctx);
             if ( ! ctx->is_context( boost::fibers::type::dispatcher_context) ) {
                 --counter_;
             }
@@ -151,7 +149,7 @@ public:
 			// abs_time value.
             suspend_timer_.expires_at( abs_time);
             suspend_timer_.async_wait([](boost::system::error_code const&){
-                                        this_fiber::yield();
+                                        boost::this_fiber::yield();
                                       });
         }
         cnd_.notify_one();
@@ -176,7 +174,7 @@ public:
         // once for the operation_aborted handler, once for timer expiration
         // -- but that shouldn't be a big problem.
         suspend_timer_.async_wait([](boost::system::error_code const&){
-                                    this_fiber::yield();
+                                    boost::this_fiber::yield();
                                   });
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
     }
@@ -185,7 +183,7 @@ public:
 
 
 
-}}}
+}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

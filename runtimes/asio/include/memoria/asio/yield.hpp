@@ -15,9 +15,7 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-namespace boost {
-namespace fibers {
-namespace asio {
+namespace memoria::asio {
 
 //[fibers_asio_yield_t
 class yield_t {
@@ -53,7 +51,7 @@ public:
 extern thread_local yield_t yield;
 //]
 
-}}}
+}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

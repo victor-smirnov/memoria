@@ -13,17 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boost/fiber/asio/yield.hpp>
-#include <boost/fiber/asio/round_robin.hpp>
+#include <memoria/asio/hrpc/output_channel.hpp>
 
+namespace memoria::asio::hrpc {
 
-namespace {
-void fn_123456() {};
-}
-
-namespace boost::fibers::asio {
-
-thread_local yield_t yield{};
-boost::asio::io_context::id round_robin::service::id;
 
 }

@@ -22,8 +22,8 @@
 #include <memoria/core/hermes/hermes.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/asio/round_robin.hpp>
-#include <boost/fiber/asio/yield.hpp>
+#include <memoria/asio/round_robin.hpp>
+#include <memoria/asio/yield.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <yaml-cpp/yaml.h>
@@ -526,7 +526,7 @@ bool write_data(net::ip::tcp::socket& socket, const void* data, size_t size)
     net::async_write(
             socket,
             net::buffer(data, size),
-            boost::fibers::asio::yield[ec]);
+            memoria::asio::yield[ec]);
 
     if ( ec == net::error::eof) {
         return false;
@@ -542,7 +542,7 @@ size_t read_data(net::ip::tcp::socket& socket, uint8_t* data, size_t size)
     boost::system::error_code ec;
     size_t reply_length = socket.async_read_some(
             boost::asio::buffer(data, size),
-            boost::fibers::asio::yield[ec]);
+            memoria::asio::yield[ec]);
 
     if (ec == boost::asio::error::eof) {
         return 0;

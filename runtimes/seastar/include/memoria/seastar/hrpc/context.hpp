@@ -41,7 +41,7 @@ public:
     {}
 
     void run_async(std::function<void()> fn) override {
-        (void)::seastar::async(fn);
+        fn();
     }
 
     st::InputChannelImplPtr make_input_channel(ChannelCode code) override;

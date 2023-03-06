@@ -20,11 +20,11 @@
 #include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/fiber.hpp>
 
-namespace memoria::reactor::hrpc {
+namespace memoria::asio::hrpc {
 
 using namespace memoria::hrpc;
 
-class ReactorHRPCContext final: public st::HRPCContextImpl {
+class AsioHRPCContext final: public st::HRPCContextImpl {
 
     using Base = st::HRPCContextImpl;
 
@@ -32,7 +32,7 @@ class ReactorHRPCContext final: public st::HRPCContextImpl {
     boost::fibers::condition_variable waiter_;
 
 public:
-    ReactorHRPCContext(
+    AsioHRPCContext(
             st::SessionImplPtr session,
             CallID call_id,
             const EndpointID& endpoint_id,

@@ -15,38 +15,42 @@
 
 #pragma once
 
-#include <memoria/hrpc/hrpc_impl_context.hpp>
+#include <memoria/hrpc/hrpc_impl_output_channel.hpp>
 
 #include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/fiber.hpp>
 
-namespace memoria::reactor::hrpc {
+
+namespace memoria::asio::hrpc {
 
 using namespace memoria::hrpc;
 
-class ReactorHRPCContext final: public st::HRPCContextImpl {
+class AsioHRPCOutputChannel final: public st::HRPCOutputChannelImpl {
 
-    using Base = st::HRPCContextImpl;
+    using Base = st::HRPCOutputChannelImpl;
 
     boost::fibers::mutex mutex_;
-    boost::fibers::condition_variable waiter_;
+    boost::fibers::condition_variable flow_control_;
 
 public:
-    ReactorHRPCContext(
-            st::SessionImplPtr session,
-            CallID call_id,
-            const EndpointID& endpoint_id,
-            Request request
+    AsioHRPCOutputChannel(
+        const st::SessionImplPtr& session,
+        CallID call_id, ChannelCode code,
+        uint64_t batch_size_limit, bool call_side
     ):
-        Base(session, call_id, endpoint_id, request)
+        Base(session, call_id, code, batch_size_limit, call_side)
     {}
 
-    void run_async(std::function<void()> fn) override {
-        fn();
+    void wait_for_lease() {
+        std::unique_lock<boost::fibers::mutex> lock(mutex_);
+        flow_control_.wait(lock, [&](){
+            return batch_size_ >= batch_size_limit_;
+        });
     }
 
-    st::InputChannelImplPtr make_input_channel(ChannelCode code) override;
-    st::OutputChannelImplPtr make_output_channel(ChannelCode code) override;
+    void notify_lease_ready() {
+        flow_control_.notify_all();
+    }
 };
 
 }

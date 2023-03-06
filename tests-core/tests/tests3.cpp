@@ -21,8 +21,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/asio/round_robin.hpp>
-#include <boost/fiber/asio/yield.hpp>
+#include <memoria/asio/round_robin.hpp>
+#include <memoria/asio/yield.hpp>
 
 using boost::asio::ip::tcp;
 
@@ -129,7 +129,7 @@ void session(socket_ptr sock) {
             boost::system::error_code ec;
             std::size_t length = sock->async_read_some(
                     boost::asio::buffer( data),
-                    boost::fibers::asio::yield[ec]);
+                    memoria::asio::yield[ec]);
             if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
             } else if ( ec) {
@@ -139,7 +139,7 @@ void session(socket_ptr sock) {
             boost::asio::async_write(
                     * sock,
                     boost::asio::buffer( data, length),
-                    boost::fibers::asio::yield[ec]);
+                    memoria::asio::yield[ec]);
             if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
             } else if ( ec) {
@@ -163,7 +163,7 @@ void server( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acce
             boost::system::error_code ec;
             a.async_accept(
                     * socket,
-                    boost::fibers::asio::yield[ec]);
+                    memoria::asio::yield[ec]);
             if ( ec) {
                 throw boost::system::system_error( ec); //some other error
             } else {
@@ -198,7 +198,7 @@ void client( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acce
             boost::asio::async_write(
                     s,
                     boost::asio::buffer( message),
-                    boost::fibers::asio::yield[ec]);
+                    memoria::asio::yield[ec]);
             if ( ec == boost::asio::error::eof) {
                 return; //connection closed cleanly by peer
             } else if ( ec) {
@@ -207,7 +207,7 @@ void client( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acce
             char reply[max_length];
             size_t reply_length = s.async_read_some(
                     boost::asio::buffer( reply, max_length),
-                    boost::fibers::asio::yield[ec]);
+                    memoria::asio::yield[ec]);
             if ( ec == boost::asio::error::eof) {
                 return; //connection closed cleanly by peer
             } else if ( ec) {
@@ -233,7 +233,7 @@ int main( int argc, char* argv[]) {
     try {
 //[asio_rr_setup
         std::shared_ptr< boost::asio::io_service > io_svc = std::make_shared< boost::asio::io_service >();
-        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+        boost::fibers::use_scheduling_algorithm< memoria::asio::round_robin >( io_svc);
 //]
         print( "Thread ", thread_names.lookup(), ": started");
 //[asio_rr_launch_fibers
@@ -248,21 +248,6 @@ int main( int argc, char* argv[]) {
             boost::fibers::fiber(
                     client, io_svc, std::ref( a), std::ref( b), iterations).detach();
         }
-
-        for (size_t c = 0; c < 100; c++) {
-            boost::fibers::fiber([](int cc, auto io_svc){
-                for (size_t d = 0; d < 100000; d++) {
-                    boost::this_fiber::yield();
-                }
-
-                print("Stopping fiber ", cc);
-                if (cc == 0) {
-                    io_svc->stop();
-                }
-            }, c, io_svc).detach();
-        }
-
-
 //]
 //[asio_rr_run
 

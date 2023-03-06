@@ -116,46 +116,6 @@ public:
     void write_message(const MessageHeader& header, const uint8_t* data) override;
 };
 
-/*
-class ASIOSocketMessageProvider final: public st::MessageProvider  {
-protected:
-    net::tcp::socket socket_;
-public:
-    ASIOSocketMessageProvider(net::tcp::socket&& socket):
-        socket_(std::move(socket))
-    {}
-
-    bool needs_session_id() override {
-        return false;
-    }
-
-    bool read(uint8_t* buf, size_t size);
-    void write(const uint8_t* buf, size_t size);
-
-    RawMessagePtr read_message() override;
-    void write_message(const MessageHeader& header, const uint8_t* data) override;
-
-    void close() noexcept override
-    {
-        try {
-            socket_.close();
-        }
-        catch (...) {
-            println("Exception while closing ASIO socket");
-        }
-    }
-
-    bool is_closed() override {
-        return !socket_.is_open();
-    }
-
-    static PoolSharedPtr<st::MessageProvider> make_instance(
-        net::tcp::socket&& socket
-    );
-};
-*/
-
-
 
 class SeastarTCPClientMessageProvider final: public TCPMessageProviderBase {
     ::seastar::connected_socket socket_;
