@@ -1,5 +1,5 @@
 
-// Copyright 2019-2022 Victor Smirnov
+// Copyright 2019-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -204,6 +204,70 @@ struct AllocationMapCompareHelper {
     virtual void dump_my_leaf() = 0;
     virtual void dump_other_leaf() = 0;
 };
+
+
+/**
+ * Note that in the context of persistent (CoW) data structures (PDS), a
+ * plain bitmap can be considered as a degenerate case of a block
+ * reference counters map.
+ *
+ * Block reference counters for PDS are naturally compressible and
+ * may have an arbitrary 'width'. When a counter is incremented, if
+ * its value reaches the limit, we just clone the block for that
+ * counter and use it as a pointee. Depending on the counter's
+ * 'width' (number of bits) we will have some amount of memory
+ * overhead.
+ *
+ * For a bitmap, each bit can be considered as a 1-bit counter. And
+ * for this specific and degenerate case, memory overhead will be
+ * 100%, because blocks will be cloned all the time we try to
+ * increment the counter (each block mah have only up to
+ * one reference to it).
+ *
+ * For 2-bit counter, overhead will be 30% on average. Worst
+ * case is 100% but, probabilistically, it's unlikely to happen.
+ * For 3-bit counter space overhead will be about 1/7 of the
+ * storage. And so on...
+ *
+ * For a pretty machine-friendly 8-bit counter, space overhead
+ * will be less than 0.5%. It's exponentially decaying with the
+ * number of bits in counters. Traditionally, counters are of
+ * 32 or 64 bit width, so reaching the precision limit is highly
+ * unlikely anyway (conditions for that are pretty hard to be
+ * observed in all practical cases of PDS usages).
+ *
+ * Mathematics behind this property of block reference counters
+ * is eaxctly the same as the mathematics behind basic properties
+ * of a Copy-on-Write trees. Without persistent tree, counters,
+ * representing number of version the block is reachable from,
+ * will have pretty high values. With persistent tree, this value
+ * is spread between different nodes' counters in the tree, so
+ * on average, it's rather small.
+ *
+ * So, counters can be easily represented as a CoW-tree and
+ * they can be versioned and transactional the same way
+ * AllocationMap in the SWMRStore is transactional. Both ZFS
+ * and BTRFS use variants of reference counting trees to manage
+ * block's lifetime. But some implementations may consider
+ * using traditional counters stored in a fast hash map
+ * just for performance reasons: there may be hundreds of
+ * counter increments _per each tree node cloning_ (if btree
+ * fanout is high, that is especially the case for 8K blocks
+ * and larger). And btrees are inherently slower than
+ * hash maps.
+ *
+ * SWMRStore variants are currently using fast open-addressing hash
+ * map for the reason that AllocationMap (that is a btree)
+ * is not yet optimized enough to host block counters
+ * in itself. But future revisions of AllocationMap will probably be, so
+ * the will be at least an option to use transactional
+ * block reference counters and have true instant crash
+ * recovery and low main memory footprint (no need to
+ * load/store entire set of couners to/from RAM each time
+ * a store is opened/closed).
+ *
+ *
+ */
 
 
 template <typename Profile>

@@ -336,11 +336,13 @@ if (BUILD_SANDBOX)
 endif()
 
 if (BUILD_TESTS)
+    add_subdirectory(tests/runner)
+
     add_subdirectory(tests-core)
-    add_subdirectory(tests-reactor)
+    add_subdirectory(tests/reactor)
 
     if (BUILD_TESTS_HRPC)
-        add_subdirectory(tests-other/hrpc)
+        add_subdirectory(tests/hrpc)
     endif()
 endif()
 
