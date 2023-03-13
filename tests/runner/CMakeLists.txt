@@ -12,18 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB RUNNER_SOURCES *.cpp)
+file(GLOB RUNNER_SOURCES *.cpp *.hpp)
+
+
+if (LINUX OR MACOSX)
+    file(GLOB POSIX_RUNNER_SOURCES posix/*.cpp)
+endif()
+
 file(GLOB_RECURSE RUNNER_HEADERS include/*.hpp)
 
 add_library(TestsRunnerLib STATIC)
 set_target_properties(TestsRunnerLib PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(TestsRunnerLib PROPERTIES OUTPUT_NAME memoria_tests_runner_lib)
 
-target_link_libraries(TestsRunnerLib Core AsioLib)
+target_link_libraries(TestsRunnerLib PUBLIC Core AsioLib Boost::program_options ftxui::dom ftxui::screen ftxui::component)
 target_include_directories(TestsRunnerLib PUBLIC include)
 
 target_sources(
     TestsRunnerLib
-    PRIVATE ${RUNNER_SOURCES}
+    PRIVATE ${RUNNER_SOURCES} ${POSIX_RUNNER_SOURCES}
     PUBLIC  ${RUNNER_HEADERS}
 )

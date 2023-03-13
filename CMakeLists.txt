@@ -93,6 +93,7 @@ find_package(Boost 1.74.0
     REQUIRED
 )
 
+find_package(ftxui REQUIRED)
 
 if (BUILD_TESTS)
     find_package(Catch2 CONFIG REQUIRED)
@@ -337,6 +338,7 @@ endif()
 
 if (BUILD_TESTS)
     add_subdirectory(tests/runner)
+    add_subdirectory(tests/main)
 
     add_subdirectory(tests-core)
     add_subdirectory(tests/reactor)

@@ -3,7 +3,7 @@
     "name": "memoria",
     "version": "0.1.0",
     "dependencies": [
-        "abseil", "hash-library", "catch2", "lmdb", "icu", "inja", "yaml-cpp"
+        "abseil", "hash-library", "catch2", "lmdb", "icu", "inja", "yaml-cpp", "ftxui"
     ],
     "default-features": [],
     "features": {

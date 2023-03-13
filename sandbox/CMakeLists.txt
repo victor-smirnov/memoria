@@ -21,17 +21,17 @@ set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit ${MEMORIA_LIBS})
+    target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit)
 ENDFOREACH(MEMORIA_TARGET )
 
 set(MEMORIA_SANDBOX_SEASTAR seastar-sb)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit SeastarLib)
 ENDFOREACH(MEMORIA_TARGET )
 
+add_executable(process_sb process_sb.cpp)
+target_link_libraries(process_sb TestsRunnerLib)
+
+add_executable(crashing crashing.cpp)
