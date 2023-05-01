@@ -242,6 +242,15 @@ class [[clang::annotate(R"(
     }
 )")]] TypeInstance<Multimap<UUID, UTinyInt>> {};
 
+template<>
+class [[clang::annotate(R"(
+    @TypeInstance = {
+        "profiles": "ALL",
+        "includes": [
+            "memoria/api/multimap/multimap_api.hpp"
+        ]
+    }
+)")]] TypeInstance<Multimap<UBigInt, UBigInt>> {};
 
 template<>
 class [[clang::annotate(R"(

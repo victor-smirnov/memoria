@@ -32,6 +32,69 @@
 
 namespace memoria {
 
+
+enum class BlockCachingGroup: uint8_t {
+    NONE, SUPERBLOCK, ROOT, INTERNAL, LEAF, SYSTEM, OTHER
+};
+
+class CacheTraits {
+    uint8_t group_;
+    uint8_t priority_;
+public:
+    CacheTraits():
+        group_(), priority_()
+    {}
+
+    BlockCachingGroup group() const {
+        return (BlockCachingGroup) group_;
+    }
+
+    void set_group(BlockCachingGroup group) {
+        group_ = (uint8_t)group;
+    }
+
+    uint8_t priority() const {return priority_;}
+    void set_priority(uint8_t value) {
+        priority_ = value;
+    }
+};
+
+using BlkSizeT = uint32_t;
+
+class BasicBlockHeader {
+    BlkSizeT block_size_;
+    CacheTraits cache_traits_;
+    uint16_t reserved_;
+
+public:
+    BasicBlockHeader():
+        block_size_(0), reserved_(0)
+    {}
+
+    const CacheTraits& cache_traits() const {
+        return cache_traits_;
+    }
+
+    CacheTraits& cache_traits() {
+        return cache_traits_;
+    }
+
+    void set_cache_traits(const CacheTraits& traits) {
+        cache_traits_ = traits;
+    }
+
+    const BlkSizeT& block_size() const {
+        return block_size_;
+    }
+
+    void set_block_size(BlkSizeT value) {
+        block_size_ = value;
+    }
+};
+
+
+
+
 template <typename Profile>
 struct ProfileSpecificBlockTools;
 
@@ -46,14 +109,15 @@ public:
     static constexpr uint32_t VERSION = 1;
 
 private:
+    BasicBlockHeader header_;
 
     uint64_t    ctr_type_hash_;
     uint64_t    block_type_hash_;
-    int32_t     memory_block_size_;
 
     uint64_t    next_block_pos_;
     uint64_t    target_block_pos_;
     mutable std::atomic<int64_t> references_;
+    uint64_t    log_sequence_number_;
 
     static_assert(std::is_trivially_copyable_v<decltype(references_)>, "");
 
@@ -64,12 +128,15 @@ private:
 public:
     using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
+                BlkSizeT,
+                decltype(header_.cache_traits().group()),
+                decltype(header_.cache_traits().priority()),
                 decltype(ctr_type_hash_),
                 decltype(block_type_hash_),
-                decltype(memory_block_size_),
                 decltype(next_block_pos_),
                 decltype(target_block_pos_),
                 int64_t, //references
+                decltype(log_sequence_number_),
                 decltype(uid_),
                 decltype(id_),
                 decltype(snapshot_id_)
@@ -83,7 +150,11 @@ public:
         uid_(uid), id_(uid)
     {}
 
-
+    const BasicBlockHeader& basic_header() const {return header_;}
+    BasicBlockHeader& basic_header() {return header_;}
+    void set_basic_header(BasicBlockHeader& header) {
+        header_ = header;
+    }
 
     const BlockID& uid() const noexcept {
         return uid_;
@@ -127,12 +198,12 @@ public:
     }
 
 
-    int32_t& memory_block_size() noexcept {
-        return memory_block_size_;
+    void set_memory_block_size(BlkSizeT value) noexcept {
+        header_.set_block_size(value);
     }
 
-    const int32_t& memory_block_size() const noexcept {
-        return memory_block_size_;
+    const BlkSizeT& memory_block_size() const noexcept {
+        return header_.block_size();
     }
 
     uint64_t& next_block_pos() noexcept {
@@ -166,7 +237,7 @@ public:
     bool unref_block() const noexcept
     {
         auto refs = references_.fetch_sub(1, std::memory_order_acq_rel);
-        if (refs < 1) {
+        if (MMA_UNLIKELY(refs < 1)) {
              terminate(format_u8("Internal error. Negative refcount detected for block {}", id_).data());
         }
         return refs == 1;
@@ -174,12 +245,17 @@ public:
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
+        uint32_t cg_val = (uint32_t)header_.cache_traits().group();
+        handler->value("CACHE_GROUP",       &cg_val);
+        uint32_t cp_val = (uint32_t)header_.cache_traits().priority();
+        handler->value("CACHE_PRIO",        &cp_val);
+
         handler->value("ID",                &id_);
         handler->value("UID",               &uid_);
         handler->value("SNAPSHOT_ID",       &snapshot_id_);
         handler->value("CTR_HASH",          &ctr_type_hash_);
-        handler->value("PAGE_TYPE_HASH",    &block_type_hash_);
-        handler->value("PAGE_SIZE",         &memory_block_size_);
+        handler->value("BLOCK_TYPE_HASH",   &block_type_hash_);
+        handler->value("BLOCK_SIZE",        &header_.block_size());
 
         handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
         handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
@@ -192,9 +268,16 @@ public:
     template <template <typename T> class FieldFactory, typename SerializationData>
     void serialize(SerializationData& buf) const
     {
+        uint8_t cg_val = (uint8_t)header_.cache_traits().group();
+        FieldFactory<uint8_t>::serialize(buf, cg_val);
+
+        uint8_t pg_val = header_.cache_traits().priority();
+        FieldFactory<uint8_t>::serialize(buf, pg_val);
+
+        FieldFactory<BlkSizeT>::serialize(buf, header_.block_size());
+
         FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
         FieldFactory<uint64_t>::serialize(buf, block_type_hash());
-        FieldFactory<int32_t>::serialize(buf, memory_block_size());
 
         FieldFactory<uint64_t>::serialize(buf, next_block_pos());
         FieldFactory<uint64_t>::serialize(buf, target_block_pos());
@@ -209,9 +292,16 @@ public:
     template <template <typename T> class FieldFactory, typename SerializationData, typename IDResolver>
     void cow_serialize(SerializationData& buf, const IDResolver* id_resolver) const
     {
+        uint8_t cg_val = (uint8_t)header_.cache_traits().group();
+        FieldFactory<uint8_t>::serialize(buf, cg_val);
+
+        uint8_t pg_val = header_.cache_traits().priority();
+        FieldFactory<uint8_t>::serialize(buf, pg_val);
+
+        FieldFactory<BlkSizeT>::serialize(buf, header_.block_size());
+
         FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
         FieldFactory<uint64_t>::serialize(buf, block_type_hash());
-        FieldFactory<int32_t>::serialize(buf, memory_block_size());
 
         FieldFactory<uint64_t>::serialize(buf, next_block_pos());
         FieldFactory<uint64_t>::serialize(buf, target_block_pos());
@@ -230,9 +320,20 @@ public:
     template <template <typename T> class FieldFactory, typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
+        uint8_t cg_val{};
+        FieldFactory<uint8_t>::deserialize(buf, cg_val);
+        header_.cache_traits().set_group((BlockCachingGroup)cg_val);
+
+        uint8_t pg_val{};
+        FieldFactory<uint8_t>::deserialize(buf, pg_val);
+        header_.cache_traits().set_priority(pg_val);
+
+        BlkSizeT val{};
+        FieldFactory<BlkSizeT>::deserialize(buf, val);
+        header_.set_block_size(val);
+
         FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
         FieldFactory<uint64_t>::deserialize(buf, block_type_hash());
-        FieldFactory<int32_t>::deserialize(buf,  memory_block_size());
 
         FieldFactory<uint64_t>::deserialize(buf, next_block_pos());
         FieldFactory<uint64_t>::deserialize(buf, target_block_pos());
@@ -247,7 +348,15 @@ public:
 };
 
 
+namespace io {
 
+template <typename BlockIdT, typename SnapshotID, typename X>
+struct BlockPtrConvertible<AbstractPage<BlockIdT, SnapshotID>, BasicBlockHeader, X>: BoolValue<true> {};
+
+template <typename BlockIdT, typename SnapshotID, typename X>
+struct BlockPtrCastable<BasicBlockHeader, AbstractPage<BlockIdT, SnapshotID>, X>: BoolValue<true> {};
+
+}
 
 
 template <typename StoreT, typename PageT, typename BlockID, typename Base = EmptyType>

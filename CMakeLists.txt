@@ -316,6 +316,9 @@ add_subdirectory(containers)
 add_library(Stores STATIC)
 target_sources(Stores PRIVATE ${GENERATED_STORE_SOURCES})
 
+add_library(StoresSeastar STATIC)
+
+
 add_subdirectory(stores-api)
 add_subdirectory(stores)
 

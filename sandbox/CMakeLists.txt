@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 
-set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256)
+set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256 blk_distr)
 
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
@@ -24,7 +24,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
     target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit)
 ENDFOREACH(MEMORIA_TARGET )
 
-set(MEMORIA_SANDBOX_SEASTAR seastar-sb)
+set(MEMORIA_SANDBOX_SEASTAR seastar-sb dma)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)

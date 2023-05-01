@@ -1,5 +1,5 @@
 
-// Copyright 2020-2021 Victor Smirnov
+// Copyright 2020-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/swmr/common/swmr_store_readonly_snapshot_base.hpp>
+#include <memoria/store/oltp/blockio_oltp_store_readonly_snapshot_base.hpp>
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
 
@@ -25,18 +25,17 @@
 namespace memoria {
 
 template <typename>
-class MappedSWMRStoreReadOnlySnapshot;
+class BlockIOOLTPStoreReadOnlySnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreReadOnlySnapshot<CowLiteProfileT<ChildProfile>>:
-        public SWMRStoreReadOnlySnapshotBase<CowLiteProfileT<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreReadOnlySnapshot<CowLiteProfileT<ChildProfile>>>
+class BlockIOOLTPStoreReadOnlySnapshot<CowLiteProfileT<ChildProfile>>:
+        public BlockIOOLTPStoreReadOnlySnapshotBase<CowLiteProfileT<ChildProfile>>,
+        public EnableSharedFromThis<BlockIOOLTPStoreReadOnlySnapshot<CowLiteProfileT<ChildProfile>>>
 {
 protected:
     using Profile = CowLiteProfileT<ChildProfile>;
 
-    using Base = SWMRStoreReadOnlySnapshotBase<Profile>;
-
+    using Base = BlockIOOLTPStoreReadOnlySnapshotBase<Profile>;
     using ReadOnlySnapshotPtr = SharedPtr<ISWMRStoreReadOnlySnapshot<Profile>>;
 
     using typename Base::Store;
@@ -51,11 +50,9 @@ protected:
     using typename Base::BlockType;
 
     using typename Base::DirectoryCtrType;
-    using typename Base::HistoryCtrType;
-    using typename Base::HistoryCtr;
 
-    using typename Base::AllocationMapCtr;
-    using typename Base::AllocationMapCtrType;
+    //using typename Base::AllocationMapCtr;
+    //using typename Base::AllocationMapCtrType;
     using typename Base::AllocationMetadataT;
 
     using typename Base::SnapshotID;
@@ -77,27 +74,23 @@ protected:
     mutable boost::object_pool<Shared> shared_pool_;
     mutable boost::object_pool<detail::MMapSBPtrPooledSharedImpl> sb_shared_pool_;
 
-    template <typename>
-    friend class MappedSWMRStore;
 
 public:
     using Base::find;
     using Base::getBlock;
 
-    MappedSWMRStoreReadOnlySnapshot(
-            MaybeError& maybe_error,
+    BlockIOOLTPStoreReadOnlySnapshot(            
             SharedPtr<Store> store,
-            Span<uint8_t> buffer,
-            CDescrPtr& snapshot_descriptor,
-            ReferenceCounterDelegate<Profile>* refcounter_delegate = nullptr
+            std::shared_ptr<io::BlockIOProvider> blockio,
+            CDescrPtr& snapshot_descriptor
     ):
-        Base(store, snapshot_descriptor, refcounter_delegate),
-        buffer_(buffer)
+        Base(store, blockio, snapshot_descriptor)
     {
     }
 
-    void post_init() {
-        auto sb = this->get_superblock(snapshot_descriptor_->superblock_ptr());
+    void post_init()
+    {
+        auto sb = this->get_superblock(snapshot_descriptor_->superblock_id());
 
         auto root_block_id = sb->directory_root_id();
         if (root_block_id.is_set())
@@ -147,9 +140,10 @@ public:
         shared_pool_.destroy(block);
     }
 
-    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) {
-        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
-        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+    virtual io::BlockPtr<Superblock> get_superblock(uint64_t pos) {
+        //Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
+        //return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+        return {};
     }
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) {
@@ -160,8 +154,8 @@ public:
             SharedBlockConstPtr block,
             const CheckResultConsumerFn& consumer
     ) {
-        int32_t block_size = block->memory_block_size();
-        int32_t expected_block_size = (1 << block->id().value().metadata()) * BASIC_BLOCK_SIZE;
+        size_t block_size = block->memory_block_size();
+        size_t expected_block_size = (1 << block->id().value().metadata()) * BASIC_BLOCK_SIZE;
 
         if (block_size != expected_block_size) {
             consumer(CheckSeverity::ERROR, make_string_document("Block size mismatch for block {}. Expected {}, actual {}", expected_block_size, block_size));

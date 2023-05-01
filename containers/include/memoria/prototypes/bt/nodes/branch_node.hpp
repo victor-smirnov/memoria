@@ -280,7 +280,7 @@ public:
             ).do_throw();
         }
 
-        header_.memory_block_size() = new_size;
+        header_.set_memory_block_size(new_size);
         return allocator_.resize_block(new_size - sizeof(MyType) + PackedAllocator::my_size());
     }
 
@@ -1018,6 +1018,47 @@ struct TypeHash<bt::BranchNode<Types> > {
             TypeHashV<typename Types::Name>
     >;
 };
+
+
+namespace io {
+
+template <typename Metadata, typename Header, typename X>
+struct BlockPtrConvertible<bt::TreeNodeBase<Metadata, Header>, BasicBlockHeader, X>: BoolValue<true> {};
+
+template <
+        typename Metadata,
+        typename Header,
+        typename BlockIdT,
+        typename SnapshotID,
+        typename X
+>
+struct BlockPtrConvertible<
+        bt::TreeNodeBase<Metadata, Header>,
+        AbstractPage<BlockIdT, SnapshotID>,
+        X
+>: BoolValue<true> {};
+
+
+
+
+template <typename Metadata, typename Header, typename X>
+struct BlockPtrCastable<BasicBlockHeader, bt::TreeNodeBase<Metadata, Header>, X>: BoolValue<true> {};
+
+template <
+        typename Metadata,
+        typename Header,
+        typename BlockIdT,
+        typename SnapshotID,
+        typename X
+>
+struct BlockPtrCastable<
+        AbstractPage<BlockIdT, SnapshotID>,
+        bt::TreeNodeBase<Metadata, Header>,
+        X
+>: BoolValue<true> {};
+
+
+}
 
 
 }

@@ -23,223 +23,64 @@
 namespace memoria {
 
 
-template <typename Profile, int32_t Levels>
+template <size_t Size>
 class AllocationPoolData {
-    static_assert (Levels > 1, "");
 
-    static constexpr uint32_t LEVEL_CAPACITY = 4;
-    static constexpr uint32_t LEVEL0_CAPACITY = 64;
+    using DataT = uint64_t;
 
-    using BlkAlloc  = BasicBlockAllocation<Profile>;
-    using AllocMeta = AllocationMetadata<Profile>;
-
-    using BlkAllocArray = BlkAlloc[LEVEL_CAPACITY];
-
-    BlkAllocArray levels_[Levels - 1];
-    BlkAlloc level0_[LEVEL0_CAPACITY];
-    uint32_t level_size_[Levels];
-public:
-    AllocationPoolData()  {
-        clear();
-    }
-
-    void preconfigure(const AllocationPoolData<Profile, Levels>& sample)
-    {
-        clear();
-
-        for (size_t level = 0; level < (size_t)Levels; level++){
-            levels_[level].ensure(sample.capacity(level));
-        }
-    }
-
-    void clear()
-    {
-        for (auto& arr: levels_) {
-            for (auto& alc: arr) {
-                alc = BlkAlloc{};
-            }
-        }
-
-        for (auto& alc: level0_) {
-            alc = BlkAlloc{};
-        }
-
-        for (auto& ii: level_size_) {
-            ii = 0;
-        }
-    }
-
-    Span<BlkAlloc> span(size_t level)  {
-        if (level == 0) {
-            return Span<BlkAlloc> {level0_, level_size_[0]};
-        }
-        else {
-            return Span<BlkAlloc> {levels_[level - 1], level_size_[level]};
-        }
-    }
-
-    Span<const BlkAlloc> span(size_t level) const  {
-        if (level == 0) {
-            return Span<const BlkAlloc> {level0_, level_size_[0]};
-        }
-        else {
-            return Span<const BlkAlloc> {levels_[level - 1], level_size_[level]};
-        }
-    }
-
-    const BlkAlloc* data(size_t level) const  {
-        if (level == 0) {
-            return level0_;
-        }
-        else {
-            return levels_[level - 1];
-        }
-    }
-
-    BlkAlloc* data(size_t level)  {
-        if (level == 0) {
-            return level0_;
-        }
-        else {
-            return levels_[level - 1];
-        }
-    }
-
-    size_t capacity(size_t level) const  {
-        if (level == 0) {
-            return LEVEL0_CAPACITY;
-        }
-        else {
-            return LEVEL_CAPACITY;
-        }
-    }
-
-    size_t size(size_t level) const  {
-        return level_size_[level];
-    }
-
-    void fill(size_t level, Span<const AllocMeta> span)
-    {
-        level_size_[level] = span.size();
-
-        if (level == 0) {
-            for (size_t c = 0; c < span.size(); c++) {
-                level0_[c] = span[c];
-            }
-        }
-        else {
-            for (size_t c = 0; c < span.size(); c++) {
-                levels_[level - 1][c] = span[c];
-            }
-        }
-    }
-
-    template <typename II>
-    void fill(size_t level, II iter, II end)
-    {
-        level_size_[level] = 0;
-
-        if (level == 0) {
-            for (size_t c = 0; iter != end; ++iter, ++c) {
-                level0_[c] = *iter;
-                ++level_size_[0];
-            }
-        }
-        else {
-            for (size_t c = 0; iter != end; ++iter, ++c) {
-                levels_[level - 1][c] = *iter;
-                ++level_size_[level];
-            }
-        }
-    }
-
-};
-
-
-template <typename Profile>
-class AllocationPoolData<Profile, 1> {
-    static constexpr uint32_t LEVEL0_CAPACITY = 64;
-
-    using BlkAlloc  = BasicBlockAllocation<Profile>;
-    using AllocMeta = AllocationMetadata<Profile>;
-
-    BlkAlloc level0_[LEVEL0_CAPACITY];
-    uint32_t level_size_[1];
+    uint64_t size_;
+    DataT slots_[Size];
 
 public:
-    AllocationPoolData()  {
-        clear();
+    constexpr AllocationPoolData() {
+        reset();
     }
 
-    void clear()
+    constexpr void reset()
     {
-        for (auto& alc: level0_) {
-            alc = BlkAlloc{};
+        for (auto& slot: slots_) {
+            slot = {};
         }
-
-        for (auto& ii: level_size_) {
-            ii = 0;
-        }
+        size_ = 0;
     }
 
-    Span<BlkAlloc> span(size_t level)  {
-        return Span<BlkAlloc> {level0_, level_size_[0]};
+    constexpr void push_back(DataT data) {
+        slots_[size_++] = data;
     }
 
-    Span<const BlkAlloc> span(size_t level) const  {
-        return Span<BlkAlloc> {level0_, level_size_[0]};
+    constexpr Span<uint64_t> span() {
+        return Span<DataT> {slots_, size_};
     }
 
-    const BlkAlloc* data(size_t level) const  {
-        return level0_;
+    constexpr Span<const uint64_t> span() const {
+        return Span<const DataT> {slots_, size_};
     }
 
-    BlkAlloc* data(size_t level)  {
-        return level0_;
+
+    static constexpr size_t capacity() {
+        return Size;
     }
 
-    size_t capacity(size_t level) const  {
-        return LEVEL0_CAPACITY;
-    }
-
-    size_t size(size_t level) const  {
-        return level_size_[0];
-    }
-
-    void fill(size_t level, Span<const AllocMeta> span)
-    {
-        level_size_[0] = span.size();
-        for (size_t c = 0; c < span.size(); c++) {
-            level0_[c] = span[c];
-        }
-    }
-
-    template <typename II>
-    void fill(size_t level, II iter, II end)
-    {
-        level_size_[0] = 0;
-        for (size_t c = 0; iter != end; ++iter, ++c) {
-            level0_[c] = *iter;
-            ++level_size_[0];
-        }
+    constexpr size_t size() const  {
+        return size_;
     }
 };
 
 
 
-template <typename Profile, int32_t Levels>
+
+template <typename Profile, size_t Levels>
 class AllocationPool {
     using AlcMetadata = AllocationMetadata<Profile>;
-    using PoolData = AllocationPoolData<Profile, Levels>;
+
+    using SizeT = typename AlcMetadata::SizeT;
 
     class LevelQueue {
-        int64_t total_;
-        size_t capacity_;
+        SizeT total_;
         std::list<AlcMetadata> buffer_;
 
     public:
-        void init(size_t capacity) {
-            capacity_ = capacity;
+        void init() {
             clear();
         }
 
@@ -249,36 +90,41 @@ class AllocationPool {
         }
 
         bool is_empty() const  {
-            return buffer_.size() == 0;
+            return buffer_.empty();
         }
 
         size_t size() const  {
             return buffer_.size();
         }
 
-        size_t capacity() const  {
-            return capacity_;
-        }
-
-        int64_t total() const  {
+        SizeT total() const  {
             return total_;
         }
 
-        void add_total(int64_t amt)  {
+        void add_total(SizeT amt)  {
             total_ += amt;
         }
 
-        bool push(const AlcMetadata& meta)
+        void push_at(AlcMetadata* tgt, const AlcMetadata& meta)
         {
-            if (size() < capacity())
-            {
-                buffer_.push_back(meta);
-                total_ += meta.size_at_level();
-                return true;
+            tgt->enlarge1(meta.size_at_level());
+            total_ += meta.size_at_level();
+        }
+
+        void push(const AlcMetadata& meta)
+        {
+            buffer_.push_back(meta);
+            total_ += meta.size_at_level();
+        }
+
+        AlcMetadata* find_exising(const AlcMetadata& meta)
+        {
+            for (AlcMetadata& mm: buffer_) {
+                if (mm.joinable_with(meta)) {
+                    return &mm;
+                }
             }
-            else {
-                return false;
-            }
+            return nullptr;
         }
 
         AlcMetadata allocate_one()
@@ -286,7 +132,7 @@ class AllocationPool {
             AlcMetadata& tail = buffer_.front();
             AlcMetadata meta = tail.take(1);
             --total_;
-            if (tail.size1() == 0) {
+            if (tail.size_at_level() == 0) {
                 buffer_.pop_front();
             }
             return meta;
@@ -315,82 +161,125 @@ class AllocationPool {
         auto cend() const  {
             return buffer_.cend();
         }
+
+        SizeT drain_to(std::vector<AlcMetadata>& buf)
+        {
+            SizeT l0_blocks = 0;
+            for (const AlcMetadata& alc: buffer_) {
+                l0_blocks += alc.size1();
+                buf.push_back(alc);
+            }
+            clear();
+            return l0_blocks;
+        }
     };
 
     LevelQueue levels_[Levels];
 
-    int64_t level0_total_{};
-    int64_t level0_reserved_{32};
+    uint64_t level0_total_{};
+    uint64_t level0_reserved_{32};
+
+    size_t size_{};
+    size_t capacity_{};
 
 public:
-    AllocationPool()
+    AllocationPool(size_t capacity):
+        capacity_(capacity)
     {
-        PoolData sample;
-
-        for (int32_t c = 0; c < Levels; c++)
-        {
-            levels_[c].init(sample.capacity(c));
+        for (int32_t c = 0; c < Levels; c++) {
+            levels_[c].init();
         }
     }
 
-    size_t available_capacity(int32_t level) const  {
-        return levels_[level].capacity() - levels_[level].size();
+    size_t reserved(size_t level) const
+    {
+        size_t cnt = 0;
+        for (size_t c = 0; c < Levels; c++) {
+            if (MMA_LIKELY(c != level)) {
+                cnt += levels_[c].is_empty();
+            }
+        }
+        return cnt;
     }
 
-    int64_t level0_total() const  {
+
+    size_t available_slots(size_t level) const {
+        return capacity_ - reserved(level);
+    }
+
+    uint64_t level0_total() const  {
         return level0_total_;
     }
 
-    int64_t level0_reserved() const  {
+    uint64_t level0_reserved() const  {
         return level0_reserved_;
     }
 
-    void load(const PoolData& data)
+    template <size_t Size>
+    void load(const AllocationPoolData<Size>& data)
     {
-        for (int32_t level = 0; level < Levels; level++)
-        {
-            levels_[level].init(data.capacity(level));
-            auto span = data.span(level);
-            for (const auto& alc: span) {
-                auto meta = AlcMetadata{alc, level};
-                if (!add(meta)) {
-                    println("Internal error. Can't load allocation pool metadata from the superblock.");
-                }
-            }
+        for (auto raw: data.span()) {
+            AlcMetadata meta = AlcMetadata::from_raw(raw);
+            add(meta);
         }
     }
 
-    void store(PoolData& data) const
+    template <size_t Size>
+    void store(AllocationPoolData<Size>& data) const
     {
-        for (size_t level = 0; level < (size_t)Levels; level++)
-        {
-            data.fill(level, levels_[level].cbegin(), levels_[level].cend());
+        data.reset();
+        for (const LevelQueue& level: levels_) {
+            for (const AlcMetadata& meta: level) {
+                data.push_back(meta.raw_data());
+            }
         }
     }
 
     bool add(const AlcMetadata& meta)
     {
-        if (levels_[meta.level()].push(meta))
+        AlcMetadata* tgt = levels_[meta.level()].find_exising(meta);
+        if (tgt)
         {
+            if (tgt->fits(meta.size_at_level()))
+            {
+                levels_[meta.level()].push_at(tgt, meta);
+                level0_total_ += meta.size1();
+                return true;
+            }
+            else if (size_ < capacity_) {
+                size_++;
+                levels_[meta.level()].push(meta);
+                level0_total_ += meta.size1();
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else if (size_ < capacity_) {
+            size_++;
+            levels_[meta.level()].push(meta);
             level0_total_ += meta.size1();
             return true;
         }
-
-        return false;
+        else {
+            return false;
+        }
     }
 
     bool add(int64_t position, int64_t size, int32_t level)
     {
-        return add(AlcMetadata(position, size, level));
+        return add(AlcMetadata::from_l0(position, size, level));
     }
 
-    void clear() {
-        for (int32_t ll = 0; ll < Levels; ll++)
-        {
+    void clear()
+    {
+        for (int32_t ll = 0; ll < Levels; ll++) {
             levels_[ll].clear();
         }
 
         level0_total_ = 0;
+        size_ = 0;
     }
 
     void reset()  {
@@ -408,31 +297,25 @@ public:
 
 
 
-    Optional<AlcMetadata> allocate_one(int32_t level)
+    Optional<AlcMetadata> allocate_one(SizeT level)
     {
-        int64_t l0_size = static_cast<int64_t>(1) << level;
+        SizeT l0_size = static_cast<SizeT>(1) << level;
         if (level0_total_ - level0_reserved_ >= l0_size ) {
             return do_allocate_one(level);
         }
 
-        return Optional<AlcMetadata>{};
+        return {};
     }
 
-    Optional<AlcMetadata> allocate_reserved(int64_t remainder)
+    Optional<AlcMetadata> allocate_reserved(SizeT remainder)
     {
         if (level0_total_ > remainder) {
             return do_allocate_one(0);
         }
 
-        return Optional<AlcMetadata>{};
+        return {};
     }
 
-    bool has_room(int32_t level) const
-    {
-        int64_t ll_capacity = levels_[level].capacity();
-        int64_t ll_total = compute_level_total(level);
-        return ll_total < ll_capacity;
-    }
 
     void for_each(const std::function<void (const AlcMetadata& meta)>& fn) const
     {
@@ -443,19 +326,40 @@ public:
         }
     }
 
+    bool has_room(size_t level) {
+        return available_slots(level) > 0;
+    }
+
+    ArenaBuffer<AlcMetadata> drain(size_t level)
+    {
+        ArenaBuffer<AlcMetadata> buf;
+
+        size_t total_alcs = 0;
+        SizeT total_drained_l0 = 0;
+        for (size_t c = 0; c < level; c++)
+        {
+           total_alcs += levels_[c].size();
+           total_drained_l0 += levels_[c].drain_to(buf);
+        }
+
+        size_ -= total_alcs;
+        level0_total_ -= total_drained_l0;
+
+        return buf;
+    }
 
 private:
-    int64_t compute_level_total(int32_t level) const
+    SizeT compute_level_total(SizeT level) const
     {
-        int64_t total = 0;
-        for (int32_t c = level; c < Levels; c++) {
+        SizeT total = 0;
+        for (SizeT c = level; c < Levels; c++) {
             total += levels_[c].total() << (c - level);
         }
 
         return total;
     }
 
-    Optional<AlcMetadata> do_allocate_one(int32_t level)
+    Optional<AlcMetadata> do_allocate_one(SizeT level)
     {
         if (MMA_UNLIKELY(levels_[level].is_empty())) {
             borrow_from_above(level);
@@ -468,10 +372,10 @@ private:
             return alc;
         }
 
-        return Optional<AlcMetadata>{};
+        return {};
     }
 
-    void borrow_from_above(int32_t level)
+    void borrow_from_above(SizeT level)
     {
         if (level < Levels - 1) {
             if (MMA_UNLIKELY(levels_[level + 1].is_empty())) {

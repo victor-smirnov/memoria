@@ -90,7 +90,6 @@ template <typename MyType, typename Profile>
 struct ChunkIteratorBase {
     virtual ~ChunkIteratorBase() = default;
 
-
     using CtrSizeT = ApiProfileCtrSizeT<Profile>;
     using ChunkPtr = IterSharedPtr<MyType>;
 

@@ -412,7 +412,7 @@ public:
         auto id = newId();
         BlockType* block = new (block_addr.get()) BlockType(id);
 
-        block->memory_block_size() = initial_size;
+        block->set_memory_block_size(initial_size);
 
         BlockCacheEntry* entry = block_cache_entry_pool_.construct(id, block);
         entry->set_store(this);

@@ -740,7 +740,7 @@ public:
         p->id() = detail::IDValueHolderH<BlockID>::to_id(p);
         p->snapshot_id() = uuid();
 
-        p->memory_block_size() = initial_size;
+        p->set_memory_block_size(initial_size);
         p->set_references(1);
 
         Shared* shared = shared_pool_.construct(p->id(), p);

@@ -357,16 +357,38 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
     struct PopulateAllocationPoolFn {
 
         template <typename CtrT, typename NodeT>
-        BoolResult treeNode(LeafNodeSO<CtrT, NodeT>& node_so, CtrSizeT base, AllocationPoolT& pool)
+        BoolResult treeNode(LeafNodeSO<CtrT, NodeT>& node_so, CtrSizeT base, AllocationPoolT& pool, size_t level)
         {
             auto ss = node_so.template substream<IntList<0, 1>>();
-            BoolResult res = ss.populate_allocation_pool(base, pool);
+            BoolResult res = ss.populate_allocation_pool(base, pool, level);
             return res;
         }
     };
 
 
+    // Note that population algorithm implies that majority of blocks are
+    // of the same size. Best case is: using 4K blocks for everything.
+    // If majority of blocks are of 8K and some code rarely does 4K
+    // allocations, pool will be contaminated with blocks that are rarely
+    // allocated. The reason why is that AllocationPool is not a cache as
+    // it should be, so rarely allocated blocks are not evicted from it.
+    //
+    // This allocation pool population method, given specific allocation level,
+    // first frees some space in it (by draining blocks back os small size to
+    // the bitmap) and then populate itself with blocks of requested size.
+    //
+    // But draining _all_ blocks at smaller levels is not necessary what
+    // we need. We may end up in a situation when there are no blocks
+    // at the requested level and all smaller blocks have been drained
+    // to the bitmap. Ideally, draining should be on-demand.
+
     bool populate_allocation_pool(AllocationPoolT& pool, int32_t level)
+    {
+        drain_allocation_pool(pool, level);
+        return do_populate_allocation_pool(pool, level);
+    }
+
+    bool do_populate_allocation_pool(AllocationPoolT& pool, int32_t level)
     {
         auto& self = this->self();
         auto ii = self.ctr_alcmap_select0(level, 0);
@@ -381,7 +403,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
                         ii->path().leaf().as_mutable(),
                         PopulateAllocationPoolFn(),
                         base,
-                        pool
+                        pool,
+                        level
             ).get_or_throw();
 
             if (updated)
@@ -409,6 +432,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrWApiName)
         }
 
         return cnt > 0;
+    }
+
+    void drain_allocation_pool(AllocationPoolT& pool, size_t level)
+    {
+        ArenaBuffer<ALCMeta> buffer = pool.drain(level);
+        if (buffer.size()) {
+            setup_bits(buffer.span(), 0, OnLeafListener{});
+        }
     }
 
 

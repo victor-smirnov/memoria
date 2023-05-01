@@ -199,10 +199,10 @@ public:
         if (existing_entry)
         {
             BlockCacheEntry* shared = existing_entry.get();
-            return AllocationMetadataT(
-                static_cast<int64_t>(shared->file_pos()),
+            return AllocationMetadataT::from_ln(
+                shared->file_pos(),
                 1,
-                static_cast<int32_t>(allocation_level(shared->ptr()->memory_block_size()))
+                allocation_level(shared->ptr()->memory_block_size())
             );
         }
         else {
@@ -226,7 +226,7 @@ public:
                 }
             }
 
-            return AllocationMetadataT(static_cast<int64_t>(at), 1, static_cast<int32_t>(level));
+            return AllocationMetadataT::from_ln(at, 1, level);
         }
     }
 
@@ -245,7 +245,7 @@ public:
     }
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) {
-        return AllocationMetadataT{block_id.value(), 1, 0};
+        return AllocationMetadataT::from_ln(block_id.value(), 1, 0);
     }
 
     void check_storage_specific(

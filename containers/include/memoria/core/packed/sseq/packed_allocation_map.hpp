@@ -726,10 +726,10 @@ public:
 
 
     template <typename AllocationPool>
-    bool populate_allocation_pool(size_t base, AllocationPool& pool) noexcept
+    bool populate_allocation_pool(size_t base, AllocationPool& pool, size_t level) noexcept
     {
         bool updated = false;
-        for (size_t ll = Indexes; ll > 0; ll--)
+        for (size_t ll = Indexes; ll > level; ll--)
         {
             size_t level = ll - 1;
 

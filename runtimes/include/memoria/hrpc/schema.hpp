@@ -40,11 +40,11 @@ public:
         ctr.set_root(object_);
     }
 
-    hermes::TinyObjectMap parameters() {
+    hermes::TinyObjectMap parameters() const {
         return object_.get(PARAMETERS).as_tiny_object_map();
     }
 
-    ChannelCode input_channels() {
+    ChannelCode input_channels() const {
         auto vv = object_.get(INPUT_CHANNELS);
         if (vv.is_not_empty()) {
             return vv.to_i32();
@@ -52,7 +52,7 @@ public:
         return 0;
     }
 
-    ChannelCode output_channels() {
+    ChannelCode output_channels() const {
         auto vv = object_.get(OUTPUT_CHANNELS);
         if (vv.is_not_empty()) {
             return vv.to_i32();
@@ -60,7 +60,7 @@ public:
         return 0;
     }
 
-    hermes::Object metadata() {
+    hermes::Object metadata() const {
         return object_.get(METADATA);
     }
 

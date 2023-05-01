@@ -324,8 +324,8 @@ public:
 
             removing_blocks_consumer_fn_(
                 BlockID{BlockIDValueHolder{}},
-                AllocationMetadataT(
-                    static_cast<int64_t>(sb->superblock_file_pos()/ BASIC_BLOCK_SIZE),
+                AllocationMetadataT::from_ln(
+                    sb->superblock_file_pos()/ BASIC_BLOCK_SIZE,
                     1,
                     CustomLog2(sb->superblock_size() / BASIC_BLOCK_SIZE)
                 )
@@ -466,7 +466,7 @@ public:
 
         int64_t avaialble = buffer_size / BASIC_BLOCK_SIZE;
 
-        allocation_pool_->add(AllocationMetadataT(0, avaialble, ALLOCATION_MAP_LEVELS - 1));
+        allocation_pool_->add(AllocationMetadataT::from_l0(0, avaialble, ALLOCATION_MAP_LEVELS - 1));
 
         awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).get());
         awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).get());
@@ -1111,7 +1111,7 @@ public:
                 unref_block(child_id);
             });
 
-            removeBlock(block_id);
+            remove_block(block_id);
         });
     }
 
@@ -1162,7 +1162,7 @@ public:
     }
 
 
-    virtual void removeBlock(const BlockID& id)
+    void remove_block(const BlockID& id)
     {
         auto block_alc = resolve_block_allocation(id);
 

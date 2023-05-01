@@ -246,8 +246,32 @@ struct ILMDBStore: IBasicSWMRStore<Profile> {
 SharedPtr<ILMDBStore<CoreApiProfile>> open_lmdb_store(U8StringView path);
 SharedPtr<ILMDBStore<CoreApiProfile>> open_lmdb_store_readonly(U8StringView path);
 SharedPtr<ILMDBStore<CoreApiProfile>> create_lmdb_store(U8StringView path, uint64_t store_size_mb);
+
 bool is_lmdb_store(U8StringView path);
 
+
+
+template <typename Profile>
+struct IOLTPStore: IBasicSWMRStore<Profile> {
+    using Base = IBasicSWMRStore<Profile>;
+
+    using SnapshotID = int64_t;
+
+    using typename Base::WritableSnapshotPtr;
+    using typename Base::ReadOnlySnapshotPtr;
+
+    virtual void set_async(bool is_async) = 0;
+    virtual void copy_to(U8String path, bool with_compaction = true) = 0;
+    virtual void flush(bool force = true) = 0;
+
+    virtual void modify(std::function<void (WritableSnapshotPtr)> fn) = 0;
+
+    virtual void close() = 0;
+};
+
+
+SharedPtr<IOLTPStore<CoreApiProfile>> open_oltp_store_seastar(U8StringView path);
+SharedPtr<IOLTPStore<CoreApiProfile>> create_oltp_store_seastar(U8StringView path, uint64_t store_size_mb);
 
 
 template <typename CtrName, typename Profile>

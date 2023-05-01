@@ -84,12 +84,16 @@ private:
     BlockID blockmap_root_id_;
 
     SWMRStoreStatus store_status_;
-    AllocationPoolData<ApiProfile<Profile>, ALLOCATION_MAP_LEVELS> allocation_pool_data_;
+    AllocationPoolData<220> allocation_pool_data_;
 
     uint8_t metadata_[METADATA_SIZE];
 
 public:
     SWMRSuperblock()  = default;
+
+    static constexpr size_t alc_pool_data_capacity() {
+        return decltype(allocation_pool_data_)::capacity();
+    }
 
     BlockID& history_root_id()    {return history_root_id_;}
     BlockID& directory_root_id()  {return directory_root_id_;}
@@ -246,7 +250,7 @@ public:
 
         store_status_ = SWMRStoreStatus::UNCLEAN;
 
-        allocation_pool_data_.clear();
+        allocation_pool_data_.reset();
 
         init_metadata(meta);
     }

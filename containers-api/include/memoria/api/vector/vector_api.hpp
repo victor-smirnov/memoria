@@ -64,9 +64,14 @@ struct ICtrApi<Vector<DataType>, Profile>: public ICtrApi<Collection<DataType>, 
         });
     }
 
-//    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) MEMORIA_READ_ONLY_API
-//    virtual CtrSizeT remove_from(CtrSizeT from) MEMORIA_READ_ONLY_API
-//    virtual CtrSizeT remove_up_to(CtrSizeT pos) MEMORIA_READ_ONLY_API
+    ChunkIteratorPtr append(Span<const ViewType> span)
+    {
+        return append([&](auto& values){
+            values.append(span);
+            return true;
+        });
+    }
+
 
     MMA_DECLARE_ICTRAPI();
 };

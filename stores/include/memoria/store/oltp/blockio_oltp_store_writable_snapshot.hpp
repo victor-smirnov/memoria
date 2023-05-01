@@ -1,5 +1,5 @@
 
-// Copyright 2020-2021 Victor Smirnov
+// Copyright 2020-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 #pragma once
 
-#include <memoria/store/swmr/mapped/swmr_mapped_store_common.hpp>
-#include <memoria/store/swmr/common/swmr_store_writable_snapshot_base.hpp>
+#include <memoria/store/oltp/blockio_oltp_store_writable_snapshot_base.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <memoria/profiles/impl/cow_lite_profile.hpp>
@@ -30,20 +29,22 @@
 namespace memoria {
 
 template <typename>
-class MappedSWMRStoreReadOnlySnapshot;
+class BlockIOOLTPStoreReadOnlySnapshot;
 
 
 template <typename>
-class MappedSWMRStoreWritableSnapshot;
+class BlockIOOLTPStoreWritableSnapshot;
 
 template <typename ChildProfile>
-class MappedSWMRStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>:
-        public SWMRStoreWritableSnapshotBase<CowLiteProfileT<ChildProfile>>,
-        public EnableSharedFromThis<MappedSWMRStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>>
+class BlockIOOLTPStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>:
+        public BlockIOOLTPStoreWritableSnapshotBase<CowLiteProfileT<ChildProfile>>,
+        public EnableSharedFromThis<BlockIOOLTPStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>>
 {
     using Profile = CowLiteProfileT<ChildProfile>;
 
-    using Base = SWMRStoreWritableSnapshotBase<CowLiteProfileT<ChildProfile>>;
+    using Base = BlockIOOLTPStoreWritableSnapshotBase<
+        CowLiteProfileT<ChildProfile>
+    >;
 
     using typename Base::Store;
     using typename Base::CDescrPtr;
@@ -60,14 +61,8 @@ class MappedSWMRStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>:
     using typename Base::AllocationMapCtr;
     using typename Base::AllocationMapCtrType;
 
-    using typename Base::HistoryCtr;
-    using typename Base::HistoryCtrType;
-    using typename Base::CounterStorageT;
-    using typename Base::CounterBlockT;
-
     using typename Base::DirectoryCtrType;
     using typename Base::Shared;
-    using typename Base::RemovingBlocksConsumerFn;
     using typename Base::AllocationMetadataT;
 
     using CtrID = ProfileCtrID<Profile>;
@@ -79,39 +74,35 @@ class MappedSWMRStoreWritableSnapshot<CowLiteProfileT<ChildProfile>>:
     using Base::state_;
     using Base::newId;
 
-    Span<uint8_t> buffer_;
 
     mutable boost::object_pool<Shared> shared_pool_;
     mutable boost::object_pool<detail::MMapSBPtrPooledSharedImpl> sb_shared_pool_;
+
+    Span<uint8_t> buffer_;
 
 public:
     using Base::check;
     using Base::snapshot_id;
     using Base::CustomLog2;
 
-    MappedSWMRStoreWritableSnapshot(
-            MaybeError& maybe_error,
-            SharedPtr<Store> store,
-            Span<uint8_t> buffer,
-            CDescrPtr& snapshot_descriptor,
-            RemovingBlocksConsumerFn removing_blocks_consumer_fn = RemovingBlocksConsumerFn{}
+    BlockIOOLTPStoreWritableSnapshot(
+        SharedPtr<Store> store,
+        std::shared_ptr<io::BlockIOProvider> blockio,
+        CDescrPtr& snapshot_descriptor
     ) :
-        Base(store, snapshot_descriptor, store.get(), removing_blocks_consumer_fn),
-        buffer_(buffer)
+        Base(store, blockio, snapshot_descriptor)
     {}
 
     SnpSharedPtr<StoreT> my_self_ptr()  override {
         return this->shared_from_this();
     }
 
-    virtual uint64_t get_memory_size()  override {
-        return buffer_.size();
-    }
+    virtual io::BlockPtr<Superblock> new_superblock(uint64_t pos) override
+    {
+        //Superblock* sb = new (buffer_.data() + pos) Superblock();
+        //return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
 
-
-    virtual SharedSBPtr<Superblock> new_superblock(uint64_t pos) override {
-        Superblock* sb = new (buffer_.data() + pos) Superblock();
-        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+        return {};
     }
 
 
@@ -123,7 +114,7 @@ public:
         {
             auto vv = block_id.value().value() * BASIC_BLOCK_SIZE;
 
-            BlockType* block = ptr_cast<BlockType>(buffer_.data() + vv );
+            BlockType* block = ptr_cast<BlockType>(buffer_.data() + vv);
             Shared* shared = shared_pool_.construct(block_id, block);
             shared->set_store(this);
             shared->set_mutable(block->snapshot_id() == snapshot_id());
@@ -137,14 +128,14 @@ public:
 
     AllocationMetadataT resolve_block_allocation(const BlockID& block_id) override
     {
-        int32_t level = block_id.value().metadata();
+        size_t level = block_id.value().metadata();
         int64_t id_value = static_cast<int64_t>(block_id.value().value());
 
         return AllocationMetadataT::from_ln(id_value, 1, level);
     }
 
 
-    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) override
+    virtual Shared* allocate_block(uint64_t at, size_t size, bool for_idmap) //override
     {
         int32_t scale_factor = size / BASIC_BLOCK_SIZE;
         uint64_t level = CustomLog2(scale_factor);
@@ -167,7 +158,7 @@ public:
         return shared;
     }
 
-    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) override
+    virtual Shared* allocate_block_from(const BlockType* source, uint64_t at, bool for_idmap) //override
     {
         uint8_t* block_addr = buffer_.data() + at * BASIC_BLOCK_SIZE;
         std::memcpy(block_addr, source, source->memory_block_size());
@@ -199,9 +190,10 @@ public:
         shared_pool_.destroy(block);
     }
 
-    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) override {
-        Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
-        return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+    virtual io::BlockPtr<Superblock> get_superblock(uint64_t pos) override {
+        //Superblock* sb = ptr_cast<Superblock>(buffer_.data() + pos);
+        //return SharedSBPtr(sb, sb_shared_pool_.construct(&sb_shared_pool_));
+        return {};
     }
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) override
@@ -225,7 +217,6 @@ public:
             consumer(CheckSeverity::ERROR, make_string_document("Block size mismatch for block {}. Expected {}, actual {}", expected_block_size, block_size));
         }
     }
-
 };
 
 }

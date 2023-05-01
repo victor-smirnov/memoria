@@ -61,10 +61,10 @@ protected:
     CtrSizeT position_;
     CtrSizeT size_;
 public:
-    BasicBlockAllocation(CtrSizeT position, CtrSizeT size) noexcept :
+    constexpr BasicBlockAllocation(CtrSizeT position, CtrSizeT size) noexcept :
         position_(position), size_(size) {}
 
-    BasicBlockAllocation() noexcept :
+    constexpr BasicBlockAllocation() noexcept :
         position_(), size_() {}
 
     // Position is Level_0-scaled.
@@ -94,76 +94,242 @@ public:
 };
 
 template <typename Profile>
-class AllocationMetadata: public BasicBlockAllocation<Profile> {
-protected:
-    using Base = BasicBlockAllocation<Profile>;
-    using typename Base::CtrSizeT;
-    int32_t level_;
+class AllocationMetadata {
+public:
+    using SizeT = uint64_t; // 64 bits is enough for everyone (not)
+    static constexpr SizeT LEVELS_MAX      = 16;
+    static constexpr SizeT LEVELS_BITS     = 4;
+    static constexpr SizeT LEVELS_MASK     = LEVELS_BITS - 1;
+    static constexpr SizeT POSITION_OFFSET = 12;
+    static constexpr SizeT POSITION_MAX    = 1ull << (64 - POSITION_OFFSET);
+    static constexpr SizeT POSITION_MASK   = ~((1ull << POSITION_OFFSET) - 1);
 
-    using Base::position_;
-    using Base::size_;
+
+    static constexpr SizeT ALC_SIZE_OFFSET = LEVELS_BITS;
+    static constexpr SizeT ALC_SIZE_BITS   = POSITION_OFFSET - LEVELS_BITS;
+    static constexpr SizeT ALC_SIZE_MAX    = 1ull << ALC_SIZE_BITS;
+    static constexpr SizeT ALC_SIZE_MASK   = ALC_SIZE_BITS - 1;
+
+protected:
+    SizeT data_;
+
+    constexpr AllocationMetadata(SizeT position, SizeT size, size_t level):
+        data_((position << POSITION_OFFSET) | (size << ALC_SIZE_OFFSET) | level)
+    {
+        if (MMA_UNLIKELY(level >= LEVELS_MAX)) {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Allocation level exceeds maximum of {}: {}",
+                        LEVELS_MAX,
+                        level
+            ).do_throw();
+        }
+
+
+        if (MMA_UNLIKELY(size >= ALC_SIZE_MAX)) {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Allocation size exceeds maximum of {}: {}",
+                        ALC_SIZE_MAX, size
+            ).do_throw();
+        }
+
+        if (MMA_UNLIKELY(position >= POSITION_MAX)) {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Allocation position exceeds maximum of {}: {}",
+                        POSITION_MAX, position
+            ).do_throw();
+        }
+    }
+
+    constexpr AllocationMetadata(SizeT data):
+        data_(data)
+    {}
+
 
 public:
-    AllocationMetadata() noexcept :
-        level_()
+    constexpr AllocationMetadata() noexcept :
+        data_()
     {}
 
-    AllocationMetadata(CtrSizeT position, CtrSizeT size, int32_t level) noexcept :
-        Base(position, size), level_(level)
-    {}
-
-    AllocationMetadata(const BasicBlockAllocation<Profile>& alloc, int32_t level) noexcept :
-        Base(alloc.position(), alloc.size1()), level_(level)
-    {}
-
-
-    int32_t level() const noexcept {
-        return level_;
-    }
-
-    AllocationMetadata as_level(int32_t level) const noexcept {
-        return AllocationMetadata{position_, size_, level};
-    }
-
-    CtrSizeT size_at_level() const noexcept {
-        return size_ >> level_;
-    }
-
-    AllocationMetadata take(int64_t amount) noexcept
+    constexpr AllocationMetadata(BasicBlockAllocation<Profile> alc, SizeT level):
+        AllocationMetadata(alc.position(), alc.size1() >> level, level)
     {
-        CtrSizeT blocks_l0 = amount << level_;
+    }
 
-        AllocationMetadata meta{position_, blocks_l0, level_};
-        size_ -= blocks_l0;
-        position_ += blocks_l0;
+    constexpr operator BasicBlockAllocation<Profile>() const {
+        return BasicBlockAllocation<Profile>(position(), size_n() << level());
+    }
+
+    static constexpr AllocationMetadata from_l0(SizeT position, SizeT size, SizeT level) {
+        return AllocationMetadata(position, size >> level, level);
+    }
+
+    static constexpr AllocationMetadata from_ln(SizeT position, SizeT size, SizeT level) {
+        return AllocationMetadata(position, size, level);
+    }
+
+    static constexpr AllocationMetadata from_raw(SizeT data) {
+        return AllocationMetadata(data);
+    }
+
+    constexpr SizeT raw_data() const noexcept {
+        return data_;
+    }
+
+    bool fits(SizeT size) const noexcept
+    {
+        SizeT current = size_n();
+        return (current + size) < ALC_SIZE_MAX;
+    }
+
+    // Position is Level_0-scaled.
+    SizeT position() const noexcept {
+        return data_ >> POSITION_OFFSET;
+    }
+
+    SizeT limit() const noexcept {
+        return position() + size1();
+    }
+
+    SizeT size_n() const noexcept {
+        return (data_ >> ALC_SIZE_OFFSET) & ALC_SIZE_MASK;
+    }
+
+    void set_size_n(SizeT size)
+    {
+        if (MMA_LIKELY(size < ALC_SIZE_MAX))
+        {
+            size <<= ALC_SIZE_OFFSET;
+            data_ &= ~(ALC_SIZE_MASK << ALC_SIZE_OFFSET);
+            data_ |= size;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Allocation size exceeds maximum of {}: {}",
+                        ALC_SIZE_MAX, size
+            ).do_throw();
+        }
+    }
+
+    void set_position(SizeT position)
+    {
+        if (MMA_LIKELY(position < POSITION_MAX)) {
+            data_ &= ~POSITION_MASK;
+            data_ |= position << POSITION_OFFSET;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Allocation position exceeds maximum of {}: {}",
+                        POSITION_MAX, position
+            ).do_throw();
+        }
+    }
+
+    SizeT size1() const noexcept {
+        return size_n() << level();
+    }
+
+    SizeT level() const noexcept {
+        return data_ & LEVELS_MASK;
+    }
+
+    void enlarge1(SizeT amnt)
+    {
+        SizeT current = size_n();
+        current += amnt;
+        set_size_n(current);
+    }
+
+    void shrink(SizeT amnt)
+    {
+        SizeT current = size_n();
+        if (MMA_LIKELY(amnt <= current)) {
+            current -= amnt;
+            set_size_n(current);
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Invalid allocation size amount of {}: current is {}",
+                        amnt, current
+            ).do_throw();
+        }
+    }
+
+    bool joinable_with(const AllocationMetadata& alc) const noexcept {
+        return alc.position() == position() + size1();
+    }
+
+    void join(const AllocationMetadata& alc)
+    {
+        if (MMA_LIKELY(alc.level() == level())) {
+            enlarge1(alc.size_at_level());
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Invalid allocation level for join {}: current level is {}",
+                        alc.level(), level()
+            ).do_throw();
+        }
+    }
+
+    AllocationMetadata as_level(SizeT level) const noexcept {
+        return AllocationMetadata{data_};
+    }
+
+    SizeT size_at_level() const noexcept {
+        return size_n();
+    }
+
+    AllocationMetadata take(SizeT amount)
+    {
+        SizeT lvl = level();
+        SizeT pos = position();
+
+        AllocationMetadata meta{pos, amount, lvl};
+        shrink(lvl);
+
+        SizeT blocks_l0 = amount << lvl;
+        set_position(pos + blocks_l0);
+
         return meta;
     }
 
-
-    AllocationMetadata take_for(int64_t amount, int32_t level) noexcept
+    AllocationMetadata take_for(SizeT amount, SizeT for_level)
     {
-        CtrSizeT blocks_l0 = amount << level;
-        AllocationMetadata meta{position_, blocks_l0, level};
-        size_ -= blocks_l0;
-        position_ += blocks_l0;
-        return meta;
+        SizeT my_level = level();
+
+        if (for_level <= my_level)
+        {
+            SizeT blocks_l0 = amount << for_level;
+            SizeT pos = position();
+
+            SizeT tgt_size = amount << (my_level - for_level);
+            AllocationMetadata meta{pos, tgt_size, for_level};
+
+            shrink(amount);
+            set_position(pos + blocks_l0);
+
+            return meta;
+        }
+        else {
+            MEMORIA_MAKE_GENERIC_ERROR(
+                        "Invalid allocation level for take_for {}: current level is {}",
+                        my_level, for_level
+            ).do_throw();
+        }
     }
 
-    AllocationMetadata take_all_for(int32_t level) noexcept
+    AllocationMetadata take_all_for(SizeT level) noexcept
     {
-        AllocationMetadata meta{position_, size_, level};
-        size_ = 0;
-        position_ += size_;
-        return meta;
+        return take_for(size_n(), level);
     }
 
     bool operator==(const AllocationMetadata& other) const noexcept {
-        return position_ == other.position_;
+        return position() == other.position();
     }
 };
 
 
-template <typename Profile, int32_t Levels> class AllocationPool;
+template <typename Profile, size_t Levels> class AllocationPool;
 
 
 template <typename Profile>
@@ -334,7 +500,8 @@ struct ICtrApi<AllocationMap, Profile>: public CtrReferenceable<Profile> {
     virtual CtrSizeT unallocated_at(int32_t level) const = 0;
     virtual void unallocated(Span<CtrSizeT> ranks) const = 0;
 
-    virtual bool populate_allocation_pool(AllocationPool<Profile, LEVELS>&pool, int32_t level) MEMORIA_READ_ONLY_API
+    virtual bool populate_allocation_pool(AllocationPool<Profile, LEVELS>& pool, int32_t level) MEMORIA_READ_ONLY_API
+    virtual void drain_allocation_pool(AllocationPool<Profile, LEVELS>& pool, size_t level) MEMORIA_READ_ONLY_API
 
     virtual CtrSizeT compare_with(
             CtrSharedPtr<ICtrApi> other,

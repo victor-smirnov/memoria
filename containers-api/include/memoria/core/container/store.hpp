@@ -175,6 +175,8 @@ struct ICowStore: IStoreBase<Profile> {
     ) = 0;
 
     virtual void check_updates_allowed() = 0;
+
+    virtual bool cow_has_counters() const {return true;}
 };
 
 

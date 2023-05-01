@@ -46,7 +46,7 @@ public:
 
     static constexpr size_t NUM_ATOMS = 1;
     static constexpr size_t ATOM_BITSIZE = sizeof(AtomT) * 8;
-    static constexpr size_t METADATA_BITSIZE = 9;
+    static constexpr size_t METADATA_BITSIZE = 4;
 
 private:
     AtomT atom_;
@@ -67,6 +67,10 @@ public:
     }
 
     constexpr AtomT atom() const noexcept {
+        return atom_;
+    }
+
+    constexpr AtomT raw() const noexcept {
         return atom_;
     }
 
@@ -195,6 +199,12 @@ public:
         mask -= 1;
 
         return atom & mask;
+    }
+
+    static UID64 from_raw(AtomT atom) {
+        UID64 v;
+        v.atom_ = v;
+        return v;
     }
 };
 

@@ -1007,9 +1007,6 @@ constexpr size_t CtLZ(uint64_t val) noexcept {
 	return memoria::details::CtLZ_(val, 0x8000000000000000ull);
 }
 
-
-
-
 constexpr size_t Log2Contexpr(uint64_t value) {
     return 64 - CtLZ(value);
 }

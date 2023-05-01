@@ -50,6 +50,11 @@ if (COW_LITE_PROFILE)
     file (GLOB_RECURSE SWMR_LITE_RAW_SOURCES swmr_lite_raw/*.cpp)
     file (GLOB_RECURSE SWMR_LITE_RAW_HEADERS swmr_lite_raw/*.hpp)
     target_include_directories(Stores PRIVATE swmr_lite_raw)
+
+    file (GLOB_RECURSE SWMR_SEASTAR_SOURCES oltp_seastar/*.cpp)
+    file (GLOB_RECURSE SWMR_SEASTAR_HEADERS oltp_seastar/*.hpp)
+    target_include_directories(StoresSeastar PRIVATE oltp_seastar)
+    target_sources(StoresSeastar PRIVATE ${SWMR_SEASTAR_SOURCES} ${SWMR_SEASTAR_HEADERS})
 endif()
 
 file (GLOB_RECURSE COMMON_SOURCES common/*.cpp)
@@ -57,11 +62,21 @@ file (GLOB_RECURSE COMMON_HEADERS common/*.hpp)
 
 file (GLOB_RECURSE STORE_HEADERS include/*.hpp)
 
-SET_TARGET_PROPERTIES(Stores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+set_target_properties(Stores PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 set_target_properties(Stores PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(Stores PROPERTIES OUTPUT_NAME memoria_stores)
 target_link_libraries(Stores PUBLIC StoresApi Containers)
-target_include_directories(Stores PUBLIC ../include include)
+target_include_directories(Stores PUBLIC include)
+
+
+set_target_properties(StoresSeastar PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+set_target_properties(StoresSeastar PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+set_target_properties(StoresSeastar PROPERTIES OUTPUT_NAME memoria_stores_seastar)
+target_link_libraries(StoresSeastar PUBLIC StoresApi Containers Stores SeastarLib)
+target_include_directories(StoresSeastar PUBLIC include)
+
+
+
 
 file (GLOB LIB_SOURCES *.cpp)
 file (GLOB LIB_HEADERS *.hpp)
@@ -70,6 +85,20 @@ target_sources(
     Stores
     PRIVATE
         ${LIB_SOURCES} ${LIB_HEADERS} ${STORE_HEADERS}
+        ${LMDB_SOURCES} ${LMDB_HEADERS}
+        ${MEMORY_COW_THREADS_SOURCES} ${MEMORY_COW_THREADS_HEADERS}
+        ${MEMORY_SWMR_MAPPED_SOURCES} ${MEMORY_SWMR_MAPPED_HEADERS}
+        ${SWMR_FIBERS_SOURCES} ${SWMR_FIBERS_HEADERS}
+        ${SWMR_LITE_FIBERS_SOURCES} ${SWMR_LITE_FIBERS_HEADERS}
+        ${SWMR_LITE_MAPPED_SOURCES} ${SWMR_LITE_MAPPED_HEADERS}
+        ${SWMR_LITE_RAW_SOURCES} ${SWMR_LITE_RAW_HEADERS}
+        ${COMMON_SOURCES} ${COMMON_HEADERS}
+)
+
+target_sources(
+    StoresSeastar
+    PRIVATE
+        ${LIB_HEADERS} ${STORE_HEADERS}
         ${LMDB_SOURCES} ${LMDB_HEADERS}
         ${MEMORY_COW_THREADS_SOURCES} ${MEMORY_COW_THREADS_HEADERS}
         ${MEMORY_SWMR_MAPPED_SOURCES} ${MEMORY_SWMR_MAPPED_HEADERS}

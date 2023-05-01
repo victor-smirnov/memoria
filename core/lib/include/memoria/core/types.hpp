@@ -355,4 +355,16 @@ public:
 
 using NamedCode = NamedTypedCode<int32_t>;
 
+
+// FIXME: Should be moved out of Core
+namespace io {
+
+template <typename To, typename From, typename Selector = void>
+struct BlockPtrConvertible;
+
+template <typename From, typename To, typename Selector = void>
+struct BlockPtrCastable;
+
+}
+
 }

@@ -101,14 +101,19 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::CoWOpsWName)
         auto new_block_tmp = self.store().cloneBlock(src, self.name());
         TreeNodePtr new_block = new_block_tmp;
 
-        if (!new_block->is_leaf())
+        // FIXME: This code looks identical with
+        // ctr_cow_ref_children_after_merge
+        if (self.store().cow_has_counters())
         {
-            self.ctr_for_all_ids(new_block.as_immutable(), [&](const BlockID& block_id) {
-                return self.store().ref_block(block_id);
-            });
-        }
-        else {
-            self.leaf_dispatcher().dispatch(new_block, RefLeafChildren(), self);
+            if (!new_block->is_leaf())
+            {
+                self.ctr_for_all_ids(new_block.as_immutable(), [&](const BlockID& block_id) {
+                    return self.store().ref_block(block_id);
+                });
+            }
+            else {
+                self.leaf_dispatcher().dispatch(new_block, RefLeafChildren(), self);
+            }
         }
 
         return new_block;
@@ -261,14 +266,19 @@ public:
     {
         auto& self = this->self();
 
-        if (!block->is_leaf())
+        // FIXME: This code looks identical with
+        // ctr_clone_block
+        if (self.store().cow_has_counters())
         {
-            self.ctr_for_all_ids(block.as_immutable(), [&](const BlockID& child_id) {
-                return self.store().ref_block(child_id);
-            });
-        }
-        else {
-            self.leaf_dispatcher().dispatch(block, RefLeafChildren(), self);
+            if (!block->is_leaf())
+            {
+                self.ctr_for_all_ids(block.as_immutable(), [&](const BlockID& child_id) {
+                    return self.store().ref_block(child_id);
+                });
+            }
+            else {
+                self.leaf_dispatcher().dispatch(block, RefLeafChildren(), self);
+            }
         }
     }
 

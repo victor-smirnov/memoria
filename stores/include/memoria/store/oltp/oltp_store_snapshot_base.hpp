@@ -1,5 +1,5 @@
 
-// Copyright 2020-2021 Victor Smirnov
+// Copyright 2020-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,55 +24,33 @@
 
 
 #include <memoria/api/map/map_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
 #include <memoria/api/allocation_map/allocation_map_api.hpp>
 
-#include <memoria/store/swmr/common/swmr_store_snapshot_descriptor.hpp>
-#include <memoria/store/swmr/common/swmr_store_counters.hpp>
+#include <memoria/store/oltp/oltp_store_snapshot_descriptor.hpp>
 
-#include <memoria/store/swmr/common/swmr_store_datatypes.hpp>
-#include <memoria/store/swmr/common/swmr_store_smart_ptr.hpp>
+#include <memoria/store/swmr/common/swmr_store_snapshot_base.hpp>
 #include <memoria/store/swmr/common/lite_allocation_map.hpp>
 #include <memoria/store/swmr/common/allocation_pool.hpp>
 
 #include <memoria/core/tools/uid_256.hpp>
 
+#include <memoria/store/oltp/oltp_store_snapshot_base.hpp>
+
+#include <memoria/store/oltp/oltp_superblock.hpp>
+
+#include <memoria/api/io/block_level.hpp>
 
 namespace memoria {
 
-// {1|942dcb76868c1d3cada1947784ca9146995aa486d7965fddc153a57846a6cf}
-constexpr UID256 DirectoryCtrID = UID256(14110279458271056457ull, 7212985705449462490ull, 15993805639017735577ull, 143106268169123100ull);
+template <typename Profile> class OLTPStoreBase;
 
-// {1|4b9352517f5be15025dcd68b7d490ed14a55d1675218d872b489a6c5a4c82f}
-constexpr UID256 AllocationMapCtrID = UID256(368932292307270068ull, 2152884276116180306ull, 2850076137090799012ull, 140328789407864907ull);
-
-// {1|cd18ea71da4c4ff035824a9fabcf3cd9f028eeacb6226b765411158ad17f55}
-constexpr UID256 HistoryCtrID = UID256(1149760052592017884ull, 11368207764395665491ull, 7473198478029390351ull, 96254673808331077ull);
-
-// {1|30e0ee4a7012fde4fc983c6d4d8aeb95bf63183fa51816298b582da10c0803}
-constexpr UID256 BlockMapCtrID = UID256(5683297571480407555ull, 6466791747040283087ull, 10547854029910783739ull, 85709955492119992ull);
+// {1|8e66ccf646abbba916719c120bd576ab81b79d9b36d3f8bf59864323fcae6a}
+constexpr UID256 EvcQueueCtrID = {11149710243020957416ull, 13431807424718247777ull, 18126774523718630168ull, 119040615793322133ull};
 
 
 template <typename Profile>
-struct SnapshotCheckState {
-    SWMRBlockCounters<Profile> counters;
-};
-
-
-template <typename Profile>
-struct ReferenceCounterDelegate {
-    using BlockID = ProfileBlockID<Profile>;
-
-    virtual ~ReferenceCounterDelegate() noexcept = default;
-
-    virtual void ref_block(const BlockID& block_id) = 0;
-    virtual void unref_block(const BlockID& block_id, const std::function<void ()>& on_zero) = 0;
-    virtual Optional<int64_t> count_refs(const BlockID& block_id) = 0;
-};
-
-template <typename Profile> class SWMRStoreBase;
-
-template <typename Profile>
-class SWMRStoreSnapshotBase:
+class OLTPStoreSnapshotBase:
         public ProfileStoreType<Profile>,
         public ISWMRStoreReadOnlySnapshot<ApiProfile<Profile>>
 {
@@ -89,46 +67,35 @@ protected:
 
     using BlockIDValueHolder = typename BlockID::ValueHolder;
 
-    using Store = SWMRStoreBase<Profile>;
-
+    using Store = OLTPStoreBase<Profile>;
     using ApiProfileT = ApiProfile<Profile>;
 
-    using BlockCounterCallbackFn = std::function<bool (const BlockID&, const BlockID&)>;
-    using GraphVisitor = SWMRStoreGraphVisitor<ApiProfileT>;
-    using VisitedBlocks = std::unordered_set<BlockID>;
-    using AllocationMetadataT = AllocationMetadata<ApiProfileT>;
+    using GraphVisitor           = SWMRStoreGraphVisitor<ApiProfileT>;
+    using VisitedBlocks          = std::unordered_set<BlockID>;
+    using AllocationMetadataT    = AllocationMetadata<ApiProfileT>;
 
-    using SnapshotMetadataT = SWMRSnapshotMetadata<ApiProfileT>;
     using SequenceID = uint64_t;
 
-    using CounterStorageT = CounterStorage<Profile>;
-
-    using SnapshotDescriptorT       = SnapshotDescriptor<Profile>;
+    using SnapshotDescriptorT       = OLTPSnapshotDescriptor<Profile>;
     using CDescrPtr                 = typename SnapshotDescriptorT::SharedPtrT;
 
     using CtrReferenceableResult    = Result<CtrSharedPtr<CtrReferenceable<ApiProfileT>>>;
     using StoreT                    = Base;
-    using Superblock                = SWMRSuperblock<Profile>;
+    using Superblock                = OLTPSuperblock<Profile>;
     using CtrSizeT                  = ProfileCtrSizeT<Profile>;
 
     using DirectoryCtrType  = Map<CtrID, BlockID>;
     using DirectoryCtr      = ICtrApi<DirectoryCtrType, ApiProfileT>;
 
-    using AllocationMapCtrType = AllocationMap;
-    using AllocationMapCtr  = ICtrApi<AllocationMapCtrType, ApiProfileT>;
 
-    using HistoryCtrType    = Map<SnapshotID, SnapshotMetadataDT<DataTypeFromProfile<ApiProfileT>>>;
-    using HistoryCtr        = ICtrApi<HistoryCtrType, ApiProfileT>;
+
+    using EvcQueueCtrType   = Vector<UBigInt>;
+    using EvcQueueCtr       = ICtrApi<EvcQueueCtrType, ApiProfileT>;
 
     static constexpr int32_t BASIC_BLOCK_SIZE            = Store::BASIC_BLOCK_SIZE;
     static constexpr int32_t SUPERBLOCK_SIZE             = BASIC_BLOCK_SIZE;
     static constexpr size_t  HEADER_SIZE                 = Store::HEADER_SIZE;
-    static constexpr int32_t ALLOCATION_MAP_LEVELS       = Store::ALLOCATION_MAP_LEVELS;
-    static constexpr int32_t ALLOCATION_MAP_SIZE_STEP    = Store::ALLOCATION_MAP_SIZE_STEP;
-    static constexpr int32_t SUPERBLOCK_ALLOCATION_LEVEL = Log2(SUPERBLOCK_SIZE / BASIC_BLOCK_SIZE) - 1;
-    static constexpr int32_t SUPERBLOCKS_RESERVED        = HEADER_SIZE / BASIC_BLOCK_SIZE;
 
-    static constexpr size_t MAX_BLOCK_SIZE               = (1ull << (ALLOCATION_MAP_LEVELS - 1)) * BASIC_BLOCK_SIZE;
 
     SharedPtr<Store> store_;
 
@@ -137,27 +104,24 @@ protected:
 
     CDescrPtr snapshot_descriptor_;
 
-    CtrSharedPtr<DirectoryCtr>      directory_ctr_;
-    CtrSharedPtr<AllocationMapCtr>  allocation_map_ctr_;
-    CtrSharedPtr<HistoryCtr>        history_ctr_;
-
-    ReferenceCounterDelegate<Profile>* refcounter_delegate_;
+    CtrSharedPtr<DirectoryCtr>      directory_ctr_;    
+    CtrSharedPtr<EvcQueueCtr>       evc_queue_ctr_;
 
     hermes::HermesCtr metadata_;
 
     bool writable_{false};
 
+    std::shared_ptr<io::BlockIOProvider> block_provider_;
+
 public:
     using Base::getBlock;
 
-    SWMRStoreSnapshotBase(
+    OLTPStoreSnapshotBase(
             SharedPtr<Store> store,
-            CDescrPtr& snapshot_descriptor,
-            ReferenceCounterDelegate<Profile>* refcounter_delegate
+            CDescrPtr& snapshot_descriptor
     ) :
         store_(store),
-        snapshot_descriptor_(snapshot_descriptor),
-        refcounter_delegate_(refcounter_delegate)
+        snapshot_descriptor_(snapshot_descriptor)
     {
         instance_pool_ = std::make_shared<CtrInstancePool<Profile>>();
 
@@ -168,7 +132,6 @@ public:
 
     static void init_profile_metadata()  {
         DirectoryCtr::template init_profile_metadata<Profile>();
-        AllocationMapCtr::template init_profile_metadata<Profile>();
     }
 
     CtrInstancePool<Profile>& instance_pool() const {
@@ -242,22 +205,18 @@ public:
         return metadata_;
     }
 
-    virtual bool is_allocated(const BlockID& block_id)
-    {
-        init_allocator_ctr();
 
-        auto alc = get_allocation_metadata(block_id);
 
-        return allocation_map_ctr_->check_allocated(alc);
-    }
-
-    virtual SharedSBPtr<Superblock> get_superblock(uint64_t pos) = 0;
+    virtual io::BlockPtr<Superblock> get_superblock(uint64_t pos) = 0;
 
     virtual CtrSharedPtr<CtrReferenceable<ApiProfileT>> internal_create_by_name(
             const hermes::Datatype& decl, const CtrID& ctr_id
     ) = 0;
 
     virtual AllocationMetadataT get_allocation_metadata(const BlockID& block_id) = 0;
+
+    virtual void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer) {}
+
 
     virtual void check_storage_specific(
             SharedBlockConstPtr block,
@@ -269,22 +228,19 @@ public:
     ) = 0;
 
 
-    SharedSBPtr<Superblock> get_superblock() {
-        return get_superblock(snapshot_descriptor_->superblock_ptr());
+    io::BlockPtr<Superblock> get_superblock() {
+        return get_superblock(snapshot_descriptor_->superblock_id());
     }
 
-    SharedSBPtr<Superblock> get_superblock() const {
-        return const_cast<SWMRStoreSnapshotBase*>(this)->get_superblock(snapshot_descriptor_->superblock_ptr());
+    io::BlockPtr<Superblock> get_superblock() const {
+        return const_cast<OLTPStoreSnapshotBase*>(this)->get_superblock(snapshot_descriptor_->superblock_id());
     }
 
     SequenceID sequence_id()  {
         return get_superblock()->sequence_id();
     }
 
-    CtrSizeT allocation_map_size() {
-        init_allocator_ctr();
-        return allocation_map_ctr_->size();
-    }
+
 
     virtual ObjectPools& object_pools() const  {
         return object_pools_;
@@ -302,13 +258,9 @@ public:
         {
             return sb->allocator_root_id();
         }
-        else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
+        else if (MMA_UNLIKELY(ctr_id == EvcQueueCtrID))
         {
-            return sb->history_root_id();
-        }
-        else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
-        {
-            return sb->blockmap_root_id();
+            return sb->evc_queue_root_id();
         }
         else if (directory_ctr_)
         {
@@ -342,13 +294,9 @@ public:
         {
             return sb->allocator_root_id().is_set();
         }
-        else if (MMA_UNLIKELY(ctr_id == HistoryCtrID))
+        else if (MMA_UNLIKELY(ctr_id == EvcQueueCtrID))
         {
-            return sb->history_root_id().is_set();
-        }
-        else if (MMA_UNLIKELY(ctr_id == BlockMapCtrID))
-        {
-            return sb->blockmap_root_id().is_set();
+            return sb->evc_queue_root_id().is_set();
         }
         else if (directory_ctr_)
         {
@@ -406,17 +354,14 @@ public:
         auto sb = get_superblock();
 
         BlockID root_id;
-        if (ctr_id == HistoryCtrID) {
-            root_id = sb->history_root_id();
+        if (MMA_UNLIKELY(ctr_id == EvcQueueCtrID)) {
+            root_id = sb->evc_queue_root_id();
         }
-        else if (ctr_id == DirectoryCtrID) {
+        else if (MMA_UNLIKELY(ctr_id == DirectoryCtrID)) {
             root_id = sb->directory_root_id();
         }
-        else if (ctr_id == AllocationMapCtrID) {
+        else if (MMA_UNLIKELY(ctr_id == AllocationMapCtrID)) {
             root_id = sb->allocator_root_id();
-        }
-        else if (ctr_id == BlockMapCtrID) {
-            root_id = sb->blockmap_root_id();
         }
         else {
             root_id = getRootID(ctr_id);
@@ -453,13 +398,11 @@ public:
     {
         directory_ctr_->check(consumer);
 
-        init_history_ctr();
-        history_ctr_->check(consumer);
+        init_evc_queue_ctr();
+        evc_queue_ctr_->check(consumer);
 
-        init_allocator_ctr();
+        check_allocation_map(consumer);
 
-        allocation_map_ctr_->check(consumer);
-        check_allocation_pool(consumer);
 
         directory_ctr_->for_each([&](auto ctr_name, auto block_id){
           auto block = this->getBlock(block_id);
@@ -471,32 +414,10 @@ public:
         });
     }
 
+    virtual void check_allocation_map(const CheckResultConsumerFn& consumer) {}
 
 
-    void check_storage(SharedBlockConstPtr block, const CheckResultConsumerFn& consumer)
-    {
-        init_allocator_ctr();
-        check_storage_specific(block, consumer);
 
-        AllocationMetadataT alc = get_allocation_metadata(block->id());
-        Optional<AllocationMapEntryStatus> status = allocation_map_ctr_->get_allocation_status(alc.level(), alc.position());
-
-        if (status.is_initialized())
-        {
-            if (status.get() == AllocationMapEntryStatus::FREE) {
-                consumer(
-                    CheckSeverity::ERROR,
-                    make_string_document("Missing allocation info for {}", alc));
-            }
-        }
-        else {
-            consumer(
-                CheckSeverity::ERROR,
-                make_string_document("Missing allocation info for {}", alc));
-        }
-
-        register_allocation(alc);
-    }
 
     virtual void walkContainers(
             ContainerWalker<Profile>* walker, const
@@ -600,7 +521,7 @@ public:
     }
 
     virtual void drop() {
-        MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for SWMRStore snapshots").do_throw();
+        MEMORIA_MAKE_GENERIC_ERROR("drop() is not supported for OLTPStore snapshots").do_throw();
     }
 
 
@@ -628,12 +549,7 @@ public:
 
     virtual void ref_block(const BlockID& block_id)
     {
-        if (refcounter_delegate_) {
-            refcounter_delegate_->ref_block(block_id);
-        }
-        else {
-            MEMORIA_MAKE_GENERIC_ERROR("ref_block() is not implemented for ReadOnly commits").do_throw();
-        }
+        MEMORIA_MAKE_GENERIC_ERROR("uref_block() is not implemented for ReadOnly commits").do_throw();
     }
 
     virtual void unref_block(const BlockID& block_id)
@@ -672,44 +588,6 @@ public:
     virtual void check_updates_allowed() {
         MEMORIA_MAKE_GENERIC_ERROR("updated are not allowed for ReadOnly commits").do_throw();
     }
-
-    class RebuildRefcountersHandler: public BTreeTraverseNodeHandler<Profile> {
-        using Base = BTreeTraverseNodeHandler<Profile>;
-        using typename Base::BlockType;
-        //using BlockID   = ProfileBlockID<Profile>;
-
-        SWMRBlockCounters<Profile>& counters_;
-    public:
-        RebuildRefcountersHandler(SWMRBlockCounters<Profile>& counters):
-            counters_(counters)
-        {}
-
-        virtual void process_node(const BlockType* block) {}
-
-        virtual bool proceed_with(const BlockID& block_id) const {
-            return counters_.inc(block_id);
-        }
-    };
-
-
-    virtual void build_block_refcounters(SWMRBlockCounters<Profile>& counters)
-    {
-        RebuildRefcountersHandler handler(counters);
-
-        auto sb = get_superblock();
-
-        traverse_ctr(sb->directory_root_id(), handler);
-
-        traverse_ctr(sb->history_root_id(), handler);
-        traverse_ctr(sb->allocator_root_id(), handler);
-
-        if (get_superblock()->blockmap_root_id().is_set()) {
-            traverse_ctr(sb->blockmap_root_id(), handler);
-        }
-    }
-
-
-
 
     bool contains_or_add(VisitedBlocks& vb, const BlockID& id)
     {
@@ -765,7 +643,7 @@ public:
         BlockID block_id = cast_to<BlockID>(block->block_id());
 
         bool updated = contains_or_add(vb, block_id);
-        visitor.start_block(block, updated, store_->count_blocks(block_id));
+        visitor.start_block(block, updated, 0); //store_->count_blocks(block_id)
 
         if (!updated)
         {
@@ -804,81 +682,25 @@ public:
         this->superblock_ = superblock;
     }
 
-    void for_each_history_entry(const std::function<void (const SnapshotID&, const SWMRSnapshotMetadata<ApiProfileT>&)>& fn)
+    void init_evc_queue_ctr()
     {
-        init_history_ctr();
-        history_ctr_->for_each([&](auto snp_id, auto snp_metadata){
-          fn(snp_id, snp_metadata);
-        });
-    }
-
-    void init_allocator_ctr()
-    {
-        if (!allocation_map_ctr_)
+        if (!evc_queue_ctr_)
         {
-            auto root_block_id = get_superblock()->allocator_root_id();
+            auto root_block_id = get_superblock()->evc_queue_root_id();
             if (root_block_id.is_set())
             {
-                auto ctr_ref = this->template internal_find_by_root_typed<AllocationMapCtrType>(root_block_id);
-
-                allocation_map_ctr_ = ctr_ref;
-                allocation_map_ctr_->internal_detouch_from_store();
+                auto ctr_ref = this->template internal_find_by_root_typed<EvcQueueCtrType>(root_block_id);
+                evc_queue_ctr_ = ctr_ref;
+                evc_queue_ctr_->internal_detouch_from_store();
             }
         }
     }
 
 
-    void init_history_ctr()
-    {
-        if (!history_ctr_)
-        {
-            auto root_block_id = get_superblock()->history_root_id();
-            if (root_block_id.is_set())
-            {
-                auto ctr_ref = this->template internal_find_by_root_typed<HistoryCtrType>(root_block_id);
-                history_ctr_ = ctr_ref;
-                history_ctr_->internal_detouch_from_store();
-            }
-        }
-    }
 
-    Optional<int64_t> find_root(const SnapshotID& snapshot_id) {
-        init_history_ctr();
-        auto iter = history_ctr_->find(snapshot_id);
+    virtual void describe_to_cout() {}
 
-        if (iter->is_found(snapshot_id)) {
-            return iter->value().view();
-        }
 
-        return Optional<int64_t>{};
-    }
-
-    virtual void describe_to_cout()  {
-        if (allocation_map_ctr_) {
-            auto ii = allocation_map_ctr_->iterator();
-            return ii->dump();
-        }
-    }
-
-    void for_each_root_block(const std::function<void (int64_t)>& fn) const
-    {
-        init_history_ctr();
-
-        auto scanner = history_ctr_->scanner_from(history_ctr_->iterator());
-
-        bool has_next;
-        do {
-
-            for (auto superblock_ptr: scanner.values())
-            {
-                fn(superblock_ptr);
-            }
-
-            auto has_next_res = scanner.next_leaf();
-            has_next = has_next_res;
-        }
-        while (has_next);
-    }
 
     int32_t allocation_level(size_t size) const  {
         return CustomLog2(size / BASIC_BLOCK_SIZE);
@@ -889,7 +711,7 @@ public:
     }
 
     struct ResolvedBlock {
-        uint64_t file_pos;
+        io::DevSizeT file_pos;
         SharedBlockConstPtr block;
     };
 
@@ -898,94 +720,6 @@ public:
 
     SharedBlockConstPtr getBlock(const BlockID& block_id) {
         return resolve_block(block_id).block;
-    }
-
-    void for_each_history_entry_batch(const std::function<void (Span<const SnapshotID>, Span<const SnapshotMetadataT>)>& fn)
-    {
-        init_history_ctr();
-        history_ctr_->for_each_chunk([&](auto snp_id_span, auto snp_metadata_span){
-            fn(snp_id_span.raw_span(), snp_metadata_span.raw_span());
-        });
-    }
-
-    bool find_unallocated(int32_t level, ProfileCtrSizeT<Profile> size, ArenaBuffer<AllocationMetadata<ApiProfileT>>& arena)
-    {
-        init_allocator_ctr();
-        return allocation_map_ctr_->find_unallocated(0, level, size, arena);
-    }
-
-    void scan_unallocated(const std::function<bool (Span<AllocationMetadataT>)>& fn) {
-        init_allocator_ctr();
-        return allocation_map_ctr_->scan(fn);
-    }
-
-    void check_allocation_pool(const CheckResultConsumerFn& consumer)
-    {
-        auto sb = get_superblock();
-        AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> pool(Superblock::alc_pool_data_capacity());
-        pool.load(sb->allocation_pool_data());
-
-        init_allocator_ctr();
-        pool.for_each([&](const AllocationMetadataT& meta) {
-            if (!allocation_map_ctr_->check_allocated(meta))
-            {
-                consumer(
-                    CheckSeverity::ERROR,
-                    make_string_document("AllocationMap entry check failure: {}", meta)
-                );
-            }
-        });
-    }
-
-    void add_superblock(LiteAllocationMap<ApiProfileT>& allocations)
-    {
-        uint64_t sb_ptr = snapshot_descriptor_->superblock_ptr() / BASIC_BLOCK_SIZE;
-        allocations.append(AllocationMetadataT::from_ln(sb_ptr, 1, SUPERBLOCK_ALLOCATION_LEVEL));
-    }
-
-    void add_system_blocks(LiteAllocationMap<ApiProfileT>& allocations)
-    {
-        auto sb = get_superblock();
-        allocations.append(AllocationMetadataT::from_ln(0, 2, SUPERBLOCK_ALLOCATION_LEVEL));
-
-        allocations.append(AllocationMetadataT::from_ln(
-            sb->global_block_counters_file_pos() / BASIC_BLOCK_SIZE,
-            sb->global_block_counters_blocks(),
-            0
-        ));
-
-        AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> pool(Superblock::alc_pool_data_capacity());
-        pool.load(sb->allocation_pool_data());
-
-        pool.for_each([&](const AllocationMetadataT& alc){
-            allocations.append(alc);
-        });
-    }
-
-    void dump_allocation_map(int64_t num = -1) {
-        init_allocator_ctr();
-        allocation_map_ctr_->dump_leafs(num);
-    }
-
-    void check_allocation_map(
-        const LiteAllocationMap<ApiProfileT>& allocations,
-        const CheckResultConsumerFn& consumer
-    )
-    {
-        init_allocator_ctr();
-        allocation_map_ctr_->compare_with(allocations.ctr(), [&](auto& helper){
-            consumer(CheckSeverity::ERROR, make_string_document(
-                         "Allocation map mismatch at {} :: {}/{} :: {}, level {}. Expected: {}, actual: {}",
-                         helper.my_base(),
-                         helper.my_idx(),
-                         helper.other_base(),
-                         helper.other_idx(),
-                         helper.level(),
-                         helper.other_bit(), helper.my_bit()
-            ));
-
-            return true; // continue
-        });
     }
 };
 

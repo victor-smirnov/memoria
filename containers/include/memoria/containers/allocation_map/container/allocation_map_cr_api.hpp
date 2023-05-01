@@ -139,17 +139,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
             CtrSizeT available;
             std::tie(available, ii) = ii->iter_count_fw();
 
-            auto len = available / (1 << level);
+            auto len = available;
 
             if (sum + len < required)
             {
-                buffer.push_back(AllocationMetadata<ApiProfileT>{level0_pos, len, level});
+                buffer.push_back(ALCMeta::from_ln(level0_pos, len, level));
                 ii = ii->iter_select_fw(level, 0);
                 sum += len;
             }
             else {
                 auto remainder = required - sum;
-                buffer.push_back(AllocationMetadata<ApiProfileT>{level0_pos, remainder, level});
+                buffer.push_back(ALCMeta::from_ln(level0_pos, remainder, level));
                 sum += remainder;
                 break;
             }
@@ -184,7 +184,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
                         if (upper_size_is_occupied && !bitmaps->get_bit(lvl, c))
                         {
                             if (!meta.size_at_level()) {
-                                meta = ALCMeta((c << lvl) + offset, 1 << lvl, lvl);
+                                meta = ALCMeta::from_ln((c << lvl) + offset, 1, lvl);
                             }
                             else {
                                 meta.enlarge1(1);
@@ -192,7 +192,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
                         }
                         else if (meta.size_at_level()) {
                             arena.push_back(meta);
-                            meta = ALCMeta{0, 0, 0};
+                            meta = ALCMeta();
                         }
                     }
 

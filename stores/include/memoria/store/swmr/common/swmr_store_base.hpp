@@ -90,7 +90,7 @@ protected:
 
     static_assert(sizeof(SWMRSuperblock<Profile>) <= 4096, "Check superblock size!");
 
-    AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> allocation_pool_;
+    AllocationPool<ApiProfileT, ALLOCATION_MAP_LEVELS> allocation_pool_{SuperblockT::alc_pool_data_capacity()};
 
     mutable std::recursive_mutex history_mutex_;
     mutable std::recursive_mutex writer_mutex_;

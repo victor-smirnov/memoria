@@ -127,9 +127,9 @@ public:
     }
 
     template <typename AllocationPool>
-    BoolResult populate_allocation_pool(int64_t base, AllocationPool& pool) noexcept
+    BoolResult populate_allocation_pool(int64_t base, AllocationPool& pool, size_t level) noexcept
     {
-        return data_->populate_allocation_pool(base, pool);
+        return data_->populate_allocation_pool(base, pool, level);
     }
 
     MMA_MAKE_UPDATE_STATE_METHOD
