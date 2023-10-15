@@ -15,13 +15,13 @@
 #add_library(Stores STATIC)
 
 if (NO_COW_PROFILE)
-    find_package(lmdb REQUIRED)
+    find_package(unofficial-lmdb REQUIRED)
 
     file (GLOB LMDB_SOURCES lmdb/*.cpp lmdb/*.c)
     file (GLOB_RECURSE LMDB_HEADERS lmdb/*.hpp lmdb/*.h)
 
-    target_link_libraries(Stores PRIVATE lmdb)
-    target_include_directories(Stores PRIVATE lmdb)
+    target_link_libraries(Stores PRIVATE unofficial::lmdb::lmdb)
+    target_include_directories(Stores PRIVATE unofficial::lmdb::lmdb)
 endif()
 
 if (COW_PROFILE)

@@ -542,7 +542,7 @@ struct formatter<memoria::AllocationMetadata<Profile>> {
 
     template <typename FormatContext>
     auto format(const memoria::AllocationMetadata<Profile>& alc, FormatContext& ctx) {
-        return format_to(ctx.out(), "[{}, {}, {}, {}]", alc.position(), alc.size1(), alc.level(), alc.size_at_level());
+        return fmt::format_to(ctx.out(), "[{}, {}, {}, {}]", alc.position(), alc.size1(), alc.level(), alc.size_at_level());
     }
 };
 
@@ -552,7 +552,7 @@ struct formatter<memoria::BasicBlockAllocation<Profile>> {
 
     template <typename FormatContext>
     auto format(const memoria::BasicBlockAllocation<Profile>& alc, FormatContext& ctx) {
-        return format_to(ctx.out(), "[{}, {}]", alc.position(), alc.size1());
+        return fmt::format_to(ctx.out(), "[{}, {}]", alc.position(), alc.size1());
     }
 };
 

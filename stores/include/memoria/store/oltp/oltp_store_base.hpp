@@ -159,7 +159,7 @@ public:
     virtual io::BlockPtr<SuperblockT> get_superblock(size_t sb_num) = 0;
     virtual io::BlockPtr<SuperblockT> get_superblock(const BlockID& id) = 0;
 
-    virtual uint64_t buffer_size() = 0;
+    //virtual uint64_t buffer_size() = 0;
 
     virtual void do_flush() = 0;
 

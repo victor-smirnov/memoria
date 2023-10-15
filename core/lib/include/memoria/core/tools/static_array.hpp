@@ -1022,7 +1022,7 @@ struct formatter<memoria::core::StaticVector<T, S>> {
     {
         memoria::SBuf sb;
         sb << vv;
-        return format_to(ctx.out(), "{}", sb.str());
+        return fmt::format_to(ctx.out(), "{}", sb.str());
     }
 };
 

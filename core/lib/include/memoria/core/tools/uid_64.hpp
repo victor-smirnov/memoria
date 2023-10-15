@@ -289,7 +289,7 @@ struct formatter<memoria::UID64> {
 
     template <typename FormatContext>
     auto format(const memoria::UID64& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_u8());
+        return fmt::format_to(ctx.out(), "{}", d.to_u8());
     }
 };
 

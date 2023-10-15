@@ -752,13 +752,6 @@ void MultiProcessRunner::handle_connections()
                     }
                 }
             }
-            catch (const std::exception& ex)
-            {
-                if (worker_process) {
-                    worker_process->terminate();
-                    worker_process->join();
-                }
-            }
             catch (const std::runtime_error& ex)
             {
                 if (worker_process) {
@@ -767,6 +760,13 @@ void MultiProcessRunner::handle_connections()
                 }
             }
             catch (const MemoriaThrowable& ex)
+            {
+                if (worker_process) {
+                    worker_process->terminate();
+                    worker_process->join();
+                }
+            }
+            catch (const std::exception& ex)
             {
                 if (worker_process) {
                     worker_process->terminate();

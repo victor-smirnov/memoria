@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+message("===================================================== ${CMAKE_MODULE_PATH} ===================")
+
+add_library (ucontext::ucontext INTERFACE IMPORTED)
+add_library (SystemTap::SDT INTERFACE IMPORTED)
+
 find_package(Seastar REQUIRED)
 
 file(GLOB_RECURSE LIB_SOURCES *.cpp)
@@ -23,7 +28,7 @@ set_target_properties(SeastarLib PROPERTIES OUTPUT_NAME memoria_seastar)
 target_link_libraries(SeastarLib PUBLIC RuntimeApi Seastar::seastar Boost::program_options)
 target_include_directories(SeastarLib PUBLIC include)
 
-target_compile_definitions(SeastarLib PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=6)
+target_compile_definitions(SeastarLib PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=7)
 target_compile_definitions(SeastarLib PUBLIC -DMEMORIA_SEASTAR_RUNTIME)
 
 

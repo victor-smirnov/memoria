@@ -231,7 +231,7 @@ struct formatter<memoria::UUID> {
 
     template <typename FormatContext>
     auto format(const memoria::UUID& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_u8());
+        return fmt::format_to(ctx.out(), "{}", d.to_u8());
     }
 };
 

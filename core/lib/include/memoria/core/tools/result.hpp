@@ -909,7 +909,7 @@ struct formatter<memoria::Result<T>> {
     auto format(const memoria::Result<T>& d, FormatContext& ctx) {
         std::stringstream buf;
         buf << d;
-        return format_to(ctx.out(), "{}", buf.str());
+        return fmt::format_to(ctx.out(), "{}", buf.str());
     }
 };
 

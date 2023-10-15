@@ -218,7 +218,7 @@ struct formatter<memoria::FixedArray<Size>> {
 
     template <typename FormatContext>
     auto format(const memoria::FixedArray<Size>& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", memoria::toString(d));
+        return fmt::format_to(ctx.out(), "{}", memoria::toString(d));
     }
 };
 

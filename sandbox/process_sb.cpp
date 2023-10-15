@@ -17,6 +17,8 @@
 #include <memoria/tests/runner/process.hpp>
 #include <memoria/core/strings/format.hpp>
 
+#include <memoria/core/strings/u8_string_view.hpp>
+
 #include <boost/fiber/all.hpp>
 
 #include <memory>

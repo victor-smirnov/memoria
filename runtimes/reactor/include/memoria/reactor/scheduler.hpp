@@ -37,13 +37,9 @@ class Scheduler: public boost::fibers::algo::algorithm_with_properties<FiberProp
     std::shared_ptr<Reactor> reactor_;
     
     using ReadyQueue = boost::fibers::scheduler::ready_queue_type;
-    using WaitQueue = boost::fibers::context::wait_queue_t;
-
     ReadyQueue ready_queue_ {};
-    WaitQueue wait_queue_ {};
     
     uint64_t activations_{};
-
 public:
     Scheduler(std::shared_ptr<Reactor> reactor): reactor_(reactor) {}
 
@@ -89,21 +85,11 @@ public:
     
     void suspend(boost::fibers::context* ctx)
     {
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
-        ctx->wait_link( wait_queue_);
-        // suspend this fiber
         ctx->suspend();
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
     }
     
     void resume(boost::fibers::context* ctx)
-    {
-        BOOST_ASSERT( ctx->wait_is_linked() );
-        
-        ctx->wait_unlink();
-        
-        BOOST_ASSERT( !ctx->wait_is_linked() );
-        
+    {        
         ctx->get_scheduler()->schedule(ctx);
     }
 };

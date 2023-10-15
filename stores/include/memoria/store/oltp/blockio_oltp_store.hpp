@@ -52,6 +52,7 @@ protected:
 
     using typename Base::OLTPReadOnlySnapshotPtr;
     using typename Base::OLTPWritableSnapshotPtr;
+    using typename Base::SuperblockT;
 
     using typename Base::SnapshotID;
     using typename Base::SequenceID;
@@ -73,7 +74,7 @@ protected:
 
     using ApiProfileT   = ApiProfile<Profile>;
     using LockGuard     = std::lock_guard<std::recursive_mutex>;
-    using Superblock    = SWMRSuperblock<Profile>;
+//    using SuperblockT   = SWMRSuperblock<Profile>;
 
 public:
     using Base::init_store;
@@ -88,14 +89,18 @@ public:
        close();
     }
 
-//    virtual void do_flush() override
-//    {
-////        flush_data();
-////        flush_header();
-//    }
+    U8String describe() const override {
+        return TypeNameFactory<BlockIOOLTPStore<Profile>>::name();
+    }
+
+    void do_flush() override
+    {
+//        flush_data();
+//        flush_header();
+    }
 
 
-    virtual void close() override
+    void close() override
     {
         LockGuard lock(writer_mutex_);
         block_io_->close();
@@ -105,23 +110,61 @@ public:
         BlockIOOLTPStoreWritableSnapshot<Profile>::init_profile_metadata();
     }
 
-//    void flush_data(bool async = false) override
-//    {
-//        //check_if_open();
-//    }
+    void flush_data(bool async = false) override
+    {
+        //check_if_open();
+    }
 
-//    void flush_header(bool async = false) override
-//    {
-//        //check_if_open();
-//    }
+    void flush_header(bool async = false) override
+    {
+        //check_if_open();
+    }
 
+    void set_async(bool is_async) override {
 
+    }
 
+    void copy_to(U8String path, bool with_compaction = true) override {
 
+    }
+
+    void flush(bool force = true) override {
+
+    }
+
+    void modify(std::function<void (WritableSnapshotPtr)> fn) override {
+
+    }
+
+    void check_if_open() override {
+
+    }
+
+    io::BlockPtr<SuperblockT> get_superblock(const BlockID& id) override {
+        return {};
+    }
+
+    void store_superblock(SuperblockT* superblock, uint64_t sb_slot) override {
+
+    }
+
+    io::BlockPtr<SuperblockT> get_superblock(size_t sb_num) override {
+        return {};
+    }
 
 
 
 private:
+
+    OLTPWritableSnapshotPtr do_create_writable(
+            CDescrPtr consistency_point,
+            CDescrPtr head,
+            CDescrPtr parent,
+            CDescrPtr snapshot_descr
+    ) override {
+        return {};
+    }
+
 
     virtual OLTPReadOnlySnapshotPtr do_open_readonly(CDescrPtr snapshot_descr) override
     {

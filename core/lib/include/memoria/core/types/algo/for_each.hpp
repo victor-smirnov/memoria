@@ -20,6 +20,7 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <fmt/format.h>
 
 namespace memoria {
 
@@ -60,7 +61,7 @@ struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
 
 template <size_t Idx>
 struct ForEachIdx {
-    constexpr size_t value() {
+    constexpr size_t value() const {
         return Idx;
     }
 
@@ -155,6 +156,20 @@ struct ForOneOf<Idx, Idx> {
         else {
             MEMORIA_MAKE_GENERIC_ERROR("").do_throw();
         }
+    }
+};
+
+}
+
+namespace fmt {
+
+template <size_t Idx>
+struct formatter<memoria::ForEachIdx<Idx>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::ForEachIdx<Idx>& d, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "{}", d.value());
     }
 };
 

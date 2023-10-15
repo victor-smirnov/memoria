@@ -94,7 +94,7 @@ struct formatter<memoria::U8String> {
 
     template <typename FormatContext>
     auto format(const memoria::U8String& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_std_string());
+        return fmt::format_to(ctx.out(), "{}", d.to_std_string());
     }
 };
 
@@ -104,7 +104,7 @@ struct formatter<memoria::U16String> {
 
     template <typename FormatContext>
     auto format(const memoria::U16String& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_u8().to_std_string());
+        return fmt::format_to(ctx.out(), "{}", d.to_u8().to_std_string());
     }
 };
 
@@ -115,7 +115,7 @@ struct formatter<memoria::U32String> {
 
     template <typename FormatContext>
     auto format(const memoria::U32String& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_u8().to_std_string());
+        return fmt::format_to(ctx.out(), "{}", d.to_u8().to_std_string());
     }
 };
 
@@ -136,10 +136,10 @@ struct formatter<memoria::NamedTypedCode<T>> {
     template <typename FormatContext>
     auto format(const memoria::NamedTypedCode<T>& d, FormatContext& ctx) {
         if (MMA_LIKELY(!d.name().empty())) {
-            return format_to(ctx.out(), "<{}:{}>", d.code(), d.name().to_string());
+            return fmt::format_to(ctx.out(), "<{}:{}>", d.code(), d.name().to_string());
         }
         else {
-            return format_to(ctx.out(), "{}", d.code());
+            return fmt::format_to(ctx.out(), "{}", d.code());
         }
     }
 };
@@ -150,7 +150,7 @@ struct formatter<boost::filesystem::path> {
 
     template <typename FormatContext>
     auto format(const boost::filesystem::path& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.string());
+        return fmt::format_to(ctx.out(), "{}", d.string());
     }
 };
 

@@ -547,7 +547,7 @@ protected:
 
     void run_handler(RequestHandlerFn handler, const ContextImplPtr& ctx, CallID call_id)
     {
-        run_async([=](){
+        run_async([=, this](){
             CtxCleaner cleaner{self(), call_id};
             try {
                 Response rs = handler(ctx);

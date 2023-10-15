@@ -24,18 +24,22 @@ namespace memoria {
 using Profile = CowLiteProfile;
 using ApiProfileT = ApiProfile<Profile>;
 
+using StoreT = BlockIOOLTPStore<Profile>;
+
 template struct IOLTPStore<ApiProfileT>;
 template class BlockIOOLTPStore<Profile>;
-//template class OLTPStoreWritableSnapshot<Profile>;
-//template class OLTPStoreReadOnlySnapshot<Profile>;
+template class BlockIOOLTPStoreWritableSnapshot<Profile>;
+template class BlockIOOLTPStoreReadOnlySnapshot<Profile>;
 
+using BlockIOPtr = std::shared_ptr<io::BlockIOProvider>;
 
 namespace {
+
 
 template <typename PP>
 struct Initializer {
     Initializer() {
-//        OLTPStore<Profile>::init_profile_metadata();
+        StoreT::init_profile_metadata();
     }
 };
 
@@ -48,6 +52,9 @@ void InitOLTPStore() {
 
 SharedPtr<IOLTPStore<ApiProfileT>> open_oltp_store_seastar(U8StringView path)
 {
+    BlockIOPtr blockio_ptr;
+    auto store_ptr = MakeShared<StoreT>(blockio_ptr);
+
 //    MaybeError maybe_error;
 //    auto ptr = MakeShared<OLTPStore<Profile>>(maybe_error, path, false);
 
@@ -56,7 +63,7 @@ SharedPtr<IOLTPStore<ApiProfileT>> open_oltp_store_seastar(U8StringView path)
 //    }
 
 //    return ptr;
-    return {};
+    return store_ptr;
 }
 
 SharedPtr<IOLTPStore<ApiProfileT>> create_oltp_store_seastar(U8StringView path, uint64_t store_size_mb)

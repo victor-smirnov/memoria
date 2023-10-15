@@ -26,7 +26,6 @@
 
 #include <memoria/core/hermes/data_object.hpp>
 
-
 #include <algorithm>
 #include <type_traits>
 

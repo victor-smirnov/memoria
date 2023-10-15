@@ -24,6 +24,8 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include <fmt/format.h>
+
 namespace memoria {
 
 struct IAnyID {
@@ -182,5 +184,19 @@ template<typename T>
 inline AnyID AnyID::wrap(const T& id) {
     return AnyID{std::make_unique<DefaultAnyIDImpl<T>>(id)};
 }
+
+}
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::AnyID> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::AnyID& d, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "{}", d.to_u8());
+    }
+};
 
 }

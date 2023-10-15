@@ -52,7 +52,7 @@ struct formatter<memoria::Optional<T>> {
             return formatter<T>().format(d.get(), ctx);
         }
         else {
-            return format_to(ctx.out(), "{}", "[EmptyOptional]");
+            return fmt::format_to(ctx.out(), "{}", "[EmptyOptional]");
         }
     }
 };

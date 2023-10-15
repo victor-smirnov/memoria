@@ -18,7 +18,6 @@ include_directories(../tools/include)
 
 set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256 blk_distr)
 
-
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
     target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit)

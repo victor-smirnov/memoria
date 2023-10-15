@@ -128,7 +128,7 @@ struct formatter<memoria::reactor::IPAddress> {
 
     template <typename FormatContext>
     auto format(const memoria::reactor::IPAddress& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_string());
+        return fmt::format_to(ctx.out(), "{}", d.to_string());
     }
 };
 

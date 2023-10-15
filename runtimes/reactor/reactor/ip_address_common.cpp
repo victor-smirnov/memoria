@@ -15,6 +15,8 @@
 
 #include <memoria/reactor/socket.hpp>
 #include <memoria/core/strings/u8_string.hpp>
+#include <memoria/core/strings/u8_string_view.hpp>
+
 #include <memoria/core/tools/result.hpp>
 
 #include <string>

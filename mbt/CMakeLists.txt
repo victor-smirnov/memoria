@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+SET(CMAKE_PREFIX_PATH /home/victor/clang/lib/cmake;/home/victor/clang/lib/llvm)
+
 if (NOT MEMORIA_HAS_TOP_LEVEL)
     cmake_minimum_required (VERSION 3.16)
     project (MBT)

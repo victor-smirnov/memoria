@@ -602,7 +602,7 @@ struct formatter<memoria::UnsignedAccumulator<BitLength>> {
 
     template <typename FormatContext>
     auto format(const memoria::UnsignedAccumulator<BitLength>& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", d.to_bmp().str());
+        return fmt::format_to(ctx.out(), "{}", d.to_bmp().str());
     }
 };
 
@@ -612,7 +612,7 @@ struct formatter<memoria::UnsignedAccumulator<64>> {
 
     template <typename FormatContext>
     auto format(const memoria::UnsignedAccumulator<64>& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", static_cast<uint64_t>(d));
+        return fmt::format_to(ctx.out(), "{}", static_cast<uint64_t>(d));
     }
 };
 
@@ -623,7 +623,7 @@ struct formatter<memoria::detail::UAccBmpInt<BitLength>> {
     template <typename FormatContext>
     auto format(const memoria::detail::UAccBmpInt<BitLength>& d, FormatContext& ctx)
     {
-        return format_to(ctx.out(), "{}", d.str());
+        return fmt::format_to(ctx.out(), "{}", d.str());
     }
 };
 
@@ -634,7 +634,7 @@ struct formatter<boost::multiprecision::uint256_t> {
     template <typename FormatContext>
     auto format(const boost::multiprecision::uint256_t& d, FormatContext& ctx)
     {
-        return format_to(ctx.out(), "{}", d.str());
+        return fmt::format_to(ctx.out(), "{}", d.str());
     }
 };
 
@@ -662,7 +662,7 @@ struct formatter<
     template <typename FormatContext>
     auto format(const IntT& d, FormatContext& ctx)
     {
-        return format_to(ctx.out(), "{}", d.str());
+        return fmt::format_to(ctx.out(), "{}", d.str());
     }
 };
 

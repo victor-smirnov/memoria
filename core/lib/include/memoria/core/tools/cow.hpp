@@ -145,7 +145,7 @@ struct formatter<memoria::CowBlockID<ValueHolder>> {
     {
         std::stringstream ss;
         ss << d;
-        return format_to(ctx.out(), "{}", ss.str());
+        return fmt::format_to(ctx.out(), "{}", ss.str());
     }
 };
 

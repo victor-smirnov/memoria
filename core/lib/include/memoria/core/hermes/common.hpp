@@ -798,3 +798,26 @@ struct ArrayAccessor {
 };
 
 }}
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::hermes::ValueStorageTag> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(memoria::hermes::ValueStorageTag d, FormatContext& ctx) {
+        const char* name;
+        switch (d) {
+        case memoria::hermes::ValueStorageTag::VS_TAG_ADDRESS: name = "VS_TAG_ADDRESS"; break;
+        case memoria::hermes::ValueStorageTag::VS_TAG_SMALL_VALUE: name = "VS_TAG_SMALL_VALUE"; break;
+        case memoria::hermes::ValueStorageTag::VS_TAG_GENERIC_VIEW: name = "VS_TAG_GENERIC_VIEW"; break;
+        default:
+            name = "<UNKNOWN>";
+            break;
+        }
+        return fmt::format_to(ctx.out(), "{}", name);
+    }
+};
+
+}

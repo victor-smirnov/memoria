@@ -437,7 +437,7 @@ struct formatter<memoria::NumberView<T, Kind>> {
 
     template <typename FormatContext>
     auto format(const memoria::NumberView<T, Kind>& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", *d.ptr());
+        return fmt::format_to(ctx.out(), "{}", *d.ptr());
     }
 };
 
@@ -449,7 +449,7 @@ struct formatter<memoria::Own<memoria::NumberView<T, Kind>, memoria::OwningKind:
 
     template <typename FormatContext>
     auto format(const ArgT& d, FormatContext& ctx) {
-        return format_to(ctx.out(), "{}", *d.ptr());
+        return fmt::format_to(ctx.out(), "{}", *d.ptr());
     }
 };
 
