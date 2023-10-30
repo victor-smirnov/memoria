@@ -20,12 +20,21 @@ set_target_properties(ContainersApi PROPERTIES CXX_STANDARD ${MEMORIA_API_CXX_ST
 set_target_properties(ContainersApi PROPERTIES OUTPUT_NAME memoria_containers_api)
 
 target_link_libraries(ContainersApi PUBLIC Core)
-target_include_directories(ContainersApi PUBLIC include)
+target_include_directories(ContainersApi PUBLIC
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/containers-api/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
 
 file(GLOB CTR_API_SOURCES *.cpp)
 file(GLOB_RECURSE CTR_API_HEADERS include/*.*)
 
 target_sources(ContainersApi
-    PUBLIC ${CTR_API_HEADERS}
+    PRIVATE FILE_SET HEADERS FILES ${CTR_API_HEADERS}
     PRIVATE ${CTR_API_SOURCES}
 )
+
+install(
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/containers-api
+)
+
+install(TARGETS ContainersApi EXPORT MemoriaTargets)

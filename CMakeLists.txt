@@ -18,8 +18,7 @@
 # MEMORIA_COMPILE_FLAGS            Additional flags for compiler
 # MEMORIA_LINK_FLAGS               Additional flags for linker
 
-cmake_minimum_required (VERSION 3.16)
-
+cmake_minimum_required (VERSION 3.25)
 
 if (LINUX)
     option (BUILD_SEASTAR "Build Seastar Framework supporting library" ON)
@@ -28,8 +27,13 @@ if (LINUX)
     endif()
 endif()
 
-
 project (Memoria)
+
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
+set(MEMORIA_TOOLS_INSTALL_DIR  tools/memoria)
+set(MEMORIA_CONFIG_INSTALL_DIR share/memoria)
 
 set(VERSION "0.1.0")
 
@@ -43,7 +47,6 @@ set(CMAKE_CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 if (NOT CMAKE_BUILD_TYPE)
      set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
 endif()
-
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
@@ -109,6 +112,11 @@ set_property(GLOBAL APPEND PROPERTY GLOBAL_CORE_SOURCES_SEASTAR ${MAIN_INCLUDES}
 get_property(GLOBAL_CORE_SRCS GLOBAL PROPERTY GLOBAL_CORE_SOURCES)
 get_property(GLOBAL_SEASTAR_SRCS GLOBAL PROPERTY GLOBAL_SEASTAR_SOURCES)
 
+find_package(absl CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(unofficial-hash-library CONFIG REQUIRED)
+find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
+
 add_library(Core STATIC)
 
 add_subdirectory(core)
@@ -167,8 +175,8 @@ execute_process(
     COMMAND
         ${CMAKE_BINARY_DIR}/mbt-explicit/mbt
         --dry-run
-        -I ${CMAKE_SOURCE_DIR}/include
-        -I ${CMAKE_SOURCE_DIR}/core/lib/include
+        -I ${CMAKE_SOURCE_DIR}/app_init/include
+        -I ${CMAKE_SOURCE_DIR}/core/include
         -I ${CMAKE_SOURCE_DIR}/containers-api/include
         -I ${CMAKE_SOURCE_DIR}/containers/include
         -I ${CMAKE_SOURCE_DIR}/stores/include
@@ -200,58 +208,58 @@ SET (GENERATED_OTHER_BYPRODUCTS)
 SET (ACTIVE_PROFILES)
 
 foreach(FNAME ${GENERATED_SOURCES})
-    if (FNAME MATCHES "^BYPRODUCT:")
-        string(SUBSTRING ${FNAME} 10 -1 FNAME_OUT)
-        if (FNAME_OUT MATCHES "containers")
-            list(APPEND GENERATED_MAIN_BYPRODUCTS ${FNAME_OUT})
-        elseif (FNAME_OUT MATCHES "stores")
-            list(APPEND GENERATED_STORE_BYPRODUCTS ${FNAME_OUT})
-        else()
-            list(APPEND GENERATED_OTHER_BYPRODUCTS ${FNAME_OUT})
-        endif()
+  if (FNAME MATCHES "^BYPRODUCT:")
+    string(SUBSTRING ${FNAME} 10 -1 FNAME_OUT)
+    if (FNAME_OUT MATCHES "containers")
+      list(APPEND GENERATED_MAIN_BYPRODUCTS ${FNAME_OUT})
+    elseif (FNAME_OUT MATCHES "stores")
+      list(APPEND GENERATED_STORE_BYPRODUCTS ${FNAME_OUT})
+    else()
+      list(APPEND GENERATED_OTHER_BYPRODUCTS ${FNAME_OUT})
     endif()
+  endif()
 
-    if (FNAME MATCHES "^SOURCE:")
-        string(SUBSTRING ${FNAME} 7 -1 FNAME_OUT)
-        list(APPEND GENERATED_CTR_SOURCES ${FNAME_OUT})
+  if (FNAME MATCHES "^SOURCE:")
+    string(SUBSTRING ${FNAME} 7 -1 FNAME_OUT)
+    list(APPEND GENERATED_CTR_SOURCES ${FNAME_OUT})
 
-        if (FNAME_OUT MATCHES "containers")
-            list(APPEND GENERATED_MAIN_SOURCES ${FNAME_OUT})
-        elseif (FNAME_OUT MATCHES "stores")
-            list(APPEND GENERATED_STORE_SOURCES ${FNAME_OUT})
-        else()
-            message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
-        endif()
+    if (FNAME_OUT MATCHES "containers")
+      list(APPEND GENERATED_MAIN_SOURCES ${FNAME_OUT})
+    elseif (FNAME_OUT MATCHES "stores")
+      list(APPEND GENERATED_STORE_SOURCES ${FNAME_OUT})
+    else()
+      message(FATAL_ERROR "Unknown destination for generated source: ${FNAME_OUT}")
     endif()
+  endif()
 
-    if (FNAME MATCHES "^PROFILE:")
-        string(SUBSTRING ${FNAME} 8 -1 FNAME_OUT)
-        list(APPEND ACTIVE_PROFILES ${FNAME_OUT})
-    endif()
+  if (FNAME MATCHES "^PROFILE:")
+    string(SUBSTRING ${FNAME} 8 -1 FNAME_OUT)
+    list(APPEND ACTIVE_PROFILES ${FNAME_OUT})
+  endif()
 endforeach()
 
 list(FIND ACTIVE_PROFILES "CowLiteProfile" COW_LITE_PROFILE_IDX)
 if (COW_LITE_PROFILE_IDX EQUAL -1)
-    set(COW_LITE_PROFILE OFF)
+  set(COW_LITE_PROFILE OFF)
 else()
-    set(COW_LITE_PROFILE ON)
-    add_definitions(-DMEMORIA_COW_LITE_PROFILE)
+  set(COW_LITE_PROFILE ON)
+  add_definitions(-DMEMORIA_COW_LITE_PROFILE)
 endif()
 
 list(FIND ACTIVE_PROFILES "CowProfile" COW_PROFILE_IDX)
 if (COW_PROFILE_IDX EQUAL -1)
-    set(COW_PROFILE OFF)
+  set(COW_PROFILE OFF)
 else()
-    set(COW_PROFILE ON)
-    add_definitions(-DMEMORIA_COW_PROFILE)
+  set(COW_PROFILE ON)
+  add_definitions(-DMEMORIA_COW_PROFILE)
 endif()
 
 list(FIND ACTIVE_PROFILES "NoCowProfile" NO_COW_PROFILE_IDX)
 if (NO_COW_PROFILE_IDX EQUAL -1)
-    set(NO_COW_PROFILE OFF)
+  set(NO_COW_PROFILE OFF)
 else()
-    set(NO_COW_PROFILE ON)
-    add_definitions(-DMEMORIA_NO_COW_PROFILE)
+  set(NO_COW_PROFILE ON)
+  add_definitions(-DMEMORIA_NO_COW_PROFILE)
 endif()
 
 message ("ActiveProfiles:")
@@ -271,7 +279,7 @@ message ("======================== MBT OTHER BP: |${GENERATED_OTHER_BYPRODUCTS}|
 message ("======================== MBT ACTIVE PROFILES: |${ACTIVE_PROFILES} |===========================")
 
 if (BUILD_REUSE_CODEGEN_CONFIG)
-    SET(BUILD_REUSE_CODEGEN_CONFIG_OPT "--reuse-config")
+  SET(BUILD_REUSE_CODEGEN_CONFIG_OPT "--reuse-config")
 endif()
 
 message ("Reusing codegen config is ${REUSE_GENERATED_SOURCES}")
@@ -280,34 +288,35 @@ message ("Reusing codegen config is ${REUSE_GENERATED_SOURCES}")
 # providing that there are some targents consuming generated
 # files.
 add_custom_command(
-    IMPLICIT_DEPENDS C++ codegen/include/codegen_memoria.hpp
-    OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
-    DEPENDS ${CODEGEN_DEPS}
-    BYPRODUCTS ${GENERATED_MAIN_BYPRODUCTS} ${GENERATED_STORE_BYPRODUCTS} ${GENERATED_OTHER_BYPRODUCTS}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMAND
-        ${CMAKE_BINARY_DIR}/mbt-explicit/mbt
-        -I ${CMAKE_SOURCE_DIR}/include
-        -I ${CMAKE_SOURCE_DIR}/core/lib/include
-        -I ${CMAKE_SOURCE_DIR}/containers-api/include
-        -I ${CMAKE_SOURCE_DIR}/containers/include
-        -I ${CMAKE_SOURCE_DIR}/stores/include
-        -I ${CMAKE_SOURCE_DIR}/codegen/include
-        -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
-        -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
-        -D MMA_ICU_CXX_NS=icu
-        -D ${BUILD_EXTRA_CONTAINERS_OPT}
-        ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
-        ${BUILD_COW_PROFILE_OPT} CowProfile
-        ${BUILD_NO_COW_PROFILE_OPT} NoCowProfile
-        --config codegen_memoria.hpp
-        --project-output ${CMAKE_BINARY_DIR}/generated
-        --components-output-base ${CMAKE_BINARY_DIR}
-        ${BUILD_REUSE_CODEGEN_CONFIG_OPT}
+  IMPLICIT_DEPENDS C++ codegen/include/codegen_memoria.hpp
+  OUTPUT ${GENERATED_MAIN_SOURCES} ${GENERATED_STORE_SOURCES}
+  DEPENDS ${CODEGEN_DEPS}
+  BYPRODUCTS ${GENERATED_MAIN_BYPRODUCTS} ${GENERATED_STORE_BYPRODUCTS} ${GENERATED_OTHER_BYPRODUCTS}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND
+    ${CMAKE_BINARY_DIR}/mbt-explicit/mbt
+    -I ${CMAKE_SOURCE_DIR}/app_init/include
+    -I ${CMAKE_SOURCE_DIR}/core/include
+    -I ${CMAKE_SOURCE_DIR}/containers-api/include
+    -I ${CMAKE_SOURCE_DIR}/containers/include
+    -I ${CMAKE_SOURCE_DIR}/stores/include
+    -I ${CMAKE_SOURCE_DIR}/codegen/include
+    -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
+    -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
+    -D MMA_ICU_CXX_NS=icu
+    -D ${BUILD_EXTRA_CONTAINERS_OPT}
+    ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
+    ${BUILD_COW_PROFILE_OPT} CowProfile
+    ${BUILD_NO_COW_PROFILE_OPT} NoCowProfile
+    --config codegen_memoria.hpp
+    --project-output ${CMAKE_BINARY_DIR}/generated
+    --components-output-base ${CMAKE_BINARY_DIR}
+    ${BUILD_REUSE_CODEGEN_CONFIG_OPT}
     COMMAND_ERROR_IS_FATAL ANY
 )
 
 add_library(Containers STATIC)
+
 target_sources(Containers PRIVATE ${GENERATED_MAIN_SOURCES})
 
 add_subdirectory(containers-api)
@@ -316,14 +325,15 @@ add_subdirectory(containers)
 add_library(Stores STATIC)
 target_sources(Stores PRIVATE ${GENERATED_STORE_SOURCES})
 
-add_library(StoresSeastar STATIC)
-
+if (BUILD_SEASTAR)
+  add_library(StoresSeastar STATIC)
+endif()
 
 add_subdirectory(stores-api)
 add_subdirectory(stores)
 
 if (BUILD_SEASTAR)
-    add_library(SeastarLib STATIC)
+  add_library(SeastarLib STATIC)
 endif()
 
 add_library(AsioLib STATIC)
@@ -334,35 +344,54 @@ add_subdirectory(runtimes)
 
 add_subdirectory(app_init)
 
-
 if (BUILD_SANDBOX)
-    add_subdirectory(sandbox)
+  add_subdirectory(sandbox)
 endif()
 
 if (BUILD_TESTS)
-    add_subdirectory(tests/runner)
-    add_subdirectory(tests/main)
+  add_subdirectory(tests/runner)
+  add_subdirectory(tests/main)
 
-    add_subdirectory(tests-core)
-    add_subdirectory(tests/reactor)
+  add_subdirectory(tests-core)
+  add_subdirectory(tests/reactor)
 
-    if (BUILD_TESTS_HRPC)
-        add_subdirectory(tests/hrpc)
-    endif()
+  if (BUILD_TESTS_HRPC)
+    add_subdirectory(tests/hrpc)
+  endif()
 endif()
 
 
 if (BUILD_EXAMPLES)
-    add_subdirectory(examples)
+  add_subdirectory(examples)
 endif()
 
 if (BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
+  add_subdirectory(benchmarks)
 endif()
 
-export(TARGETS
-    Core AppInit Containers ContainersApi Stores
-    StoresApi SeastarLib RuntimeApi
-    FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/MemoriaConfig.cmake"
+  INSTALL_DESTINATION ${MEMORIA_CONFIG_INSTALL_DIR}
 )
+
+# generate the version file for the config file
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/MemoriaConfigVersion.cmake"
+  VERSION "${VERSION}"
+  COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/MemoriaConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/MemoriaConfigVersion.cmake"
+  DESTINATION ${MEMORIA_CONFIG_INSTALL_DIR}
+)
+
+install(
+  EXPORT MemoriaTargets
+  NAMESPACE Memoria::
+  DESTINATION ${MEMORIA_CONFIG_INSTALL_DIR}
+)
+
 

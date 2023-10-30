@@ -20,20 +20,33 @@ add_library (SystemTap::SDT INTERFACE IMPORTED)
 find_package(Seastar REQUIRED)
 
 file(GLOB_RECURSE LIB_SOURCES *.cpp)
-file(GLOB_RECURSE LIB_HEADERS *.hpp)
+file(GLOB LIB_HEADERS *.hpp)
+
+file(GLOB_RECURSE PUBLIC_LIB_HEADERS include/*.hpp)
 
 set_target_properties(SeastarLib PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(SeastarLib PROPERTIES OUTPUT_NAME memoria_seastar)
 
 target_link_libraries(SeastarLib PUBLIC RuntimeApi Seastar::seastar Boost::program_options)
-target_include_directories(SeastarLib PUBLIC include)
+
+target_include_directories(SeastarLib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/seastar/include>
+)
 
 target_compile_definitions(SeastarLib PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=7)
 target_compile_definitions(SeastarLib PUBLIC -DMEMORIA_SEASTAR_RUNTIME)
 
-
 target_sources(
-    SeastarLib
-    PRIVATE ${LIB_SOURCES} ${LIB_HEADERS}
+  SeastarLib
+  PRIVATE ${LIB_SOURCES} ${LIB_HEADERS}
+  PRIVATE FILE_SET HEADERS FILES ${PUBLIC_LIB_HEADERS}
 )
 
+install(TARGETS
+  SeastarLib EXPORT MemoriaTargets
+)
+
+install(
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes/seastar
+)

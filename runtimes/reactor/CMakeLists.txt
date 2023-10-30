@@ -18,13 +18,22 @@ set_target_properties(ReactorLib PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_
 set_target_properties(ReactorLib PROPERTIES OUTPUT_NAME memoria_reactor)
 
 target_link_libraries(ReactorLib PUBLIC RuntimeApi Boost::program_options Boost::context Boost::fiber)
-target_include_directories(ReactorLib PUBLIC include)
+target_include_directories(ReactorLib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/reactor/include>
+)
 target_compile_definitions(ReactorLib PUBLIC -DMEMORIA_REACTOR_RUNTIME)
 
 
 target_sources(
-    ReactorLib
-    PUBLIC ${LIB_HEADERS}
+  ReactorLib
+  PRIVATE FILE_SET HEADERS FILES ${LIB_HEADERS}
 )
 
 add_subdirectory(reactor)
+
+install(
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes/reactor
+)
+
+install(TARGETS ReactorLib EXPORT MemoriaTargets)

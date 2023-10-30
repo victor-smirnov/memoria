@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+
+find_package(absl CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(unofficial-lmdb CONFIG REQUIRED)
+find_package(unofficial-hash-library CONFIG REQUIRED)
+find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
+
+find_package(Boost 1.74.0
+  COMPONENTS
+    filesystem
+    program_options
+    serialization
+    program_options
+    context
+    fiber
+  REQUIRED
+)
+
+include("${CMAKE_CURRENT_LIST_DIR}/MemoriaTargets.cmake")
+
+check_required_components(Memoria)

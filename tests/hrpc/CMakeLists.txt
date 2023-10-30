@@ -21,15 +21,20 @@ add_library(HRPCTestsLib STATIC)
 target_link_libraries(HRPCTestsLib PRIVATE RuntimeApi Catch2::Catch2)
 target_sources(HRPCTestsLib PRIVATE ${LIB_SOURCES})
 
+if (BUILD_SEASTAR)
+  add_executable(seastar_hrpc_tests_server)
+  target_link_libraries(seastar_hrpc_tests_server PRIVATE SeastarLib HRPCTestsLib)
+  target_sources(seastar_hrpc_tests_server PRIVATE seastar_hrpc_tests_server.cpp ${LIB_TEST_SOURCES})
 
-add_executable(seastar_hrpc_tests_server)
-target_link_libraries(seastar_hrpc_tests_server PRIVATE SeastarLib HRPCTestsLib)
-target_sources(seastar_hrpc_tests_server PRIVATE seastar_hrpc_tests_server.cpp ${LIB_TEST_SOURCES})
+  add_executable(seastar_hrpc_tests_client)
+  target_link_libraries(seastar_hrpc_tests_client PRIVATE SeastarLib HRPCTestsLib)
+  target_sources(seastar_hrpc_tests_client PRIVATE seastar_hrpc_tests_client.cpp ${LIB_TEST_SOURCES})
 
-add_executable(seastar_hrpc_tests_client)
-target_link_libraries(seastar_hrpc_tests_client PRIVATE SeastarLib HRPCTestsLib)
-target_sources(seastar_hrpc_tests_client PRIVATE seastar_hrpc_tests_client.cpp ${LIB_TEST_SOURCES})
-
+  install(TARGETS
+    seastar_hrpc_tests_server seastar_hrpc_tests_client
+    EXPORT Memoria FILE_SET PROGRAMS
+  )
+endif()
 
 add_executable(reactor_hrpc_tests_server)
 target_link_libraries(reactor_hrpc_tests_server PRIVATE ReactorLib HRPCTestsLib)
@@ -47,3 +52,9 @@ target_sources(asio_hrpc_tests_server PRIVATE asio_hrpc_tests_server.cpp ${LIB_T
 add_executable(asio_hrpc_tests_client)
 target_link_libraries(asio_hrpc_tests_client PRIVATE AsioLib HRPCTestsLib)
 target_sources(asio_hrpc_tests_client PRIVATE asio_hrpc_tests_client.cpp ${LIB_TEST_SOURCES})
+
+install(TARGETS
+  reactor_hrpc_tests_server reactor_hrpc_tests_client
+  asio_hrpc_tests_server asio_hrpc_tests_client
+  EXPORT MemoriaTargets FILE_SET PROGRAMS
+)

@@ -17,15 +17,25 @@ set_target_properties(RuntimeApi PROPERTIES CXX_STANDARD ${MEMORIA_API_CXX_STAND
 set_target_properties(RuntimeApi PROPERTIES OUTPUT_NAME memoria_runtime_api)
 
 target_link_libraries(RuntimeApi PUBLIC Core)
-target_include_directories(RuntimeApi PUBLIC include)
+target_include_directories(RuntimeApi PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/include>
+)
 
 file(GLOB RUNTIME_API_SOURCES *.cpp)
 file(GLOB_RECURSE RUNTIME_API_HEADERS include/*.hpp)
 
-target_sources(RuntimeApi
-    PUBLIC ${RUNTIME_API_HEADERS}
-    PRIVATE ${RUNTIME_API_SOURCES}
+target_sources(
+  RuntimeApi
+  PRIVATE FILE_SET HEADERS FILES ${RUNTIME_API_HEADERS}
+  PRIVATE ${RUNTIME_API_SOURCES}
 )
+
+install(
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes
+)
+
+install(TARGETS RuntimeApi EXPORT MemoriaTargets)
 
 if (BUILD_SEASTAR)
     add_subdirectory(seastar)
@@ -33,3 +43,5 @@ endif()
 
 add_subdirectory(asio)
 add_subdirectory(reactor)
+
+

@@ -14,5 +14,5 @@
 # limitations under the License.
 
 add_executable(boost_fibers)
-target_link_libraries(boost_fibers PRIVATE Core Boost::context Boost::fiber)
+target_link_libraries(boost_fibers PRIVATE Core Boost::context Boost::fiber fmt::fmt)
 target_sources(boost_fibers PRIVATE boost_fibers.cpp)

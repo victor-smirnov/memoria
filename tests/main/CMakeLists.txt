@@ -23,3 +23,9 @@ target_sources(
     MainTests
     PRIVATE ${TESTS_SOURCES}
 )
+
+install(TARGETS
+  MainTests
+  EXPORT MemoriaTargets FILE_SET PROGRAMS
+)
+

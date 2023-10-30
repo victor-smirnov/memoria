@@ -32,7 +32,7 @@ if (NOT MEMORIA_HAS_TOP_LEVEL)
     file(GLOB_RECURSE LIB_SOURCES ${CORE_LIB}/*.cpp)
 
     add_library(Core STATIC )
-    target_include_directories(Core PUBLIC ../include)
+    target_include_directories(Core PUBLIC ../core/include)
     target_include_directories(Core PUBLIC ${CORE_LIB}/include)
 
     set_property(TARGET Core PROPERTY CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
@@ -64,12 +64,18 @@ file (GLOB_RECURSE MBT_HEDERS include/*.hpp)
 
 add_executable(mbt)
 
-target_include_directories(mbt PUBLIC include)
+target_include_directories(mbt PRIVATE include)
 target_include_directories(mbt PRIVATE ${CLANG_INCLUDE_DIRS})
 
-target_sources(mbt PRIVATE ${MBT_SOURCES} PUBLIC ${MBT_HEADERS})
+target_sources(mbt PRIVATE ${MBT_SOURCES} PRIVATE ${MBT_HEADERS})
 
 target_link_libraries(mbt PRIVATE Core)
 target_link_libraries(mbt PRIVATE Boost::program_options Boost::filesystem)
 target_link_libraries(mbt PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling c++)
 target_link_libraries(mbt PRIVATE pantor::inja)
+
+install(TARGETS
+  mbt
+    EXPORT MemoriaTargets FILE_SET PROGRAMS
+    RUNTIME DESTINATION ${MEMORIA_TOOLS_INSTALL_DIR}
+)

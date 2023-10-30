@@ -4,6 +4,8 @@
     "version": "0.1.0",
     "dependencies": [
         "abseil", "hash-library", "catch2", "lmdb", "icu", "inja", "ftxui",
+        "fmt",
+        "atomic-queue",
         {"name":  "boost", "version>=": "1.81.0"},
         {"name":  "yaml-cpp", "version>=": "0.7.0"}
     ],

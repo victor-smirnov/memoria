@@ -28,8 +28,13 @@ file(GLOB_RECURSE _HDRS "../include/*.*")
 target_sources(
     ReactorTests2
     PRIVATE ${TOOLS_LIB_SRC}
-    PUBLIC ${_HDRS}
+    PRIVATE ${_HDRS}
 )
 
+
+#install(TARGETS
+#  ReactorTests2
+#  EXPORT Memoria FILE_SET PROGRAMS
+#)
 
 

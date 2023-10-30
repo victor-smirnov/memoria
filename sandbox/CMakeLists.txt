@@ -21,16 +21,26 @@ set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256 blk_distr)
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
     target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit)
-ENDFOREACH(MEMORIA_TARGET )
+ENDFOREACH(MEMORIA_TARGET)
 
-set(MEMORIA_SANDBOX_SEASTAR seastar-sb dma)
 
-FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
+if (BUILD_SEASTAR)
+  set(MEMORIA_SANDBOX_SEASTAR seastar-sb dma)
+
+  FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_SEASTAR})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
     target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit SeastarLib)
-ENDFOREACH(MEMORIA_TARGET )
+  ENDFOREACH(MEMORIA_TARGET)
+
+  add_executable(seastar-corobench seastar-corobench.cpp)
+  target_link_libraries(seastar-corobench SeastarLib)
+  target_compile_options(seastar-corobench PUBLIC -fcoroutines)
+endif()
 
 add_executable(process_sb process_sb.cpp)
 target_link_libraries(process_sb TestsRunnerLib)
 
 add_executable(crashing crashing.cpp)
+
+add_executable(boost-fibbench boost-fibbench.cpp)
+target_link_libraries(boost-fibbench ReactorLib)

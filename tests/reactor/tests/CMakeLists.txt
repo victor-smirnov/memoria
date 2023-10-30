@@ -45,7 +45,6 @@ if(BUILD_TESTS_STORES)
 
     file (GLOB_RECURSE TEST_SRCS store/*.cpp store/*.hpp)
     target_sources(tests-rr PRIVATE ${TEST_SRCS})
-
 endif()
 
 
@@ -53,4 +52,7 @@ set_target_properties(tests-rr PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_ST
 target_link_libraries(tests-rr PUBLIC Stores Containers AppInit ReactorTests2 )
 target_sources(tests-rr PRIVATE tests2.cpp ${SRCS})
 
-
+#install(TARGETS
+#  tests-rr
+#  EXPORT MemoriaTargets FILE_SET PROGRAMS
+#)

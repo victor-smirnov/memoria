@@ -12,18 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB_RECURSE LIB_SOURCES *.cpp)
-file(GLOB_RECURSE LIB_HEADERS *.hpp)
+file(GLOB LIB_SOURCES *.cpp hrpc/*.cpp)
+file(GLOB_RECURSE LIB_HEADERS include/*.hpp)
 
 set_target_properties(AsioLib PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 set_target_properties(AsioLib PROPERTIES OUTPUT_NAME memoria_asio)
 
 target_link_libraries(AsioLib PUBLIC RuntimeApi Boost::program_options Boost::context Boost::fiber)
-target_include_directories(AsioLib PUBLIC include)
+target_include_directories(AsioLib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/asio/include>
+)
 target_compile_definitions(AsioLib PUBLIC -DMEMORIA_ASIO_RUNTIME)
 
 target_sources(
-    AsioLib
-    PRIVATE ${LIB_SOURCES} ${LIB_HEADERS}
+  AsioLib
+  PRIVATE FILE_SET HEADERS FILES ${LIB_HEADERS}
+  PRIVATE ${LIB_SOURCES}
 )
 
+install(TARGETS AsioLib EXPORT MemoriaTargets)
+
+install(
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes/asio
+)

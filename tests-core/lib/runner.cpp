@@ -691,7 +691,7 @@ void MultiProcessRunner::handle_connections()
                     worker_process->join();
                 }
             }
-            catch (const std::exception& ex)
+            catch (const MemoriaThrowable& ex)
             {
                 if (worker_process) {
                     worker_process->terminate();
@@ -705,13 +705,13 @@ void MultiProcessRunner::handle_connections()
                     worker_process->join();
                 }
             }
-            catch (const MemoriaThrowable& ex)
+            catch (const std::exception& ex)
             {
                 if (worker_process) {
                     worker_process->terminate();
                     worker_process->join();
                 }
-            }
+            }            
             catch (...) {
                 println("Unknown exception, worker = {}", worker_num);
             }
