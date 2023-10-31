@@ -34,7 +34,7 @@ target_sources(ContainersApi
 )
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/containers-api
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/containers-api
 )
 
 install(TARGETS ContainersApi EXPORT MemoriaTargets)

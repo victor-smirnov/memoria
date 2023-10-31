@@ -48,5 +48,5 @@ install(TARGETS
 )
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes/seastar
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/seastar
 )

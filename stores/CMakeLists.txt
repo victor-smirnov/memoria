@@ -94,7 +94,7 @@ target_sources(
 )
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/stores
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/stores
 )
 
 install(TARGETS
@@ -128,7 +128,7 @@ if (BUILD_SEASTAR)
   )
 
   install(
-    DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/stores-seastar
+    DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/stores-seastar
   )
 
   install(TARGETS

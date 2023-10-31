@@ -36,7 +36,7 @@ target_sources(StoresApi
 )
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/stores-api
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/stores-api
 )
 
 install(TARGETS StoresApi EXPORT MemoriaTargets)

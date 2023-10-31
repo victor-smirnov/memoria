@@ -33,7 +33,7 @@ set_target_properties(AppInit PROPERTIES CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STA
 set_target_properties(AppInit PROPERTIES OUTPUT_NAME memoria_app_init)
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/app_init
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/app_init
 )
 
 install(TARGETS AppInit EXPORT MemoriaTargets)

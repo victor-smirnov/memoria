@@ -31,5 +31,5 @@ target_include_directories(TestsRunnerLib PUBLIC include)
 target_sources(
     TestsRunnerLib
     PRIVATE ${RUNNER_SOURCES} ${POSIX_RUNNER_SOURCES}
-    PUBLIC  ${RUNNER_HEADERS}
+    PRIVATE ${RUNNER_HEADERS}
 )

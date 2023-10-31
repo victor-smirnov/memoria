@@ -33,6 +33,7 @@ if (BUILD_SEASTAR)
   install(TARGETS
     seastar_hrpc_tests_server seastar_hrpc_tests_client
     EXPORT Memoria FILE_SET PROGRAMS
+    RUNTIME DESTINATION ${MEMORIA_TOOLS_INSTALL_DIR}
   )
 endif()
 
@@ -57,4 +58,5 @@ install(TARGETS
   reactor_hrpc_tests_server reactor_hrpc_tests_client
   asio_hrpc_tests_server asio_hrpc_tests_client
   EXPORT MemoriaTargets FILE_SET PROGRAMS
+  RUNTIME DESTINATION ${MEMORIA_TOOLS_INSTALL_DIR}
 )

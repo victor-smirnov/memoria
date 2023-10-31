@@ -27,5 +27,6 @@ target_sources(
 install(TARGETS
   MainTests
   EXPORT MemoriaTargets FILE_SET PROGRAMS
+  RUNTIME DESTINATION ${MEMORIA_TOOLS_INSTALL_DIR}
 )
 

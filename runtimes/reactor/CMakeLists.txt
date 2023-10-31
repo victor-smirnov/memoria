@@ -33,7 +33,7 @@ target_sources(
 add_subdirectory(reactor)
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes/reactor
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/reactor
 )
 
 install(TARGETS ReactorLib EXPORT MemoriaTargets)

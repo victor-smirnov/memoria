@@ -34,5 +34,5 @@ target_sources(
 install(TARGETS AsioLib EXPORT MemoriaTargets)
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/runtimes/asio
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/asio
 )

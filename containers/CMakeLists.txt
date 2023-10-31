@@ -32,7 +32,7 @@ target_sources(Containers
 )
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/containers
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/containers
 )
 
 install(TARGETS Containers EXPORT MemoriaTargets)

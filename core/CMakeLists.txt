@@ -72,5 +72,5 @@ target_sources(
 install(TARGETS Core EXPORT MemoriaTargets)
 
 install(
-  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/core
+  DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/core
 )

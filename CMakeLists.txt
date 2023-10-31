@@ -34,6 +34,7 @@ include(GNUInstallDirs)
 
 set(MEMORIA_TOOLS_INSTALL_DIR  tools/memoria)
 set(MEMORIA_CONFIG_INSTALL_DIR share/memoria)
+set(MEMORIA_INCLUDES_INSTALL_DIR ${MEMORIA_CONFIG_INSTALL_DIR})
 
 set(VERSION "0.1.0")
 
