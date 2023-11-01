@@ -19,7 +19,7 @@ set_target_properties(RuntimeApi PROPERTIES OUTPUT_NAME memoria_runtime_api)
 target_link_libraries(RuntimeApi PUBLIC Core)
 target_include_directories(RuntimeApi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/include>
 )
 
 file(GLOB RUNTIME_API_SOURCES *.cpp)

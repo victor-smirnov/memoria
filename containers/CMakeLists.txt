@@ -20,7 +20,7 @@ target_link_libraries(Containers PUBLIC ContainersApi)
 
 target_include_directories(Containers PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/containers/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/containers/include>
 )
 
 file(GLOB CTR_SOURCES *.cpp)

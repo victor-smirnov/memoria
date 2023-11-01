@@ -21,7 +21,7 @@ set_target_properties(ContainersApi PROPERTIES OUTPUT_NAME memoria_containers_ap
 
 target_link_libraries(ContainersApi PUBLIC Core)
 target_include_directories(ContainersApi PUBLIC
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/containers-api/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/containers-api/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 

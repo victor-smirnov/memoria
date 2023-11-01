@@ -70,7 +70,7 @@ set_target_properties(Stores PROPERTIES OUTPUT_NAME memoria_stores)
 target_link_libraries(Stores PUBLIC StoresApi Containers)
 target_include_directories(Stores PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/stores/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/stores/include>
 )
 
 
@@ -109,7 +109,7 @@ if (BUILD_SEASTAR)
   target_link_libraries(StoresSeastar PUBLIC StoresApi Containers Stores SeastarLib)
   target_include_directories(StoresSeastar PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/stores-seastar/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/stores-seastar/include>
   )
 
   target_sources(

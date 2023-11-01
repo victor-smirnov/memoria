@@ -31,7 +31,7 @@ target_link_libraries(SeastarLib PUBLIC RuntimeApi Seastar::seastar Boost::progr
 
 target_include_directories(SeastarLib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/seastar/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/seastar/include>
 )
 
 target_compile_definitions(SeastarLib PUBLIC -DSEASTAR_SCHEDULING_GROUPS_COUNT=16 -DSEASTAR_API_LEVEL=7)

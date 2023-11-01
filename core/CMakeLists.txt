@@ -22,7 +22,7 @@ file(GLOB_RECURSE LIB_SOURCES lib/*.cpp lib/*.hpp lib/hermes/*.cpp lib/platforms
 
 target_include_directories(Core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/core/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/core/include>
 )
 
 

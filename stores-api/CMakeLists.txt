@@ -23,7 +23,7 @@ target_link_libraries(StoresApi PUBLIC Core)
 
 target_include_directories(StoresApi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/stores-api/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/stores-api/include>
 )
 
 file(GLOB STORE_API_SOURCES *.cpp)

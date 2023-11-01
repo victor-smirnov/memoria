@@ -20,7 +20,7 @@ set_target_properties(ReactorLib PROPERTIES OUTPUT_NAME memoria_reactor)
 target_link_libraries(ReactorLib PUBLIC RuntimeApi Boost::program_options Boost::context Boost::fiber)
 target_include_directories(ReactorLib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/reactor/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/reactor/include>
 )
 target_compile_definitions(ReactorLib PUBLIC -DMEMORIA_REACTOR_RUNTIME)
 

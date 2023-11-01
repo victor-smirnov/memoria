@@ -21,7 +21,7 @@ set_target_properties(AsioLib PROPERTIES OUTPUT_NAME memoria_asio)
 target_link_libraries(AsioLib PUBLIC RuntimeApi Boost::program_options Boost::context Boost::fiber)
 target_include_directories(AsioLib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/runtimes/asio/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/runtimes/asio/include>
 )
 target_compile_definitions(AsioLib PUBLIC -DMEMORIA_ASIO_RUNTIME)
 

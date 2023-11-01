@@ -20,7 +20,7 @@ add_library(AppInit STATIC)
 
 target_include_directories(AppInit PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/app_init/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MEMORIA_INCLUDES_INSTALL_DIR}/app_init/include>
 )
 
 target_sources(AppInit
