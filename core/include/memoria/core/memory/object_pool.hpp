@@ -69,10 +69,10 @@ struct SharedFromThisHelper;
 
 
 template <typename T>
-SharedPtr<T> make_shared_ptr_from(T*, SharedPtrHolder*);
+SharedPtr<T> make_shared_ptr_from(T*, SharedPtrHolder*) noexcept;
 
 template <typename T>
-UniquePtr<T> make_unique_ptr_from(T*, SharedPtrHolder*);
+UniquePtr<T> make_unique_ptr_from(T*, SharedPtrHolder*) noexcept;
 
 }
 
@@ -563,12 +563,12 @@ template <typename T> class enable_shared_from_this;
 namespace detail {
 
 template <typename T>
-SharedPtr<T> make_shared_ptr_from(T* obj, SharedPtrHolder* holder) {
+SharedPtr<T> make_shared_ptr_from(T* obj, SharedPtrHolder* holder) noexcept {
     return SharedPtr<T>(obj, holder);
 }
 
 template <typename T>
-UniquePtr<T> make_unique_ptr_from(T* obj, SharedPtrHolder* holder) {
+UniquePtr<T> make_unique_ptr_from(T* obj, SharedPtrHolder* holder) noexcept {
     return UniquePtr<T>(obj, holder);
 }
 

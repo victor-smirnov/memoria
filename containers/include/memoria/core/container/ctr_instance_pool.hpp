@@ -141,7 +141,8 @@ public:
         CtrRefHolder* hh = holder.get();
         instances_.insert(std::make_pair(ctr_id, hh));
 
-        return pool::detail::make_shared_ptr_from(holder->get_instance(), holder.release());
+        auto instance_ptr = holder->get_instance();
+        return pool::detail::make_shared_ptr_from(instance_ptr, holder.release());
     }
 
     void remove(const CtrID& ctr_id)
