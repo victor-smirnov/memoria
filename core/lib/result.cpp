@@ -20,7 +20,7 @@ namespace memoria {
 
 namespace detail {
 
-void ResultErrors::do_throw() {
+__attribute__((noreturn)) void ResultErrors::do_throw() {
     switch(error.index())
     {
         case 0:

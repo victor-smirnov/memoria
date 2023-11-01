@@ -196,7 +196,7 @@ struct ResultErrors {
 
     ErrorsT error;
 
-    [[noreturn]] void do_throw();
+    [[noreturn]] __attribute__((noreturn)) void do_throw();
 };
 
 }

@@ -204,7 +204,7 @@ struct ToStringHelper<DT, false> {
         return false;
     }
 
-    static U8String convert_to(DTTViewType<DT>) {
+    __attribute__((noreturn)) static U8String convert_to(DTTViewType<DT>) {
         MEMORIA_MAKE_GENERIC_ERROR("No 'to string' converter is defined for datatype {}", TypeNameFactory<DT>::name()).do_throw();
     }
 };
@@ -227,7 +227,7 @@ struct FromStringHelper<DT, false> {
         return false;
     }
 
-    static hermes::Object convert_from(U8StringView) {
+    __attribute__((noreturn)) static hermes::Object convert_from(U8StringView) {
         MEMORIA_MAKE_GENERIC_ERROR("No 'from string' converter is defined for datatype {}", TypeNameFactory<DT>::name()).do_throw();
     }
 };

@@ -235,7 +235,7 @@ public:
         return TypeNameFactory<T>::name();
     }
 
-    virtual bool hermes_is_simple_layout(
+    __attribute__((noreturn)) virtual bool hermes_is_simple_layout(
             LWMemHolder* ref_holder,
             void* ptr
     ) const override {

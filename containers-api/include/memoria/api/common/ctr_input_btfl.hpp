@@ -43,7 +43,7 @@ public:
         Base::check();
 
         uint64_t sums[Symbols]{};
-        ForEach<0, Symbols>::process_fn([&](auto stream_idx){
+        ForEach<0, Symbols>::process_fn([&sums, this](auto stream_idx){
             auto size = Base::template get<stream_idx, 0>().size();
             sums[stream_idx] = size;
         });
