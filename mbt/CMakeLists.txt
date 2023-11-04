@@ -15,8 +15,8 @@
 SET(CMAKE_PREFIX_PATH /home/victor/clang/lib/cmake;/home/victor/clang/lib/llvm)
 
 if (NOT MEMORIA_HAS_TOP_LEVEL)
-    cmake_minimum_required (VERSION 3.16)
-    project (MBT)
+    cmake_minimum_required (VERSION 3.25)
+    project (MBT VERSION 0.1.0)
 
     find_package(absl CONFIG REQUIRED)
     find_package(fmt CONFIG REQUIRED)

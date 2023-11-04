@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <boost/asio.hpp>
 
 namespace memoria::asio {

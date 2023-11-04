@@ -20,14 +20,22 @@
 
 cmake_minimum_required (VERSION 3.25)
 
+option(CORE_ONLY "Build only Core library & tools" OFF)
+
+if (CORE_ONLY)
+  set(BUILD_SEASTAR_DFLT OFF)
+else()
+  set(BUILD_SEASTAR_DFLT ON)
+endif()
+
 if (LINUX)
-    option (BUILD_SEASTAR "Build Seastar Framework supporting library" ON)
+    option (BUILD_SEASTAR "Build Seastar Framework supporting library and apps" ${BUILD_SEASTAR_DFLT})
     if(BUILD_SEASTAR)
       list(APPEND VCPKG_MANIFEST_FEATURES "seastar")
     endif()
 endif()
 
-project (Memoria)
+project (Memoria VERSION 0.1.0)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
@@ -36,7 +44,7 @@ set(MEMORIA_TOOLS_INSTALL_DIR  tools/memoria)
 set(MEMORIA_CONFIG_INSTALL_DIR share/memoria)
 set(MEMORIA_INCLUDES_INSTALL_DIR ${MEMORIA_CONFIG_INSTALL_DIR})
 
-set(VERSION "0.1.0")
+#set(VERSION "0.1.0")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -46,7 +54,7 @@ set (MEMORIA_INTERNAL_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 
 if (NOT CMAKE_BUILD_TYPE)
-     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -54,6 +62,8 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
 ENDIF()
+
+
 
 option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
@@ -121,6 +131,9 @@ find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 add_library(Core STATIC)
 
 add_subdirectory(core)
+
+if (NOT CORE_ONLY)
+
 add_subdirectory(mbt)
 
 
@@ -361,7 +374,6 @@ if (BUILD_TESTS)
   endif()
 endif()
 
-
 if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
@@ -369,6 +381,8 @@ endif()
 if (BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
+
+endif(NOT CORE_ONLY)
 
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
@@ -379,7 +393,7 @@ configure_package_config_file(
 # generate the version file for the config file
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/MemoriaConfigVersion.cmake"
-  VERSION "${VERSION}"
+  VERSION "${PROJECT_VERSION}"
   COMPATIBILITY AnyNewerVersion
 )
 
