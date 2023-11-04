@@ -114,7 +114,7 @@ if (BUILD_SEASTAR)
 
   target_sources(
     StoresSeastar
-    PRIVATE FILE_SET HEADERS FILES ${STORE_HEADERS}
+    PRIVATE ${STORE_HEADERS}
     PRIVATE
         ${LIB_HEADERS}
         ${LMDB_SOURCES} ${LMDB_HEADERS}
