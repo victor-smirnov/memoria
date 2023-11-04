@@ -18,7 +18,7 @@
 # MEMORIA_COMPILE_FLAGS            Additional flags for compiler
 # MEMORIA_LINK_FLAGS               Additional flags for linker
 
-cmake_minimum_required (VERSION 3.25)
+cmake_minimum_required (VERSION 3.22)
 
 option(CORE_ONLY "Build only Core library & tools" OFF)
 
