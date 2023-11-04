@@ -54,5 +54,5 @@ target_sources(tests-rr PRIVATE tests2.cpp ${SRCS})
 
 #install(TARGETS
 #  tests-rr
-#  EXPORT MemoriaTargets FILE_SET PROGRAMS
+#  EXPORT MemoriaTargets
 #)

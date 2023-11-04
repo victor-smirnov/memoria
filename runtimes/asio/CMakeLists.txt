@@ -27,7 +27,7 @@ target_compile_definitions(AsioLib PUBLIC -DMEMORIA_ASIO_RUNTIME)
 
 target_sources(
   AsioLib
-  PRIVATE FILE_SET HEADERS FILES ${LIB_HEADERS}
+  PRIVATE ${LIB_HEADERS}
   PRIVATE ${LIB_SOURCES}
 )
 

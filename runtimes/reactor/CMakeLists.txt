@@ -27,7 +27,7 @@ target_compile_definitions(ReactorLib PUBLIC -DMEMORIA_REACTOR_RUNTIME)
 
 target_sources(
   ReactorLib
-  PRIVATE FILE_SET HEADERS FILES ${LIB_HEADERS}
+  PRIVATE ${LIB_HEADERS}
 )
 
 add_subdirectory(reactor)

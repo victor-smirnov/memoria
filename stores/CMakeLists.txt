@@ -80,7 +80,7 @@ file (GLOB LIB_HEADERS *.hpp)
 
 target_sources(
     Stores
-    PRIVATE FILE_SET HEADERS FILES ${STORE_HEADERS}
+    PRIVATE ${STORE_HEADERS}
     PRIVATE
         ${LIB_SOURCES} ${LIB_HEADERS}
         ${LMDB_SOURCES} ${LMDB_HEADERS}

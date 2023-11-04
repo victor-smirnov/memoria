@@ -34,7 +34,7 @@ target_sources(
 
 #install(TARGETS
 #  ReactorTests2
-#  EXPORT Memoria FILE_SET PROGRAMS
+#  EXPORT Memoria
 #)
 
 

@@ -25,7 +25,7 @@ target_include_directories(AppInit PUBLIC
 
 target_sources(AppInit
   PRIVATE ${GLOBAL_INIT_SRCS} ${INIT_SOURCES}
-  PRIVATE FILE_SET HEADERS FILES ${INIT_HEADERS}
+  PRIVATE ${INIT_HEADERS}
 )
 
 target_link_libraries(AppInit Core Containers Stores)

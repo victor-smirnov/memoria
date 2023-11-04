@@ -15,7 +15,7 @@
 SET(CMAKE_PREFIX_PATH /home/victor/clang/lib/cmake;/home/victor/clang/lib/llvm)
 
 if (NOT MEMORIA_HAS_TOP_LEVEL)
-    cmake_minimum_required (VERSION 3.25)
+    cmake_minimum_required (VERSION 3.22)
     project (MBT VERSION 0.1.0)
 
     find_package(absl CONFIG REQUIRED)
@@ -76,6 +76,6 @@ target_link_libraries(mbt PRIVATE pantor::inja)
 
 install(TARGETS
   mbt
-    EXPORT MemoriaTargets FILE_SET PROGRAMS
+    EXPORT MemoriaTargets
     RUNTIME DESTINATION ${MEMORIA_TOOLS_INSTALL_DIR}
 )
