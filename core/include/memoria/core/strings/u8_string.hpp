@@ -526,7 +526,6 @@ public:
     bool is_empty() const {
         return size() == 0;
     }
-
 };
 
 

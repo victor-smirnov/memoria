@@ -144,6 +144,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
     -DCMAKE_TOOLCHAIN_FILE:INTERNAL=${CMAKE_TOOLCHAIN_FILE}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
     -S ${CMAKE_SOURCE_DIR}/mbt
     -B ${CMAKE_BINARY_DIR}/mbt-explicit
     -G ${CMAKE_GENERATOR}
@@ -184,6 +185,8 @@ else()
     set (BUILD_NO_COW_PROFILE_OPT "--disable")
 endif()
 
+message ("MBT: Collecting project information")
+
 execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND
@@ -196,7 +199,6 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/stores/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
-        -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
@@ -316,7 +318,6 @@ add_custom_command(
     -I ${CMAKE_SOURCE_DIR}/stores/include
     -I ${CMAKE_SOURCE_DIR}/codegen/include
     -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
-    -I ${MMA_CLANG_INCLUDES_DIR}/c++/v1
     -D MMA_ICU_CXX_NS=icu
     -D ${BUILD_EXTRA_CONTAINERS_OPT}
     ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile

@@ -23,11 +23,13 @@
 #include "codegen.hpp"
 #include "inja_generators.hpp"
 
+#include "mbt_config.hpp"
 
 #include <boost/program_options.hpp>
 
 #include <fstream>
 #include <filesystem>
+#include <regex>
 
 #include <pty.h>
 
@@ -56,6 +58,18 @@ std::vector<U8String> repack_string_vector(const std::vector<std::string>& vv) {
   }
 
   return res;
+}
+
+std::vector<U8String> Split(const U8String& str, const U8String& regex)
+{
+  std::regex re(regex.to_std_string());
+  return {
+    std::sregex_token_iterator(
+        str.to_std_string().begin(),
+        str.to_std_string().end(), re, -1
+    ),
+    std::sregex_token_iterator()
+  };
 }
 
 int main(int argc, char** argv)
@@ -93,6 +107,15 @@ int main(int argc, char** argv)
     add_parser_clang_option("-std=c++17");
 
     bool verbose = map.count("verbose");
+
+    U8String compiler_includes = MBT_INCLUDES;
+
+    auto compiler_includes_list = Split(compiler_includes, "\\:");
+
+    for (const auto& inc: compiler_includes_list) {
+        if (verbose) println("Include opt: {}", inc);
+        add_parser_clang_option(U8String("-I") + inc);
+    }
 
     auto cfg = get_compiler_config();
     for (const auto& inc: cfg->includes()){

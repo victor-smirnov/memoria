@@ -267,6 +267,10 @@ void add_parser_clang_option(const U8String& text) {
     parser_options.push_back(text);
 }
 
+const std::vector<std::string>& get_parser_options() {
+    return parser_options;
+}
+
 
 ShPtr<CodeModule> parse_file(const std::vector<U8String>& extra_opts, const U8String& file_name, const U8String& text)
 {

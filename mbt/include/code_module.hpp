@@ -116,6 +116,7 @@ U8String regenerate_pch(const std::vector<U8String>& extra_opts, const U8String&
 U8String regenerate_pch(const std::vector<U8String>& extra_opts, const U8String& target_directory, const U8String& pch, const U8String& header_file_name);
 
 void add_parser_clang_option(const U8String& text);
+const std::vector<std::string>& get_parser_options();
 
 U8String load_text_file(U8String file_name);
 void write_text_file(U8String file_name, U8String data);
