@@ -110,11 +110,13 @@ int main(int argc, char** argv)
 
     U8String compiler_includes = MBT_INCLUDES;
 
+    std::cerr << "MBT_INCLUDES: " << compiler_includes << std::endl;
     auto compiler_includes_list = Split(compiler_includes, "\\:");
 
     for (const auto& inc: compiler_includes_list) {
         if (verbose) println("Include opt: {}", inc);
         add_parser_clang_option(U8String("-I") + inc);
+        std::cerr << " ----------------- " << inc << std::endl;
     }
 
     auto cfg = get_compiler_config();
