@@ -105,22 +105,14 @@ int main(int argc, char** argv)
           map
     );
 
-    add_parser_clang_option("-std=c++17");
-    //add_parser_clang_option("-stdlib=libstdc++");
+    if (map.count("std")) {
+        add_parser_clang_option(U8String("-std=c++") + map["std"].as<std::string>());
+    }
+    else {
+        add_parser_clang_option("-std=c++17");
+    }
 
     bool verbose = map.count("verbose");
-
-//    U8String compiler_includes = MBT_INCLUDES;
-
-//    std::cerr << "MBT_INCLUDES: " << compiler_includes << std::endl;
-//    auto compiler_includes_list = Split(compiler_includes, "\\:");
-
-//    for (const auto& inc: compiler_includes_list) {
-//        if (verbose) println("Include opt: {}", inc);
-//        add_parser_clang_option(U8String("-I") + inc);
-//        std::cerr << " ----------------- " << inc << std::endl;
-//    }
-
     auto cfg = get_compiler_config();
     for (const auto& inc: cfg->includes()){
         if (verbose) println("Config Include opt: {}", inc);
@@ -174,10 +166,6 @@ int main(int argc, char** argv)
 
     std::string file_name = project_output_folder + "/generator_state.sdn";
     bool list_exists = std::filesystem::exists(file_name);
-
-    for (const auto& inc: get_parser_options()) {
-        std::cerr << "PARSER OPT: " << inc << std::endl;
-    }
 
     if (map.count("dry-run"))
     {

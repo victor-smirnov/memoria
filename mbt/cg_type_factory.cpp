@@ -32,6 +32,8 @@ using namespace clang;
 using namespace llvm;
 
 class TypeFactoryImpl: public TypeFactory, public std::enable_shared_from_this<TypeFactoryImpl> {
+    std::vector<U8String> cxx_options_;
+
     WeakPtr<Project> project_ptr_;
     Project* project_;
     const clang::ClassTemplateSpecializationDecl* tf_decl_;
@@ -84,8 +86,7 @@ public:
     {
         U8String code;
 
-        for (const auto& include: includes_)
-        {
+        for (const auto& include: includes_) {
             code += format_u8("#include <{}>\n", include);
         }
 
@@ -94,7 +95,7 @@ public:
         U8String header_name = name_ + ".hpp";
         write_text_file_if_different(target_folder + "/" + header_name, code);
 
-        precompiled_header_ = PreCompiledHeader::create({"-std=c++20", "-stdlib=libc++"}, target_folder, header_name);
+        precompiled_header_ = PreCompiledHeader::create(cxx_options_, target_folder, header_name);
     }
 
     std::vector<U8String> includes() const override {

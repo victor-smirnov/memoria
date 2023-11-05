@@ -199,6 +199,7 @@ execute_process(
         -I ${CMAKE_SOURCE_DIR}/stores/include
         -I ${CMAKE_SOURCE_DIR}/codegen/include
         -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
+        --std ${MEMORIA_API_CXX_STANDARD}
         -D MMA_ICU_CXX_NS=icu
         -D ${BUILD_EXTRA_CONTAINERS_OPT}
         ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
@@ -317,7 +318,7 @@ add_custom_command(
     -I ${CMAKE_SOURCE_DIR}/containers/include
     -I ${CMAKE_SOURCE_DIR}/stores/include
     -I ${CMAKE_SOURCE_DIR}/codegen/include
-    -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include
+    -I ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/include    
     -D MMA_ICU_CXX_NS=icu
     -D ${BUILD_EXTRA_CONTAINERS_OPT}
     ${BUILD_COW_LITE_PROFILE_OPT} CowLiteProfile
