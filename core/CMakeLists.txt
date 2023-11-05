@@ -25,7 +25,6 @@ target_include_directories(Core PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
 )
 
-
 set_target_properties(Core PROPERTIES CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 set_target_properties(Core PROPERTIES OUTPUT_NAME memoria_core)
 
