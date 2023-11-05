@@ -64,6 +64,8 @@ public:
 
 class ProjectImpl: public Project, public std::enable_shared_from_this<ProjectImpl> {
 
+    std::vector<U8String> cxx_options_;
+
     std::vector<U8String> config_file_names_;
 
     U8String project_output_folder_;
@@ -100,6 +102,10 @@ public:
         return get_value(config_.root(), sdn_path).as_varchar();
     }
 
+    void add_cxx_option(const U8String& opt) override {
+        cxx_options_.push_back(opt);
+    }
+
     void parse_configuration() override
     {
         std::error_code ec;
@@ -117,7 +123,7 @@ public:
 
         write_text_file(tgt_header, ss.str());
 
-        precompiled_config_ = PreCompiledHeader::create({"-std=c++20", "-stdlib=libc++"}, project_output_folder_, codegen_config_file_name_);
+        precompiled_config_ = PreCompiledHeader::create(cxx_options_, project_output_folder_, codegen_config_file_name_);
         codegen_config_file_name_pch_ = precompiled_config_->file_path();
 
         config_unit_ = precompiled_config_->compile_with("");

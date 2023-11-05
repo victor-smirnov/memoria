@@ -77,36 +77,44 @@ target_link_libraries(mbt PRIVATE clangBasic clangLex clangParse clangAST clangF
 target_link_libraries(mbt PRIVATE pantor::inja)
 
 
-execute_process(
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMAND
-        ${CMAKE_CXX_COMPILER}
-        -E
-        -Wp,-v
-        -xc++
-        /dev/null
-    ERROR_VARIABLE COMPILER_INCLUDE_DIRS
-    OUTPUT_VARIABLE NO_NEEDED
-    COMMAND_ERROR_IS_FATAL ANY
-)
+#execute_process(
+#    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#    COMMAND
+#        ${CMAKE_CXX_COMPILER}
+#        -E
+#        -Wp,-v
+#        -xc++
+#        /dev/null
+#    ERROR_VARIABLE COMPILER_INCLUDE_DIRS
+#    OUTPUT_VARIABLE NO_NEEDED
+#    COMMAND_ERROR_IS_FATAL ANY
+#)
 
 #message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ${COMPILER_INCLUDE_DIRS} &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-string(REPLACE " /" "/" COMPILER_INCLUDE_DIRS_LIST  "${COMPILER_INCLUDE_DIRS}")
-string(REPLACE "\n" ";" COMPILER_INCLUDE_DIRS_LIST  "${COMPILER_INCLUDE_DIRS_LIST}")
+#string(REPLACE " /" "/" COMPILER_INCLUDE_DIRS_LIST  "${COMPILER_INCLUDE_DIRS}")
+#string(REPLACE "\n" ";" COMPILER_INCLUDE_DIRS_LIST  "${COMPILER_INCLUDE_DIRS_LIST}")
 
-list(FILTER COMPILER_INCLUDE_DIRS_LIST INCLUDE REGEX "^/")
-list(FILTER COMPILER_INCLUDE_DIRS_LIST EXCLUDE REGEX "gcc")
+#list(FILTER COMPILER_INCLUDE_DIRS_LIST INCLUDE REGEX "^/")
+#list(FILTER COMPILER_INCLUDE_DIRS_LIST EXCLUDE REGEX "gcc")
 
-#message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ${COMPILER_INCLUDE_DIRS_LIST} &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+##message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ${COMPILER_INCLUDE_DIRS_LIST} &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
-string(JOIN ":" COMPILER_INCLUDE_DIRS_STR ${COMPILER_INCLUDE_DIRS_LIST})
-string(PREPEND COMPILER_INCLUDE_DIRS_STR "const char* MBT_INCLUDES=\"")
-string(APPEND COMPILER_INCLUDE_DIRS_STR "\"\\;")
+#string(JOIN ":" COMPILER_INCLUDE_DIRS_STR ${COMPILER_INCLUDE_DIRS_LIST})
+#string(PREPEND COMPILER_INCLUDE_DIRS_STR "const char* MBT_INCLUDES=\"")
+#string(APPEND COMPILER_INCLUDE_DIRS_STR "\"\\;")
 
-#message("+++++&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ${COMPILER_INCLUDE_DIRS_STR} &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+##message("+++++&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ${COMPILER_INCLUDE_DIRS_STR} &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+#message("+++++&&&&&&&&&&&&&&&&&&&&&&&&&&&&& ${CXX_STANDARD} &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
-file(WRITE ${CMAKE_BINARY_DIR}/mbt_config.hpp ${COMPILER_INCLUDE_DIRS_STR})
-target_sources(mbt PRIVATE ${CMAKE_BINARY_DIR}/mbt_config.hpp)
+#file(WRITE ${CMAKE_BINARY_DIR}/mbt_config.hpp ${COMPILER_INCLUDE_DIRS_STR})
+
+file(GLOB_RECURSE LIB_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "include/*.*" )
+
+target_sources(
+  mbt
+  PRIVATE ${CMAKE_BINARY_DIR}/mbt_config.hpp
+  PRIVATE ${LIB_HEADERS}
+)
 
 
 install(TARGETS

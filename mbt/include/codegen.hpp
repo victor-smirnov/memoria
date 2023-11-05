@@ -96,6 +96,8 @@ struct Project {
     virtual void add_enabled_profile(const U8String& profile_name) = 0;
     virtual void add_disabled_profile(const U8String& profile_name) = 0;
 
+    virtual void add_cxx_option(const U8String& opt) = 0;
+
     static std::shared_ptr<Project> create(std::vector<U8String> config_file_names, U8String project_output_folder, U8String components_output_folder);
 };
 

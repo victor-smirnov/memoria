@@ -23,7 +23,7 @@
 #include "codegen.hpp"
 #include "inja_generators.hpp"
 
-#include "mbt_config.hpp"
+//#include "mbt_config.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -84,6 +84,7 @@ int main(int argc, char** argv)
     using StringOpts = std::vector<std::string>;
 
     options.add_options()
+        ("std", po::value<std::string>(), "Specify C++ Standard")
         ("sysroot", po::value<std::string>(), "Specify Clang sysroot (for header files)")
         ("include,I", po::value<StringOpts>(), "Add include directory (-I)")
         ("define,D", po::value<StringOpts>(), "Add preprocessor definition (-D)")
@@ -105,19 +106,20 @@ int main(int argc, char** argv)
     );
 
     add_parser_clang_option("-std=c++17");
+    //add_parser_clang_option("-stdlib=libstdc++");
 
     bool verbose = map.count("verbose");
 
-    U8String compiler_includes = MBT_INCLUDES;
+//    U8String compiler_includes = MBT_INCLUDES;
 
-    std::cerr << "MBT_INCLUDES: " << compiler_includes << std::endl;
-    auto compiler_includes_list = Split(compiler_includes, "\\:");
+//    std::cerr << "MBT_INCLUDES: " << compiler_includes << std::endl;
+//    auto compiler_includes_list = Split(compiler_includes, "\\:");
 
-    for (const auto& inc: compiler_includes_list) {
-        if (verbose) println("Include opt: {}", inc);
-        add_parser_clang_option(U8String("-I") + inc);
-        std::cerr << " ----------------- " << inc << std::endl;
-    }
+//    for (const auto& inc: compiler_includes_list) {
+//        if (verbose) println("Include opt: {}", inc);
+//        add_parser_clang_option(U8String("-I") + inc);
+//        std::cerr << " ----------------- " << inc << std::endl;
+//    }
 
     auto cfg = get_compiler_config();
     for (const auto& inc: cfg->includes()){
@@ -165,13 +167,17 @@ int main(int argc, char** argv)
     }
 
     auto config_files = repack_string_vector(map["config"].as<StringOpts>());
-    auto project_output_folder  = map["project-output"].as<std::string>();
-    auto components_output_base  = map["components-output-base"].as<std::string>();
+    auto project_output_folder = map["project-output"].as<std::string>();
+    auto components_output_base = map["components-output-base"].as<std::string>();
 
     add_parser_clang_option("-I" + project_output_folder);
 
     std::string file_name = project_output_folder + "/generator_state.sdn";
     bool list_exists = std::filesystem::exists(file_name);
+
+    for (const auto& inc: get_parser_options()) {
+        std::cerr << "PARSER OPT: " << inc << std::endl;
+    }
 
     if (map.count("dry-run"))
     {
