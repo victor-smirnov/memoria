@@ -1,8 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "memoria",
-  "version-date": "2023-11-03",
+  "name": "memoria-mbt",
+  "version-string": "0.1.0-2023-11-03",
   "dependencies": [
     "abseil", "hash-library", "fmt", "icu", "inja"
-  ]
+  ],
+  "default-features": [],
+  "features": {
+    "with-boost": {
+      "description": "Build with Vcpkg-provided boost library",
+      "dependencies": [
+        {"name":  "boost", "version>=": "1.83.0"}
+      ]
+    }
+  }
 }

@@ -20,20 +20,24 @@
 
 cmake_minimum_required (VERSION 3.22)
 
-option(CORE_ONLY "Build only Core library & tools" OFF)
+option(BUILD_CORE_ONLY "Build only Core library & tools" OFF)
 
-if (CORE_ONLY)
-  set(BUILD_SEASTAR_DFLT OFF)
-else()
-  set(BUILD_SEASTAR_DFLT ON)
+option (BUILD_WITH_VCPKG_BOOST "Build With Vcpkg-provided Boost library" OFF)
+if(BUILD_WITH_VCPKG_BOOST)
+  list(APPEND VCPKG_MANIFEST_FEATURES "with-boost")
 endif()
 
 if (LINUX)
-    option (BUILD_SEASTAR "Build Seastar Framework supporting library and apps" ${BUILD_SEASTAR_DFLT})
-    if(BUILD_SEASTAR)
+  option (BUILD_SEASTAR "Build Seastar Framework supporting library and apps" OFF)
+  if(BUILD_SEASTAR)
+    if (BUILD_WITH_VCPKG_BOOST)
+      list(APPEND VCPKG_MANIFEST_FEATURES "seastar-with-boost")
+    else()
       list(APPEND VCPKG_MANIFEST_FEATURES "seastar")
     endif()
+  endif()
 endif()
+
 
 project (Memoria VERSION 0.1.0)
 
@@ -43,8 +47,6 @@ include(GNUInstallDirs)
 set(MEMORIA_TOOLS_INSTALL_DIR  tools/memoria)
 set(MEMORIA_CONFIG_INSTALL_DIR share/memoria)
 set(MEMORIA_INCLUDES_INSTALL_DIR ${MEMORIA_CONFIG_INSTALL_DIR})
-
-#set(VERSION "0.1.0")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -132,7 +134,7 @@ add_library(Core STATIC)
 
 add_subdirectory(core)
 
-if (NOT CORE_ONLY)
+if (NOT BUILD_CORE_ONLY)
 
 add_subdirectory(mbt)
 
@@ -145,6 +147,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+    -DWITH_VCPKG_BOOST=${WITH_VCPKG_BOOST}
     -S ${CMAKE_SOURCE_DIR}/mbt
     -B ${CMAKE_BINARY_DIR}/mbt-explicit
     -G ${CMAKE_GENERATOR}
@@ -384,7 +387,7 @@ if (BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-endif(NOT CORE_ONLY)
+endif(NOT BUILD_CORE_ONLY)
 
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in

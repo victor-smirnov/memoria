@@ -20,10 +20,24 @@
         }
       ]
     },
+
+    "seastar-with-boost": {
+      "description": "Seastar Framework with Vcpkg-provided Boost Library",
+      "dependencies": [
+        {
+          "name": "seastar",
+          "platform": "linux",
+          "version>=": "1.0-2023-11-02",
+          "features": [ "with-boost" ]
+        },
+        { "name":  "boost", "version>=": "1.83.0" }
+      ]
+    },
+
     "with-boost": {
       "description": "Build with Vcpkg-provided boost library",
       "dependencies": [
-        {"name":  "boost", "version>=": "1.83.0"}
+        { "name":  "boost", "version>=": "1.83.0" }
       ]
     }
   }
