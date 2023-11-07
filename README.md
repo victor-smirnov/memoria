@@ -1,73 +1,31 @@
-## Overview
+# Overview
+Memoria is an advanced data engineering Framework written in modern C++. It consists from the following parts:
 
-Memoria is a structured storage engines construction framework usilizing advanced metaprogramming techniques over modern C++. It consistes from the following subsystems:
+*Memoria is still in development and is not meant to be used in practice. Functionality declared below may be incomplete, experimental or currently missing. All processes are optimized for development, not for production.*
 
-1. SQL/XSD-compatible and extensible memory-mapped core data types like INT or VARCHAR(N), including composite types like arrays, sets, maps and documents.
-2. LinkedData -- memory-mapped JSON-like documents and graphs over core data types with string-based external representation (String Data Notation, SDN).
-3. Parametrised Data Containers -- B-Tree based complex data structures on top of core datatypes and LinkedData built with metaprogramming from reusable building blocks.
-	* Basic parametrised data containers: Map<>, Set<>, Vector<>, Tensor<>
-	* Complex data containers: Multimap<>, Multiset<>, Table<>
-	* Advanced data structures: LOUDS tree, Wavelet Tree, etc ...
-	* Various combinations of the above ...
-4. Optional Copy-on-Write based concurrency control for multithreaded operation over Data Containers.
-5. Optional snapshot-based [data versioning](https://en.wikipedia.org/wiki/Persistent_data_structure) for Data Containers.
-6. Pluggable storage engines, including:
-	* In-memory persistent store (the fastest and most flexible option).
-	* Immutable memory-mapped files for snapshots. Convenient option to store large amounts of versioned read-only structured data with zero serialization.
-	* Fast and simple Single Writer Multiple Reader (SWMR) on-disk Store for hybrid transactional/analytical data processing.
-	* Other options are possible ...
-7. Asynchronous IO stack with integrated Boost Fibers engine for high performance disk and network access. 
-9. Hardware Acceleration Engine (this subsystem is WIP and hasn't been published yet):
-	* RISC-V ISA extensions for common Memoria-specific data transformation like symbol sequences with large alphabets, direct support for variable length integers and other data types, etc.
-	* Memoria-specific hardware memory protection (tagged memory) to ensure data integrity under various adversarial scenarios. 
-	* [RISC-V CGRA](https://wavecomp.ai/wp-content/uploads/2018/12/WP_CGRA.pdf) for high performance massive data processing with Memoria.
-	* [RocketChip](https://bar.eecs.berkeley.edu/projects/rocket_chip.html)-based RISC-V prototyping and development environment (Arty A7-100T, Alveo U50).
+1. **Hermes** - arbitrarily structured object graphs allocated in relocatable contigous memory segments, suitable for memory mapping and inter-process communication, with focus on data storage purposes. Hermes objects and containers are string-extrnalazable and may look like "Json with types". GRPC-style services and related toolig (IDL) is provided.
+2. Extensible and customizable set of **Data Containers**, internally based on B+Trees crafted from reusable building blocks by the metaprogramming framework. The spectrum of possible conteiners is from plain dynamic arrays and sets, via row-wise/column-wise tables, multitude of graphs, to compressed spatial indexes and beyond. Everyting that maps well to B+Trees can be a first-class citien of data containers framework. Containers and Hermes data objects are deeply integrated with each other.
+3. Pluggable **Storage Engines** based on Copy-on-Write principles. Storage is completely separated from containers via simple but efficient contracts. Out of the box, OLTP-optimized and HTAP-optimized storage, as well as In-Memory storage options, are provided, supporting advanced features like serializable transactions and Git-like branching.
+4. **DSL execution engine**. Lightweight embeddable VM with Hermes-backed code model (classes, byte-code, resources) natively supporting Hermes datatapes. Direct Interpreter and AOT compilation to optimized C++.
+5. **Runtime Environments**. Single thread per CPU core, non-migrating fibers, high-performace IO on top of io-uring and hardware accelerators.
+6. **Development Automation** tools. Clang-based build tools to extract metadata directly from C++ sources and generate boilerplate code.
 
+The purpose of the project is to integrate all the aspects and components described above into a single vertical framework, starting from *bare silicon* up to networking and human-level interfaces. The framework may eventually grow up into a fully-featured metaprogramming platfrom.
 
-**Note (1)** that this project is currently in the transitional state. It hit the limits of [C++ template metaprogramming](https://bitbucket.org/vsmirnov/memoria/wiki/WhyC++), so 
-new project [Jenny](https://github.com/victor-smirnov/jenny) was started to overcome the limitations of C++ TMP. Memoria is going to become one of the Jenny's core metaprogramming 
-engine. In the upcoming time ongoing development will be focused of this transition, so no practice-specific functionality is actually planned. Only PoCs and DEMOs. 
+Memoria does recognize and welcome generative AI, but without hype and fanaticism. The project will be actuively explogring AI technics for code and data structure generation, as well as *turning itself into a dataset* for generative AI training. So future users may not even know that they are using algorithms, data structures programming patterns, idioms and phylosophy originated in the Memoria Framework.
 
-**Note (2).** There are currently two main Memoria repositories, on the [Github](https://github.com/victor-smirnov/memoria) and on the [Bitbucket](https://bitbucket.org/vsmirnov/memoria/wiki/Home). Both are mirrors of each other, except that the repository on Bitbucket has additional documentation on the Wiki. Please use BB for additional details about Memoria.
+# OS & Platforms
 
-## Download and Build 
+Only modern *Linux* is currently supported. Some modules like Hermes and VM will be fully supported on other platforms, but certain storage options may not be avaialble or have reduced functionality (due to the limited OS support). 
 
-Primary development platform is Linux with Clang 6.0+. Memoria uses CMake 3.6+ as a build system and provides some build scripts to simplify the build process. Memoria is using Vcpkg library manager, but does not require it if the environment already contains all required libraries. 
+# Build and Run
 
-First, download and build Memoria-specific version of Vcpkg:
+Memoria relies on third-party libraries that either may not be available on supported developenment platfroms or have outdated versions there. Vcpkg package management is currently being used for dependency management. Memoria itself is avaialble via [custom Vcpkg registry](https://github.com/victor-smirnov/memoria-vcpkg-registry). Conan recipies may be provided in the future.
 
-```console
-# Assuming current folder is /home/guest/cxx
-$ git clone https://github.com/victor-smirnov/vcpkg-memoria.git
-$ cd vcpkg-memoria
-$ git checkout memoria-libs
-$ ./bootstrap-vcpkg.sh
-$ ./vcpkg install boost icu 
-```
+See the [Dockerfile](https://github.com/victor-smirnov/memoria/blob/master/docker/Dockerfile) on how to configure development environment on Ubuntu 22.04. Standard development environment will be the latest Ubuntu LTS. 
 
-After libraries are built, download and build Memoria with tests:
+Standard compiler is the *latest stable Clang*. Certain versions of GCC may crash while building Memoria or fail in another way (GCC 13.1 is known to work). Standard library is platform-specific: libstdc++ on Linux. 
 
-```console
-# Assuming current folder is /home/guest/cxx
-$ git clone https://vsmirnov@bitbucket.org/vsmirnov/memoria.git
-$ ./memoria/mkbuild/setup-vcpkg.sh
-$ cd memoria-build
-$ make -j6
-```
+# IDE Instructions
 
-When the build is finished, try:
-
-```console
-$ cd memoria-build/src/tests-core/tests
-$ ./tests2
-```
-
-To get available test options and configuration parameters:
-
-```console
-$ ./tests --help
-```
-
-Usually tests take several minutes to complete.
-
-See also [QtCreator IDE Instructions](https://bitbucket.org/vsmirnov/memoria/wiki/QtCreator%20IDE%20Instructions) for Linux and MacOS X.
+See [QT Creator](https://memoria-framework.dev/docs/overview/qt_creator_instructions/) configuration instructions.
