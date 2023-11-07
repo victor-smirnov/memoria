@@ -20,7 +20,7 @@ Only modern *Linux* is currently supported. Some modules like Hermes and VM will
 
 # Build and Run
 
-Memoria relies on third-party libraries that either may not be available on supported developenment platfroms or have outdated versions there. Vcpkg package manager is currently being used for dependency management. Memoria itself is avaialble via [custom Vcpkg registry](https://github.com/victor-smirnov/memoria-vcpkg-registry). Conan recipies source packages for Linux distributions may be provided in the future.
+Memoria relies on third-party libraries that either may not be available on supported developenment platfroms or have outdated versions there. Vcpkg package manager is currently being used for dependency management. Memoria itself is avaialble via [custom Vcpkg registry](https://github.com/victor-smirnov/memoria-vcpkg-registry). Conan recipies and source packages for Linux distributions (via CPack) may be provided in the future.
 
 See the [Dockerfile](https://github.com/victor-smirnov/memoria/blob/master/docker/Dockerfile) on how to configure development environment on Ubuntu 22.04. Standard development environment will be the latest Ubuntu LTS. 
 
