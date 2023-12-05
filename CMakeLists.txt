@@ -38,7 +38,6 @@ if (LINUX)
   endif()
 endif()
 
-
 project (Memoria VERSION 0.1.0)
 
 include(CMakePackageConfigHelpers)

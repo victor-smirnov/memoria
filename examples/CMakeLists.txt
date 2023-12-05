@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-set(MEMORIA_SANDBOX_CLASSIC swmr_store)
+set(MEMORIA_SANDBOX_CLASSIC swmr_store simple_set)
 
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
