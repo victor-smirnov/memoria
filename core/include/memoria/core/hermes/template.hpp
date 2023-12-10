@@ -35,7 +35,6 @@ struct TplASTCodes {
     static constexpr NamedCode STATEMENTS   = NamedCode(8, "statements");
     static constexpr NamedCode ELSE         = NamedCode(9, "else");
 
-    //static constexpr NamedCode STRIP_SPACE      = NamedCode(15, "strip_space");
     static constexpr NamedCode NODE_NAME_ATTR   = NamedCode(16, "astNodeName");
 
     static constexpr NamedCode TOP_OUTER_SPACE = NamedCode(20, "top_outer_space");

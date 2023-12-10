@@ -318,7 +318,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(alcmap::CtrRApiName)
     {
         for (CtrSizeT c = 0; c < meta.size_at_level(); c++) {
             auto status = get_allocation_status(meta.level(), meta.position() + (c << meta.level()));
-            if ((!status) || status.get() == AllocationMapEntryStatus::FREE) {
+            if ((!status) || status.value() == AllocationMapEntryStatus::FREE) {
                 return false;
             }
         }

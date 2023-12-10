@@ -24,6 +24,8 @@
 
 #include <memoria/core/memory/memory.hpp>
 
+#include <memoria/core/datatypes/datatypes.hpp>
+
 #include "ssrleseq_tools.hpp"
 
 #include <vector>
@@ -55,8 +57,8 @@ public:
 
         size_t symbols_block_size_atoms;
         if (runs) {
-            symbols_block_size_atoms = RunTraits::compute_size(runs.get());
-            syms_span = runs.get();
+            symbols_block_size_atoms = RunTraits::compute_size(runs.value());
+            syms_span = runs.value();
         }
         else {
             syms = seq.iterator().as_vector();

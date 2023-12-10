@@ -191,7 +191,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
       {
         auto new_value = value_fn(iter->current_value());
         if (new_value) {
-          self.ctr_update_map_entry(std::move(iter), new_value.get());
+          self.ctr_update_map_entry(std::move(iter), new_value.value());
         }
         else {
           self.ctr_remove_map_entry(std::move(iter));
@@ -200,7 +200,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrWApiName)
       else {
         auto value = value_fn(OptionalValue{});
         if (value) {
-          self.ctr_insert_map_entry(std::move(iter), key, value.get());
+          self.ctr_insert_map_entry(std::move(iter), key, value.value());
         }
       }
     }

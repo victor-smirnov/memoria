@@ -95,7 +95,7 @@ public:
 
     MappedSWMRStore(MaybeError& maybe_error, U8String file_name, const SWMRParams& params, CreateMappedStore):
         file_name_(file_name),
-        file_size_(compute_file_size(params.file_size().get()))
+        file_size_(compute_file_size(params.file_size().value()))
     {
         wrap_construction(maybe_error, [&]() -> VoidResult {
             if (boost::filesystem::exists(file_name.to_std_string())) {
@@ -289,7 +289,7 @@ private:
             return std::move(ptr);
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -310,7 +310,7 @@ private:
             return std::move(ptr);
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -332,7 +332,7 @@ private:
             return std::move(ptr);
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -350,7 +350,7 @@ private:
             return std::move(ptr);
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 

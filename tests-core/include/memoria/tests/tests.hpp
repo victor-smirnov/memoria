@@ -108,7 +108,7 @@ public:
         }
     }
 
-    Optional<Test&> find(const U8String& name);
+    Test* find(const U8String& name);
 };
 
 
@@ -137,8 +137,8 @@ public:
 
     TestSuite& get_suite(const U8String& name);
 
-    Optional<TestSuite&> find_suite(const U8String& suite_name);
-    Optional<Test&> find_test(const U8String& test_path);
+    TestSuite* find_suite(const U8String& suite_name);
+    Test* find_test(const U8String& test_path);
 
 
     static std::tuple<U8String, U8String> split_path(U8String test_path);

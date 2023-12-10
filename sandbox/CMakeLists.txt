@@ -20,7 +20,13 @@ set(MEMORIA_SANDBOX_CLASSIC ld_doc mkuid256 blk_distr)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX_CLASSIC})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit)
+    target_link_libraries(${MEMORIA_TARGET} Stores Containers AppInit DSLEngine)
+ENDFOREACH(MEMORIA_TARGET)
+
+set(MEMORIA_DSL_ENGINE dsl_engine_sb)
+FOREACH(MEMORIA_TARGET ${MEMORIA_DSL_ENGINE})
+    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+    target_link_libraries(${MEMORIA_TARGET} DSLEngine)
 ENDFOREACH(MEMORIA_TARGET)
 
 

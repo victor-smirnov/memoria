@@ -196,7 +196,7 @@ public:
         auto entry = get(id);
 
         if (entry) {
-            map_.erase(entry.get()->id());
+            map_.erase(entry.value()->id());
         }
 
         return entry;

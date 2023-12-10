@@ -37,7 +37,7 @@ namespace memoria {
 template <typename Profile>
 struct IStoreBase: IStoreApiBase<ApiProfile<Profile>> {
 
-    using ApiProfileT = ApiProfile<Profile>;
+    using ApiProfileT   = ApiProfile<Profile>;
 
     using MyType        = IStoreBase<Profile>;
 

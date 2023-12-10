@@ -62,7 +62,7 @@ public:
             std::rethrow_exception(exception_);
         }
         
-        return std::move(result_.get());
+        return std::move(result_.value());
     }
     
     virtual std::string describe() {return std::string("FiberLambdaMessage: ") + typeid(Fn).name() + ", return: " + (return_ ? "true" : "false");}

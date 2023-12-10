@@ -261,7 +261,7 @@ public:
             return std::move(ptr);
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -285,7 +285,7 @@ public:
             }
         }
 
-        maybe_error.get().do_throw();
+        maybe_error.value().do_throw();
     }
 
     virtual void close() {
@@ -346,7 +346,7 @@ private:
             return ptr->finish_store_initialization();
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 

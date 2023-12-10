@@ -23,15 +23,15 @@
 namespace memoria {
 namespace tests {
 
-Optional<Test&> TestSuite::find(const U8String &name)
+Test* TestSuite::find(const U8String &name)
 {
     auto ii = tests_.find(name);
     if (ii != tests_.end())
     {
-        return *ii->second.get();
+        return ii->second.get();
     }
     else {
-        return Optional<Test&>();
+        return nullptr;
     }
 }
 
@@ -53,15 +53,15 @@ TestSuite& TestsRegistry::get_suite(const U8String& name)
     }
 }
 
-Optional<TestSuite&> TestsRegistry::find_suite(const U8String& suite_name)
+TestSuite* TestsRegistry::find_suite(const U8String& suite_name)
 {
     auto ii = suites_.find(suite_name);
     if (ii != suites_.end())
     {
-        return *ii->second.get();
+        return ii->second.get();
     }
     else {
-        return Optional<TestSuite&>();
+        return nullptr;
     }
 }
 
@@ -84,7 +84,7 @@ std::tuple<U8String, U8String> TestsRegistry::split_path(U8String test_path)
     return std::make_tuple(suite_name, test_name);
 }
 
-Optional<Test&> TestsRegistry::find_test(const U8String& test_path)
+Test* TestsRegistry::find_test(const U8String& test_path)
 {
     U8String suite_name;
     U8String test_name;
@@ -97,7 +97,7 @@ Optional<Test&> TestsRegistry::find_test(const U8String& test_path)
         return suite->find(test_name);
     }
     else {
-        return Optional<Test&>();
+        return nullptr;
     }
 }
 

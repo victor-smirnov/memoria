@@ -59,7 +59,7 @@ public:
     type_fctr_(tf)
   {
     data_type_ = type_ins_->type().getAsString();
-    profile_ = profile.is_initialized() ? profile.get() : "";
+    profile_ = profile ? profile.value() : "";
     target_file_ = type_ins_->target_file(profile_);
 
     project_ = type_ins_->project();

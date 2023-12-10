@@ -174,7 +174,7 @@ protected:
 
         auto block = block_shared_cache_.get(id);
         if (block) {
-            return block.get();
+            return block.value();
         }
         else {
             auto block_ptr = get_data_addr(id, data_db_);

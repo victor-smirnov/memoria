@@ -81,7 +81,7 @@ SnpSharedPtr<T> snp_make_shared_init(Args&&... args)
         return std::move(snp);
     }
     else {
-        std::move(maybe_error.get()).do_throw();
+        std::move(maybe_error.value()).do_throw();
     }
 }
 

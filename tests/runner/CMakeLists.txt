@@ -14,9 +14,8 @@
 
 file(GLOB RUNNER_SOURCES *.cpp *.hpp)
 
-
-if (LINUX OR MACOSX)
-    file(GLOB POSIX_RUNNER_SOURCES posix/*.cpp)
+if (UNIX)
+  file(GLOB POSIX_RUNNER_SOURCES posix/*.cpp)
 endif()
 
 file(GLOB_RECURSE RUNNER_HEADERS include/*.hpp)
@@ -29,7 +28,7 @@ target_link_libraries(TestsRunnerLib PUBLIC Core AsioLib Boost::program_options 
 target_include_directories(TestsRunnerLib PUBLIC include)
 
 target_sources(
-    TestsRunnerLib
-    PRIVATE ${RUNNER_SOURCES} ${POSIX_RUNNER_SOURCES}
-    PRIVATE ${RUNNER_HEADERS}
+  TestsRunnerLib
+  PRIVATE ${RUNNER_SOURCES} ${POSIX_RUNNER_SOURCES}
+  PRIVATE ${RUNNER_HEADERS}
 )

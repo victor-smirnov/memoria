@@ -288,7 +288,7 @@ private:
             style->set("label", format_u8("\"{}|{}\"", ctr->name(), escape_angle_brackets(ctr->describe_datatype())));
         }
         else {
-            style->set("label", format_u8("\"{}\"", val.get()));
+            style->set("label", format_u8("\"{}\"", val.value()));
         }
 
         return style;

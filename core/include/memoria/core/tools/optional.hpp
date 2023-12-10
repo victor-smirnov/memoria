@@ -17,26 +17,35 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
+#include <fmt/format.h>
 
+#include <optional>
 #include <vector>
 #include <ostream>
 
-#include <boost/optional.hpp>
-#include <boost/optional/optional_io.hpp>
-
-#include <fmt/format.h>
 
 namespace memoria {
 
-template <typename T>
-using Optional = boost::optional<T>;
 
+template <typename T>
+using Optional = std::optional<T>;
 
 template <typename T>
 struct HasFieldFactory<Optional<T>> : HasFieldFactory<T> {};
 
 template <typename T>
 struct HasValueCodec<Optional<T>> : HasValueCodec<T> {};
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const Optional<T>& val) {
+    if (val) {
+        out << val.value();
+    }
+    else {
+        out << "{empty}";
+    }
+    return out;
+}
 
 }
 
@@ -56,6 +65,5 @@ struct formatter<memoria::Optional<T>> {
         }
     }
 };
-
 
 }

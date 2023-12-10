@@ -233,7 +233,7 @@ public:
     {
         auto alc = allocation_pool_->allocate_reserved(remainder);
         if (alc) {
-            return alc.get();
+            return alc.value();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Empty reserved allocation pool").do_throw();
@@ -248,7 +248,7 @@ public:
         }
         else if (MMA_UNLIKELY((bool)preallocated_))
         {
-            AllocationMetadataT alc = preallocated_.get();
+            AllocationMetadataT alc = preallocated_.value();
             preallocated_ = Optional<AllocationMetadataT>{};
             return alc;
         }
@@ -258,10 +258,10 @@ public:
             if (alc)
             {
                 if (MMA_UNLIKELY(init_store_mode_)) {
-                    awaiting_init_allocations_.push_back(alc.get());
+                    awaiting_init_allocations_.push_back(alc.value());
                 }
 
-                return alc.get();
+                return alc.value();
             }
             else if (populating_allocation_pool_) {
                 // Level must be 0 here
@@ -286,7 +286,7 @@ public:
                     populate_allocation_pool(level);
                     auto alc1 = allocation_pool_->allocate_one(level);
                     if (alc1) {
-                        return alc1.get();
+                        return alc1.value();
                     }
                 }
 
@@ -453,7 +453,7 @@ public:
         }
 
         if (maybe_error) {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -468,8 +468,8 @@ public:
 
         allocation_pool_->add(AllocationMetadataT::from_l0(0, avaialble, ALLOCATION_MAP_LEVELS - 1));
 
-        awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).get());
-        awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).get());
+        awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).value());
+        awaiting_init_allocations_.push_back(allocation_pool_->allocate_one(0).value());
 
         SnapshotID snapshot_id = ProfileTraits<Profile>::make_random_snapshot_id();
 
@@ -492,10 +492,10 @@ public:
             auto alc = allocation_pool_->allocate_one(0);
             if (alc){
                 if (c == 0) {
-                    counters_file_pos = alc.get().position() * BASIC_BLOCK_SIZE;
+                    counters_file_pos = alc.value().position() * BASIC_BLOCK_SIZE;
                 }
 
-                awaiting_init_allocations_.push_back(alc.get());
+                awaiting_init_allocations_.push_back(alc.value());
             }
             else {
                 MEMORIA_MAKE_GENERIC_ERROR("Failure allocating counters block").do_throw();
@@ -534,7 +534,7 @@ public:
         }
 
         if (maybe_error) {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -736,7 +736,7 @@ public:
                     history_ctr_->with_value(update_op.snapshot_id, [&](auto value) {
                         using ResultT = std::decay_t<decltype(value)>;
                         if (value) {
-                            auto vv = value.get().value_t();
+                            auto vv = value.value().value_t();
                             vv.set_parent_snapshot_id(update_op.new_parent_id);
                             return ResultT{vv};
                         }
@@ -1040,14 +1040,14 @@ public:
                 auto prev_id = directory_ctr_->replace_and_return(ctr_id, root);         
                 if (prev_id)
                 {
-                    unref_ctr_root(prev_id.get());
+                    unref_ctr_root(prev_id.value());
                 }
             }
             else {
                 auto prev_id = directory_ctr_->remove_and_return(ctr_id);
                 if (prev_id)
                 {
-                    unref_ctr_root(prev_id.get());
+                    unref_ctr_root(prev_id.value());
                 }
             }
         }
@@ -1118,7 +1118,7 @@ public:
     virtual void unref_block(const BlockID& block_id, BlockCleanupHandler on_zero)
     {
         auto refs = refcounter_delegate_->count_refs(block_id);
-        auto cnt = get_optional_value_or(refs, 0);
+        auto cnt  = refs ? refs.value() : 0;
 
         bool zero = false;
 
@@ -1178,7 +1178,7 @@ public:
             {
                 // Checking first in the head snapshot
                 auto head_blk_status = head_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
-                if ((!head_blk_status) || head_blk_status.get() == AllocationMapEntryStatus::FREE)
+                if ((!head_blk_status) || head_blk_status.value() == AllocationMapEntryStatus::FREE)
                 {
                     // If the block is FREE in the HEAD snapshot, it is also FREE
                     // in the CONSISTENCY POINT snapshot. So we are just marking it FREE
@@ -1193,7 +1193,7 @@ public:
                 else if (consistency_point_allocation_map_ctr_)
                 {
                     auto cp_blk_status = consistency_point_allocation_map_ctr_->get_allocation_status(level, ll_allocator_block_pos);
-                    if ((!cp_blk_status) || cp_blk_status.get() == AllocationMapEntryStatus::FREE)
+                    if ((!cp_blk_status) || cp_blk_status.value() == AllocationMapEntryStatus::FREE)
                     {
                         // The block is allocated in the HEAD snapshot, but free in the
                         // CONSISTENCY POINT snapshot.
@@ -1335,7 +1335,7 @@ public:
         history_ctr_->with_value(snapshot_id, [&](const auto& value) {
             using ResultT = std::decay_t<decltype(value)>;
             if (value) {
-                auto vv = value.get().value_t();
+                auto vv = value.value().value_t();
                 fn(vv);
                 return ResultT{vv};
             }

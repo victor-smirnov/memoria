@@ -481,9 +481,9 @@ public:
         AllocationMetadataT alc = get_allocation_metadata(block->id());
         Optional<AllocationMapEntryStatus> status = allocation_map_ctr_->get_allocation_status(alc.level(), alc.position());
 
-        if (status.is_initialized())
+        if (status)
         {
-            if (status.get() == AllocationMapEntryStatus::FREE) {
+            if (status.value() == AllocationMapEntryStatus::FREE) {
                 consumer(
                     CheckSeverity::ERROR,
                     make_string_document("Missing allocation info for {}", alc));

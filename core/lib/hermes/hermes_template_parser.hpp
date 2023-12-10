@@ -38,7 +38,7 @@ struct TplSpaceData {
     Optional<bool> right_space;
 
     operator bool() const {
-        return left_space.is_initialized() || right_space.is_initialized();
+        return left_space || right_space;
     }
 };
 
@@ -189,11 +189,11 @@ struct TemplateConstants: public TplASTCodes {
     }
 
     static bool is_strip_space(Optional<bool> val) {
-        return val.is_initialized() && !val.get();
+        return val && !val.value();
     }
 
     static bool is_preserve_line(Optional<bool> val) {
-        return val.is_initialized() && val.get();
+        return val && val.value();
     }
 
     static bool is_strip_space(const TinyObjectMap& map, const NamedCode& prop)
@@ -370,8 +370,8 @@ struct TemplateConstants: public TplASTCodes {
 
     static void put(TinyObjectMap& map, const NamedCode& code, const Optional<bool>& val)
     {
-        if (val.is_initialized()) {
-            map.put(code, val.get());
+        if (val) {
+            map.put(code, val.value());
         }
     }
 

@@ -129,14 +129,14 @@ public:
         map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
 
         visit(&node->leftExpression);
-        if (context_.is_initialized()) {
-            map.put(LEFT_EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(LEFT_EXPRESSION_ATTR, context_.value());
             clear_context();
         }
 
         visit(&node->rightExpression);
-        if (context_.is_initialized()) {
-            map.put(RIGHT_EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(RIGHT_EXPRESSION_ATTR, context_.value());
             clear_context();
         }
 
@@ -156,20 +156,20 @@ public:
         map.put(STOPS_PROJECTION_ATTR, node->stopsProjection());
 
         visit(&node->leftExpression);
-        if (context_.is_initialized()) {
-            map.put(LEFT_EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(LEFT_EXPRESSION_ATTR, context_.value());
             clear_context();
         }
 
         visit(&node->bracketSpecifier);
-        if (context_.is_initialized()) {
-            map.put(BRACKET_SPECIFIER_ATTR, context_.get());
+        if (context_) {
+            map.put(BRACKET_SPECIFIER_ATTR, context_.value());
             clear_context();
         }
 
         visit(&node->rightExpression);
-        if (context_.is_initialized()) {
-            map.put(RIGHT_EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(RIGHT_EXPRESSION_ATTR, context_.value());
             clear_context();
         }
 
@@ -235,8 +235,8 @@ public:
         {
             clear_context();
             visit(&item);
-            if (context_.is_initialized()) {
-                array.push_back(context_.get());
+            if (context_) {
+                array.push_back(context_.value());
             }
         }
         context_ = map.as_object();
@@ -256,14 +256,14 @@ public:
 
             clear_context();
             visit(&item.first);
-            if (context_.is_initialized()) {
-                kv_pair.put(FIRST_ATTR, context_.get());
+            if (context_) {
+                kv_pair.put(FIRST_ATTR, context_.value());
             }
 
             clear_context();
             visit(&item.second);
-            if (context_.is_initialized()) {
-                kv_pair.put(SECOND_ATTR, context_.get());
+            if (context_) {
+                kv_pair.put(SECOND_ATTR, context_.value());
             }
         }
 
@@ -276,8 +276,8 @@ public:
         auto map = new_ast_node(node->CODE);
 
         visit(&node->expression);
-        if (context_.is_initialized()) {
-            map.put(EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(EXPRESSION_ATTR, context_.value());
         }
 
         clear_context();
@@ -293,14 +293,14 @@ public:
         map.put(COMPARATOR_ATTR, (int64_t)node->comparator);
 
         visit(&node->leftExpression);
-        if (context_.is_initialized()) {
-            map.put(LEFT_EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(LEFT_EXPRESSION_ATTR, context_.value());
             clear_context();
         }
 
         visit(&node->rightExpression);
-        if (context_.is_initialized()) {
-            map.put(RIGHT_EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(RIGHT_EXPRESSION_ATTR, context_.value());
             clear_context();
         }
 
@@ -323,8 +323,8 @@ public:
     {
         auto map = new_ast_node(node->CODE);
         visit(&node->expression);
-        if (context_.is_initialized()) {
-            map.put(EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(EXPRESSION_ATTR, context_.value());
         }
 
         clear_context();
@@ -346,8 +346,8 @@ public:
     {
         auto map = new_ast_node(node->CODE);
         visit(&node->expression);
-        if (context_.is_initialized()) {
-            map.put(EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(EXPRESSION_ATTR, context_.value());
         }
 
         clear_context();
@@ -384,8 +384,8 @@ public:
                 }
             );
             auto result = boost::apply_visitor(visitor, item);
-            if (result.is_initialized()) {
-                array.push_back(result.get());
+            if (result) {
+                array.push_back(result.value());
             }
             else {
                 array.push_back(Object{});
@@ -402,8 +402,8 @@ public:
 
         visit(&node->expression);
 
-        if (context_.is_initialized()) {
-            map.put(EXPRESSION_ATTR, context_.get());
+        if (context_) {
+            map.put(EXPRESSION_ATTR, context_.value());
         }
 
         clear_context();

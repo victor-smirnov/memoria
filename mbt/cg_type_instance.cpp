@@ -197,7 +197,7 @@ public:
 
         gen_ii->generate_init();
 
-        for (const U8String& profile: profiles_.get())
+        for (const U8String& profile: profiles_.value())
         {
           if (project_->is_profile_enabled(profile))
           {
@@ -248,7 +248,7 @@ public:
 
     if (profiles_)
     {
-      for (const U8String& profile: profiles_.get())
+      for (const U8String& profile: profiles_.value())
       {
         if (project_->is_profile_enabled(profile))
         {
@@ -369,7 +369,7 @@ public:
         auto arr = pp.as_object_array();
         profiles_ = std::vector<U8String>();
         for (size_t c = 0; c < arr.size(); c++) {
-          profiles_.get().push_back(arr.get(c).as_varchar());
+          profiles_.value().push_back(arr.get(c).as_varchar());
         }
       }
       else {

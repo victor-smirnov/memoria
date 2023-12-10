@@ -175,13 +175,13 @@ TestStatus run_single_test(const U8String& test_path)
             test_config,
             config_path.parent_path(),
             boost::filesystem::absolute(test_output_dir),
-            coverage.get(),
+            coverage.value(),
             false,
             seed
         );
 
         int64_t start_time = getTimeInMillis();
-        test.get().run(&ctx);
+        test->run(&ctx);
         int64_t end_time = getTimeInMillis();
 
         if (ctx.status() == TestStatus::PASSED)
@@ -248,13 +248,13 @@ TestStatus replay_single_test(const U8String& test_path)
             config,
             config_path.parent_path(),
             boost::filesystem::absolute(test_output_dir),
-            coverage.get(),
+            coverage.value(),
             true,
             seed
         );
 
         int64_t start_time = getTimeInMillis();
-        test.get().run(&ctx);
+        test->run(&ctx);
         int64_t end_time = getTimeInMillis();
 
         if (ctx.status() == TestStatus::PASSED)

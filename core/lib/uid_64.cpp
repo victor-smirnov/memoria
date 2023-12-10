@@ -137,8 +137,8 @@ UID64 UID64_parse(Iterator first, Iterator last)
 
         auto& metadata = content.metadata;
 
-        if (metadata.is_initialized()) {
-            uuid.set_metadata(metadata.get());
+        if (metadata) {
+            uuid.set_metadata(metadata.value());
         }
     }
 

@@ -19,6 +19,7 @@
 #include <memoria/core/types.hpp>
 
 #include <memoria/core/tools/span.hpp>
+#include <memoria/core/tools/optional.hpp>
 
 #include <boost/variant2/variant.hpp>
 
@@ -471,6 +472,14 @@ public:
         }
     }
 
+    Own(const std::optional<Own>& other) noexcept:
+        view_(other.value().view_),
+        mem_holder_(other.value().mem_holder_)
+    {
+        if (MMA_LIKELY((bool)mem_holder_)) {
+            mem_holder_->ref_copy();
+        }
+    }
 
     Own(Own&& other) noexcept:
         view_(other.view_), mem_holder_(other.mem_holder_)
@@ -611,6 +620,11 @@ public:
         Base(*static_cast<const ViewT*>(&other))
     {}
 
+
+    Own(const Optional<Own>& other):
+        Base(*static_cast<const ViewT*>(&other.value()))
+    {}
+
     Own(Own&& other):
         Base(std::move(*static_cast<const ViewT*>(&other)))
     {}
@@ -716,6 +730,15 @@ public:
 
     Own(const Own& other) noexcept:
         Base(*static_cast<const ViewT*>(&other))
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (MMA_LIKELY((bool)holder)) {
+            holder->ref_copy();
+        }
+    }
+
+    Own(const Optional<Own>& other) noexcept:
+        Base(*static_cast<const ViewT*>(&other.value()))
     {
         MemHolder* holder = this->get_mem_holder();
         if (MMA_LIKELY((bool)holder)) {

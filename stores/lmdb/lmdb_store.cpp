@@ -50,7 +50,7 @@ SharedPtr<ILMDBStore<ApiProfileT>> open_lmdb_store(U8StringView path)
     auto ptr = MakeShared<LMDBStore<Profile>>(maybe_error, path, false);
 
     if (maybe_error) {
-        std::move(maybe_error.get()).do_throw();
+        std::move(maybe_error.value()).do_throw();
     }
 
     return ptr;
@@ -62,7 +62,7 @@ SharedPtr<ILMDBStore<ApiProfileT>> open_lmdb_store_readonly(U8StringView path)
     auto ptr = MakeShared<LMDBStore<Profile>>(maybe_error, path, true);
 
     if (maybe_error) {
-        std::move(maybe_error.get()).do_throw();
+        std::move(maybe_error.value()).do_throw();
     }
 
     return ptr;
@@ -74,7 +74,7 @@ SharedPtr<ILMDBStore<ApiProfileT>> create_lmdb_store(U8StringView path, uint64_t
     auto ptr = MakeShared<LMDBStore<Profile>>(maybe_error, path, store_size_mb);
 
     if (maybe_error) {
-        std::move(maybe_error.get()).do_throw();
+        std::move(maybe_error.value()).do_throw();
     }
 
     ptr->init_store();

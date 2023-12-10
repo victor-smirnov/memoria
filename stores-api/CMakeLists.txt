@@ -19,7 +19,7 @@ add_library(StoresApi STATIC)
 set_target_properties(StoresApi PROPERTIES CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 set_target_properties(StoresApi PROPERTIES OUTPUT_NAME memoria_stores_api)
 
-target_link_libraries(StoresApi PUBLIC Core)
+target_link_libraries(StoresApi PUBLIC Core ContainersApi)
 
 target_include_directories(StoresApi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -29,10 +29,9 @@ target_include_directories(StoresApi PUBLIC
 file(GLOB STORE_API_SOURCES *.cpp)
 file(GLOB_RECURSE STORE_API_HEADERS include/*.*)
 
-
 target_sources(StoresApi
-    PRIVATE ${STORE_API_HEADERS}
-    PRIVATE ${STORE_API_SOURCES}
+  PRIVATE ${STORE_API_HEADERS}
+  PRIVATE ${STORE_API_SOURCES}
 )
 
 install(

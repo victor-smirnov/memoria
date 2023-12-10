@@ -241,7 +241,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto res = map_so.find(key);
 
         if (res) {
-            return Optional<U8String>(res.get());
+            return Optional<U8String>(res.value());
         }
         else {
             return Optional<U8String>{};

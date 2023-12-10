@@ -482,7 +482,7 @@ public:
             return std::move(store);
         }
         else {
-            std::move(maybe_error.get()).do_throw();
+            std::move(*maybe_error).do_throw();
         }
     }
 

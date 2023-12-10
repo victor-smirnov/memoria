@@ -49,8 +49,8 @@ public:
         name_resoler_ = [&](U8StringView name) -> Object {
             auto prop = stack_.find(name);
 
-            if (prop.is_initialized()) {
-                return prop.get();
+            if (prop) {
+                return prop.value();
             }
             else {
                 if (data_.is_map())

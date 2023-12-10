@@ -137,7 +137,6 @@ if (NOT BUILD_CORE_ONLY)
 
 add_subdirectory(mbt)
 
-
 message(INFO "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Configuring MBT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 execute_process(COMMAND ${CMAKE_COMMAND}
     -Wno-dev
@@ -333,8 +332,11 @@ add_custom_command(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-add_library(Containers STATIC)
+add_library(DSLEngine STATIC)
+add_subdirectory(dsl-engine)
 
+
+add_library(Containers STATIC)
 target_sources(Containers PRIVATE ${GENERATED_MAIN_SOURCES})
 
 add_subdirectory(containers-api)

@@ -36,6 +36,12 @@ namespace detail {
             o << value;
             return o;
         }
+
+        static std::ostream& out(std::ostream& o, const Optional<T>& value)
+        {
+            o << value;
+            return o;
+        }
     };
 
 #ifdef MMA_HAS_INT128

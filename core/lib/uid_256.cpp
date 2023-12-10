@@ -238,7 +238,7 @@ UID256 UID256_parse(Iterator first, Iterator last)
         {
             uuid.set_type(type);
 
-            if (payload.is_initialized()) {
+            if (payload) {
                 if (type_val > 0)
                 {
                     for (size_t c = 0; c < payload->length(); c++) {
@@ -253,26 +253,26 @@ UID256 UID256_parse(Iterator first, Iterator last)
                 }
             }
 
-            if (metadata.is_initialized())
+            if (metadata)
             {
                 if (type_val == 2)
                 {
-                    uuid.set_metadata2(metadata.get());
+                    uuid.set_metadata2(metadata.value());
                 }
                 else if (type_val == 3)
                 {
-                    uuid.set_metadata3(metadata.get());
+                    uuid.set_metadata3(metadata.value());
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Metadata is not allowed for UID256 TYPE{}", type_val).do_throw();
                 }
             }
 
-            if (counter.is_initialized())
+            if (counter)
             {
                 if (type_val == 2 || type_val == 3)
                 {
-                    uuid.set_atom(0, counter.get());
+                    uuid.set_atom(0, counter.value());
                 }
                 else {
                     MEMORIA_MAKE_GENERIC_ERROR("Counter is not allowed for UID256 TYPE{}", type_val).do_throw();

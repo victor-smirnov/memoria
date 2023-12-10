@@ -383,7 +383,7 @@ public:
             return remove_data(id, data_db_);
         }
         else {
-            BlockCacheEntry* entry = res.get();
+            BlockCacheEntry* entry = res.value();
 
             if (entry->is_linked()) {
                 block_cache_.remove(id);
@@ -576,9 +576,9 @@ private:
 
         auto block = block_cache_.get(id);
         if (block) {
-            BlockCacheEntry* entry = block.get();
+            BlockCacheEntry* entry = block.value();
             if (entry->get()) {
-                return block.get();
+                return block.value();
             }
             else {
                 auto block_ptr = get_data_addr(id, data_db_);

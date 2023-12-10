@@ -814,7 +814,7 @@ public:
             {
                 auto prev_id = root_map_->remove_and_return(name);
                 if (prev_id) {
-                    unref_block(prev_id.get());
+                    unref_block(*prev_id);
                 }
             }
             else {
@@ -831,7 +831,7 @@ public:
 
                 if (prev_id)
                 {
-                    unref_block(prev_id.get());
+                    unref_block(*prev_id);
                 }
             }
             else {

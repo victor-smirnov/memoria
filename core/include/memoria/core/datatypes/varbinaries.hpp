@@ -16,7 +16,8 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-
+#include <memoria/core/datatypes/core.hpp>
+#include <memoria/core/datatypes/traits.hpp>
 #include <absl/types/span.h>
 
 namespace memoria {

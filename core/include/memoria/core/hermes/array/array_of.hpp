@@ -90,11 +90,11 @@ public:
     iterator end() const {}
 
     size_t size() const {
-        return array_.size();
+        return !array_.is_null() ? array_.size() : 0;
     }
 
     T operator[](size_t idx) const {
-        return T{array_.get(idx)};
+        return T{ array_.get(idx) };
     }
 
 };

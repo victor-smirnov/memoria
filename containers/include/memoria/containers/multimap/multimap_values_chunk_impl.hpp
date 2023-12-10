@@ -124,10 +124,10 @@ public:
     virtual DTView<Value> current_value() const
     {
         if (leaf_position_ < size_ && !before_start_) {
-            if (!view_.is_initialized()) {
+            if (!view_) {
                 init_current();
             }
-            return DTView<Value>(&view_holder_, view_.get());
+            return DTView<Value>(&view_holder_, view_.value());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("EOF/BOF Exception: {} {}", size_, before_start_).do_throw();
@@ -288,7 +288,7 @@ public:
     {
         if (leaf_position_ < size_ && !before_start_) {
             init_current();
-            return view_.get() == key;
+            return view_.value() == key;
         }
 
         return false;

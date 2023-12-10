@@ -144,7 +144,7 @@ public:
         );
 
         if (maybe_error) {
-            std::move(maybe_error.get()).do_throw();
+            std::move(maybe_error.value()).do_throw();
         }
     }
 
@@ -194,7 +194,7 @@ public:
         auto existing_entry = block_cache_.get(block_id);
         if (existing_entry)
         {
-            BlockCacheEntry* shared = existing_entry.get();
+            BlockCacheEntry* shared = *existing_entry;
             return {shared->file_pos() * BASIC_BLOCK_SIZE, SharedBlockConstPtr{shared}};
         }
         else {
@@ -231,7 +231,7 @@ public:
         auto existing_entry = block_cache_.get(block_id);
         if (existing_entry)
         {
-            BlockCacheEntry* shared = existing_entry.get();
+            BlockCacheEntry* shared = *existing_entry;
             return AllocationMetadataT::from_ln(
                 shared->file_pos(),
                 1,

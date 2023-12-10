@@ -34,7 +34,7 @@ SharedPtr<IMemoryStore<ApiProfileT>> create_memory_store()
         return std::move(snp);
     }
     else {
-        std::move(maybe_error.get()).do_throw();
+        std::move(*maybe_error).do_throw();
     }
 }
 

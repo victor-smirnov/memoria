@@ -244,8 +244,8 @@ void parse_hermes_path_expr(Iterator& first, Iterator& last, HermesCtr& doc)
             ErrorMessageResolver::instance().do_throw(start, first, last);
         }
 
-        if (result.is_initialized()) {
-            doc.set_root(result.get());
+        if (result) {
+            doc.set_root(result.value());
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Empty HermesPath expression").do_throw();

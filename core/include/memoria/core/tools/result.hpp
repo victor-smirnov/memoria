@@ -652,7 +652,7 @@ bool isFail(const Result<T>& res) noexcept {
 }
 
 inline bool isFail(const MaybeError& res) noexcept {
-    return res.is_initialized();
+    return (bool)res;
 }
 
 inline bool isFail(const detail::ResultErrors&) noexcept {
@@ -762,7 +762,7 @@ namespace detail {
     }
 
     inline ResultErrors propagate_errors(MaybeError&& err) {
-        return std::move(err.get());
+        return std::move(err.value());
     }
 }
 

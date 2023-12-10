@@ -361,14 +361,14 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
             return h_str.as_object();
         }
 
-        auto ctr_hash = type.get().cxx_type_hash();
+        auto ctr_hash = type.value().cxx_type_hash();
         if (has_type_reflection(ctr_hash))
         {
             return get_type_reflection(ctr_hash).datatype_convert_from_plain_string(str);
         }
         else {
             return HermesCtrBuilder::current().new_typed_value(
-                    type.get(),
+                    type.value(),
                     HermesCtrView::wrap_dataobject<Varchar>(str).as_object()
             ).as_object();
         }

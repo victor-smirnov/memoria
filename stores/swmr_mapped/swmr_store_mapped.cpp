@@ -50,7 +50,7 @@ SharedPtr<ISWMRStore<ApiProfileT>> open_swmr_store(U8StringView path, const SWMR
     auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, params);
 
     if (maybe_error) {
-        std::move(maybe_error.get()).do_throw();
+        std::move(*maybe_error).do_throw();
     }
 
     ptr->do_open_store();
@@ -64,7 +64,7 @@ SharedPtr<ISWMRStore<ApiProfileT>> create_swmr_store(U8StringView path, const SW
     auto ptr = MakeShared<MappedSWMRStore<Profile>>(maybe_error, path, params, CreateMappedStore{});
 
     if (maybe_error) {
-        std::move(maybe_error.get()).do_throw();
+        std::move(*maybe_error).do_throw();
     }
 
     ptr->init_store();

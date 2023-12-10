@@ -779,12 +779,12 @@ protected:
             auto res = block_counters_.get(block_id);
 
             if (res) {
-                if (res.get() != counter) {
+                if (*res != counter) {
                     auto doc = hermes::HermesCtrView::make_pooled();
                     doc.set_dataobject<Varchar>(fmt::format(
                                 "Counter values mismatch for the block ID {}. Expected: {}, actual: {}",
                                 block_id,
-                                res.get(),
+                                *res,
                                 counter));
 
                     return consumer(CheckSeverity::ERROR, doc);
@@ -795,7 +795,7 @@ protected:
                 doc.set_dataobject<Varchar>(fmt::format(
                             "Actual counter for the block ID {} is not found in the store's block_counters structure.",
                             block_id
-                            ));
+                ));
 
                 return consumer(CheckSeverity::ERROR, doc);
             }
@@ -850,7 +850,7 @@ protected:
         auto val = block_counters_.get(id);
 
         if (val) {
-            return val.get();
+            return val.value();
         }
         else {
             return 0;
@@ -894,7 +894,7 @@ protected:
     uint64_t count_blocks(const BlockID& block_id)
     {
         auto ii = block_counters_.get(block_id);
-        return boost::get_optional_value_or(ii, 0ull);
+        return ii ? *ii : 0ull;
     }
 
 

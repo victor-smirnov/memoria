@@ -128,7 +128,7 @@ public:
             header.set_call_id(call_id);
 
             if (shard_id) {
-                header.set_opt_shard_id(shard_id.get());
+                header.set_opt_shard_id(shard_id.value());
             }
 
             header.set_opt_endpoint_id(endpoint_id);
@@ -520,7 +520,7 @@ protected:
             {
                 ctx = make_context(header.call_id(), endpoint_id, rq);
                 contexts_[header.call_id()] = ctx;
-                run_handler(handler.get(), ctx, header.call_id());
+                run_handler(handler.value(), ctx, header.call_id());
             }
             else {
                 Response rs = Response::error0();

@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2017-2023 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 #include <memoria/core/memory/memory.hpp>
 
 #include <memoria/api/common/ctr_api.hpp>
-#include <memoria/core/container/container.hpp>
 #include <memoria/core/container/store.hpp>
 
 #include <memoria/profiles/common/common.hpp>

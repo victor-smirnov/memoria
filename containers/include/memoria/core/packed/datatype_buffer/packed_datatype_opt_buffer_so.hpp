@@ -321,7 +321,7 @@ public:
         size_t array_row_at = 0;
         PkdUpdateStatus arr_status = array().prepare_insert(array_row_at, set_elements_num, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
-            return elements(col, bm_idx - row_at).get();
+            return elements(col, bm_idx - row_at).value();
         });
 
         return arr_status;
@@ -342,7 +342,7 @@ public:
 
         array().commit_insert(array_row_at, set_elements_num, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
-            return elements(col, bm_idx - row_at).get();
+            return elements(col, bm_idx - row_at).value();
         });
     }
 
@@ -379,7 +379,7 @@ public:
         PkdUpdateStatus arr_status_rem = array.prepare_remove(array_row_at, array_row_at + set_elements_num, update_state.array_update_state());
         if (is_success(arr_status_rem)){
             return array.prepare_insert(array_row_at, non_empty, update_state.array_update_state(), [&](size_t col, size_t arr_idx) {
-                return elements(col, non_empty_pos[arr_idx]).get();
+                return elements(col, non_empty_pos[arr_idx]).value();
             });
         }
 
@@ -404,7 +404,7 @@ public:
 
         array().commit_insert(array_row_at, set_elements_num_new, update_state.array_update_state(), [&](size_t col, size_t arr_idx)  {
             size_t bm_idx = bitmap_idx(bitmap, row_at + arr_idx);
-            return elements(col, bm_idx - row_at).get();
+            return elements(col, bm_idx - row_at).value();
         });
     }
 
@@ -529,7 +529,7 @@ private:
 
         for (size_t b = 0;  b < Columns; b++)
         {
-            tv[b] = values[b].get();
+            tv[b] = values[b].value();
         }
 
         return tv;

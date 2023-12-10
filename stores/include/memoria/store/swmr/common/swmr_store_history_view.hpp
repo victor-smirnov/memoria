@@ -100,7 +100,7 @@ public:
 
         if (head_opt)
         {
-            HNode* node =  head_opt.get();
+            HNode* node =  head_opt.value();
 
             while (node) {
                 data.push_back(node->snapshot_id);
