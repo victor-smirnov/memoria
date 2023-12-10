@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& out, const Optional<T>& val) {
         out << val.value();
     }
     else {
-        out << "{empty}";
+        out << "{Empty}";
     }
     return out;
 }
