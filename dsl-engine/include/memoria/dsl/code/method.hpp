@@ -64,11 +64,11 @@ public:
     }
 
     U8StringOView name() const {
-        return this->object_.get(NAME).as_varchar();
+        return this->object_.expect(NAME).as_varchar();
     }
 
     hermes::ArrayOf<Argument> arguments() const {
-        return hermes::ArrayOf<Argument>{this->object_.get(ARGUMENTS).as_object_array()};
+        return hermes::ArrayOf<Argument>{this->object_.expect(ARGUMENTS).as_object_array()};
     }
 };
 

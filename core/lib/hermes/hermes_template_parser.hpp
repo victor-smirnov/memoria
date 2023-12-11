@@ -199,8 +199,8 @@ struct TemplateConstants: public TplASTCodes {
     static bool is_strip_space(const TinyObjectMap& map, const NamedCode& prop)
     {
         auto val = map.get(prop);
-        if (val.is_not_null()) {
-            return !val.to_bool();
+        if (val) {
+            return !val->to_bool();
         }
         return false;
     }
@@ -209,8 +209,8 @@ struct TemplateConstants: public TplASTCodes {
     static bool is_preserve_line(const TinyObjectMap& map, const NamedCode& prop)
     {
         auto val = map.get(prop);
-        if (val.is_not_null()) {
-            return val.to_bool();
+        if (val) {
+            return val->to_bool();
         }
         return false;
     }
@@ -224,7 +224,7 @@ struct TemplateConstants: public TplASTCodes {
         }
     }
 
-    static Object process_inner_space(const Object& stmts, Optional<bool> top, Optional<bool> bottom)
+    static MaybeObject process_inner_space(const Object& stmts, Optional<bool> top, Optional<bool> bottom)
     {
         if (stmts.is_varchar())
         {
@@ -257,7 +257,7 @@ struct TemplateConstants: public TplASTCodes {
             }
             else if (array.size() == 1) {
                 auto new_str = process_inner_space(array.get(0), top, bottom);
-                if (new_str.is_not_null()) {
+                if (new_str) {
                     array.set(0, new_str);
                 }
             }
@@ -310,18 +310,18 @@ struct TemplateConstants: public TplASTCodes {
             ObjectArray array = blocks.as_object_array();
             for (size_t c = 1; c < array.size(); c++)
             {
-                Object item = array.get(c);
+                Object item = array.get(c).value();
                 if (item.is_tiny_object_map())
                 {
-                    Object prev = array.get(c - 1);
-                    Object next = ((c + 1) < array.size()) ? array.get(c + 1) : Object{};
-                    if (prev.is_varchar() || next.is_varchar())
+                    Object prev = array.get(c - 1).value();
+                    MaybeObject next = ((c + 1) < array.size()) ? array.get(c + 1) : MaybeObject{};
+                    if (prev.is_varchar() || next.value().is_varchar())
                     {
                         TinyObjectMap map = item.as_tiny_object_map();
-                        Object code = map.get(CODE);
-                        if (code.is_not_null())
+                        MaybeObject code = map.get(CODE);
+                        if (code)
                         {
-                            int32_t icode = code.to_i32();
+                            int32_t icode = code->to_i32();
                             if (is_strip_space(icode))
                             {
                                 if (prev.is_varchar())
@@ -339,9 +339,9 @@ struct TemplateConstants: public TplASTCodes {
                                     }
                                 }
 
-                                if (next.is_varchar())
+                                if (next->is_varchar())
                                 {
-                                    auto str = next.as_varchar();
+                                    auto str = next->as_varchar();
 
                                     Optional<bool> b_o_s = get_bottom_outer_space(map);
 
@@ -398,13 +398,13 @@ struct TemplateConstants: public TplASTCodes {
     static Optional<bool> get_if_bottom_inner_space(const TinyObjectMap& map)
     {
         auto obj = map.get(BOTTOM_INNER_SPACE);
-        if (obj.is_not_null()) {
-            return obj.to_bool();
+        if (obj) {
+            return obj->to_bool();
         }
         else {
-            Object else_stmt = map.get(ELSE);
-            if (else_stmt.is_not_null()) {
-                return get_bool(else_stmt.as_tiny_object_map(), TOP_OUTER_SPACE);
+            auto else_stmt = map.get(ELSE);
+            if (else_stmt) {
+                return get_bool(else_stmt->as_tiny_object_map(), TOP_OUTER_SPACE);
             }
 
             return {};
@@ -414,13 +414,13 @@ struct TemplateConstants: public TplASTCodes {
     static Optional<bool> get_bottom_outer_space(const TinyObjectMap& map)
     {
         auto obj = map.get(BOTTOM_OUTER_SPACE);
-        if (obj.is_not_null()) {
-            return obj.to_bool();
+        if (obj) {
+            return obj->to_bool();
         }
         else {
-            Object else_stmt = map.get(ELSE);
-            if (else_stmt.is_not_null()) {
-                return get_bottom_outer_space(else_stmt.as_tiny_object_map());
+            auto else_stmt = map.get(ELSE);
+            if (else_stmt) {
+                return get_bottom_outer_space(else_stmt->as_tiny_object_map());
             }
             else {
                 return {};
@@ -440,9 +440,9 @@ struct TemplateConstants: public TplASTCodes {
 struct TplForStatement: TemplateConstants {
     Optional<bool> top_outer_space;
     path::ast::IdentifierNode variable;
-    Object expression;
+    MaybeObject expression;
     Optional<bool> top_inner_space;
-    Object blocks;
+    MaybeObject blocks;
     TplSpaceData bottom_space_data;
 
     operator path::ast::HermesValueNode() const
@@ -462,13 +462,13 @@ struct TplForStatement: TemplateConstants {
         put(map, TOP_INNER_SPACE, top_inner_space);
 
         auto res = process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
-        if (res.is_not_null()) {
+        if (res) {
             map.put(STATEMENTS, blocks);
         }
 
         process_outer_space(blocks);
 
-        return map.as_object();
+        return path::ast::HermesValueNode{map.as_object()};
     }
 };
 
@@ -476,7 +476,7 @@ struct TplForStatement: TemplateConstants {
 struct TplSetStatement: TemplateConstants {
     Optional<bool> top_outer_space;
     path::ast::IdentifierNode variable;
-    Object expression;
+    MaybeObject expression;
     Optional<bool> bottom_outer_space;
 
     operator path::ast::HermesValueNode() const
@@ -489,18 +489,18 @@ struct TplSetStatement: TemplateConstants {
         put(map, TOP_OUTER_SPACE, top_outer_space);
         put(map, BOTTOM_OUTER_SPACE, bottom_outer_space);
 
-        return map.as_object();
+        return path::ast::HermesValueNode{map.as_object()};
     }
 };
 
 struct TplVarStatement: TemplateConstants {
-    Object expression;
+    MaybeObject expression;
 
     operator path::ast::HermesValueNode() const
     {
         auto map = new_ast_node(VAR_STMT);
         map.put(EXPRESSION, expression);
-        return map.as_object();
+        return path::ast::HermesValueNode{map.as_object()};
     }
 };
 
@@ -516,7 +516,7 @@ using TplIfAltBranch = boost::variant<
 
 struct TplElseStatement: TemplateConstants {
     Optional<bool> top_outer_space;
-    Object blocks;
+    MaybeObject blocks;
     Optional<bool> top_inner_space;
     TplSpaceData bottom_space_data;
 
@@ -533,7 +533,7 @@ struct TplElseStatement: TemplateConstants {
         process_inner_space(blocks, top_inner_space, bottom_space_data.left_space);
         process_outer_space(blocks);
 
-        return map.as_object();
+        return path::ast::HermesValueNode{map.as_object()};
     }
 };
 
@@ -541,9 +541,9 @@ struct TplElseStatement: TemplateConstants {
 
 struct TplIfStatement: TemplateConstants {
     Optional<bool> top_outer_space;
-    Object expression;
+    MaybeObject expression;
     Optional<bool> top_inner_space;
-    Object blocks;
+    MaybeObject blocks;
 
     TplIfAltBranch alt_branch;
 
@@ -581,7 +581,7 @@ struct TplIfStatement: TemplateConstants {
 
         process_outer_space(blocks);
 
-        return map.as_object();
+        return path::ast::HermesValueNode{map.as_object()};
     }
 };
 
@@ -595,9 +595,9 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplForStatement,
     (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::path::ast::IdentifierNode, variable)
-    (memoria::hermes::Object, expression)
+    (memoria::hermes::MaybeObject, expression)
     (memoria::Optional<bool>, top_inner_space)
-    (memoria::hermes::Object, blocks)
+    (memoria::hermes::MaybeObject, blocks)
     (memoria::hermes::TplSpaceData, bottom_space_data)
 )
 
@@ -605,21 +605,21 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplSetStatement,
     (memoria::Optional<bool>, top_outer_space)
     (memoria::hermes::path::ast::IdentifierNode, variable)
-    (memoria::hermes::Object, expression)
+    (memoria::hermes::MaybeObject, expression)
     (memoria::Optional<bool>, bottom_outer_space)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplVarStatement,
-    (memoria::hermes::Object, expression)
+    (memoria::hermes::MaybeObject, expression)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplIfStatement,
     (memoria::Optional<bool>, top_outer_space)
-    (memoria::hermes::Object, expression)
+    (memoria::hermes::MaybeObject, expression)
     (memoria::Optional<bool>, top_inner_space)
-    (memoria::hermes::Object, blocks)
+    (memoria::hermes::MaybeObject, blocks)
     (memoria::hermes::TplIfAltBranch, alt_branch)
 )
 
@@ -627,7 +627,7 @@ BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::TplElseStatement,
     (memoria::Optional<bool>, top_outer_space)
     (memoria::Optional<bool>, top_inner_space)
-    (memoria::hermes::Object, blocks)
+    (memoria::hermes::MaybeObject, blocks)
     (memoria::hermes::TplSpaceData, bottom_space_data)
 )
 

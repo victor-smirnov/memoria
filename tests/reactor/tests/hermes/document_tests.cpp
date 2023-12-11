@@ -22,70 +22,70 @@ auto document_set_test = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     auto doc = hermes::HermesCtrView::make_new();
 
     doc.set_dataobject<Double>(12345.67);
-    assert_equals(true, doc.root().is_double());
-    assert_equals(12345.67, doc.root().as_double());
+    assert_equals(true, doc.root().value().is_double());
+    assert_equals(12345.67, doc.root().value().as_double());
     assert_throws<ResultException>([&](){
-        doc.root().as_bigint();
+        doc.root().value().as_bigint();
     });
 
     doc.set_dataobject<Varchar>("Hello world");
-    assert_equals(true, doc.root().is_varchar());
-    assert_equals("Hello world", doc.root().as_varchar());
+    assert_equals(true, doc.root().value().is_varchar());
+    assert_equals("Hello world", doc.root().value().as_varchar());
 
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_dataobject<BigInt>(123);
-    assert_equals(true, doc.root().is_bigint());
-    assert_equals(123, doc.root().as_bigint());
+    assert_equals(true, doc.root().value().is_bigint());
+    assert_equals(123, doc.root().value().as_bigint());
 
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_dataobject<Boolean>(1);
-    assert_equals(true, doc.root().is_boolean());
-    assert_equals(1, doc.root().as_boolean());
+    assert_equals(true, doc.root().value().is_boolean());
+    assert_equals(1, doc.root().value().as_boolean());
 
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_hermes("12345ll");
-    assert_equals(true, doc.root().is_bigint());
-    assert_equals(12345, doc.root().as_bigint());
+    assert_equals(true, doc.root().value().is_bigint());
+    assert_equals(12345, doc.root().value().as_bigint());
 
     doc.set_hermes("{}");
-    assert_equals(true, doc.root().is_map());
-    assert_equals(0, doc.root().as_generic_map()->size());
+    assert_equals(true, doc.root().value().is_map());
+    assert_equals(0, doc.root().value().as_generic_map()->size());
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_hermes("[1,2,3,4]");
-    assert_equals(true, doc.root().is_array());
-    assert_equals(4, doc.root().as_generic_array()->size());
+    assert_equals(true, doc.root().value().is_array());
+    assert_equals(4, doc.root().value().as_generic_array()->size());
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_hermes("Decimal(1,2)");
-    assert_equals(true, doc.root().is_datatype());
+    assert_equals(true, doc.root().value().is_datatype());
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_null();
-    assert_equals(true, doc.root().is_null());
+    assert_equals(true, !doc.root());
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 
     doc.set_hermes("'123456.789'@CoolDecimalType(1,2)");
-    assert_equals(true, doc.root().is_typed_value());
+    assert_equals(true, doc.root().value().is_typed_value());
     assert_throws<ResultException>([&](){
-        doc.root().as_double();
+        doc.root().value().as_double();
     });
 });
 

@@ -132,18 +132,18 @@ public:
         visitor.TraverseAST(config_unit_->ast_unit().getASTContext());
 
         auto profiles = config_map().get("profiles");
-        if (profiles.is_not_empty())
+        if (profiles)
         {
-            auto map = profiles.as_object_map();
+            auto map = profiles->as_object_map();
             map.for_each([&](auto profile_name, auto value){
                 profiles_.insert(profile_name);
 
-                if (value.is_map()) {
-                    auto map = value.as_object_map();
+                if (value.value().is_map()) {
+                    auto map = value->as_object_map();
                     auto enabled = map.get("enabled");
-                    if (enabled.is_not_empty() && enabled.is_boolean())
+                    if (enabled && enabled->is_boolean())
                     {
-                        if (enabled.as_boolean())
+                        if (enabled->as_boolean())
                         {
                             enabled_profiles_.insert(profile_name);
                         }
@@ -313,7 +313,7 @@ public:
     }
 
     ObjectMap config_map() const override {
-        return config_.root().cast_to<hermes::TypedValue>().constructor().as_object_map();
+        return config_.root().value().cast_to<hermes::TypedValue>().constructor().as_object_map();
     }
 
     std::vector<U8String> profiles() const override
@@ -346,7 +346,7 @@ public:
         std::vector<U8String> incs;
 
         ii.for_each([&](auto value){
-            incs.push_back(value.to_str());
+            incs.push_back(value.value().to_str());
         });
 
         return incs;
@@ -511,8 +511,8 @@ ObjectArray get_or_add_array(ObjectMap map, const U8String& name)
 {
     auto res = map.get(name);
 
-    if (res.is_not_empty()) {
-        return res.as_object_array();
+    if (res) {
+        return res->as_object_array();
     }
 
     auto arr = map.ctr().make_object_array(500);
@@ -527,16 +527,16 @@ std::string build_output_list(const hermes::HermesCtr& doc)
     std::stringstream ss;
     std::vector<U8String> files;
 
-    if (doc.root().is_object_map())
+    if (doc.root().value().is_object_map())
     {
-        auto mm = doc.root().as_object_map();
+        auto mm = doc.root()->as_object_map();
         auto byproducts = mm.get("byproducts");
-        if (byproducts.is_not_empty()) {
-            if (byproducts.is_object_array())
+        if (byproducts) {
+            if (byproducts->is_object_array())
             {
-                auto arr = byproducts.as_object_array();
+                auto arr = byproducts->as_object_array();
                 for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("BYPRODUCT:") + arr.get(c).as_varchar());
+                    files.push_back(U8String("BYPRODUCT:") + arr.get(c).value().as_varchar());
                 }
             }
             else {
@@ -545,12 +545,12 @@ std::string build_output_list(const hermes::HermesCtr& doc)
         }
 
         auto sources = mm.get("sources");
-        if (sources.is_not_empty()) {
-            if (sources.is_object_array())
+        if (sources) {
+            if (sources->is_object_array())
             {
-                auto arr = sources.as_object_array();
+                auto arr = sources->as_object_array();
                 for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("SOURCE:") + arr.get(c).as_varchar());
+                    files.push_back(U8String("SOURCE:") + arr.get(c).value().as_varchar());
                 }
             }
             else {
@@ -559,12 +559,12 @@ std::string build_output_list(const hermes::HermesCtr& doc)
         }
 
         auto profiles = mm.get("active_profiles");
-        if (profiles.is_not_empty()) {
-            if (profiles.is_object_array())
+        if (profiles) {
+            if (profiles->is_object_array())
             {
-                auto arr = profiles.as_object_array();
+                auto arr = profiles->as_object_array();
                 for (size_t c = 0; c < arr.size(); c++) {
-                    files.push_back(U8String("PROFILE:") + arr.get(c).as_varchar());
+                    files.push_back(U8String("PROFILE:") + arr.get(c).value().as_varchar());
                 }
             }
             else {
@@ -611,11 +611,11 @@ bool find_value(hermes::Object& res, U8StringView path_str)
             else if (res.is_map())
             {
                 auto res2 = res.as_object_map().get(step);
-                if (res2.is_null()) {
+                if (!res2) {
                     return false;
                 }
                 else {
-                    res = std::move(res2);
+                    res = std::move(*res2);
                 }
             }
             else {

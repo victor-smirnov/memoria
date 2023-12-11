@@ -101,52 +101,52 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Herm
     assert_equals(0, array.size());
 
     array.push_back_t<Varchar>("Hello World");
-    assert_equals(true, array.get(0).is_varchar());
-    assert_equals("Hello World", array.get(0).as_varchar());
+    assert_equals(true, array.get(0).value().is_varchar());
+    assert_equals("Hello World", array.get(0).value().as_varchar());
 
     array.push_back_t<Double>(123456);
-    assert_equals(true, array.get(1).is_double());
-    assert_equals(123456, array.get(1).as_double());
+    assert_equals(true, array.get(1).value().is_double());
+    assert_equals(123456, array.get(1).value().as_double());
 
     array.push_back_t<Boolean>(true);
-    assert_equals(true, array.get(2).is_boolean());
-    assert_equals(true, array.get(2).as_boolean());
+    assert_equals(true, array.get(2).value().is_boolean());
+    assert_equals(true, array.get(2).value().as_boolean());
 
     auto map = doc.make_object_map();
     array.push_back(map.as_object());
-    assert_equals(true, array.get(3).is_map());
+    assert_equals(true, array.get(3).value().is_map());
 
     auto arr = doc.make_object_array();
     array.push_back(arr.as_object());
-    assert_equals(true, array.get(4).is_array());
+    assert_equals(true, array.get(4).value().is_array());
 
     array.set_t<Double>(0, 555);
-    assert_equals(true, array.get(0).is_double());
-    assert_equals(555, array.get(0).as_double());
+    assert_equals(true, array.get(0).value().is_double());
+    assert_equals(555, array.get(0).value().as_double());
 
     assert_throws<ResultException>([&](){
         array.set_t<Double>(10, 555);
     });
 
     array.set_t<BigInt>(1, 555);
-    assert_equals(true, array.get(1).is_bigint());
-    assert_equals(555, array.get(1).as_bigint());
+    assert_equals(true, array.get(1).value().is_bigint());
+    assert_equals(555, array.get(1).value().as_bigint());
 
     assert_throws<ResultException>([&](){
         array.set_t<BigInt>(10, 555);
     });
 
     array.set_t<Boolean>(2, false);
-    assert_equals(true, array.get(2).is_boolean());
-    assert_equals(false, array.get(2).as_boolean());
+    assert_equals(true, array.get(2).value().is_boolean());
+    assert_equals(false, array.get(2).value().as_boolean());
 
     assert_throws<ResultException>([&](){
         array.set_t<Boolean>(10, false);
     });
 
     array.set_t<Varchar>(3, "Cool String");
-    assert_equals(true, array.get(3).is_varchar());
-    assert_equals("Cool String", array.get(3).as_varchar());
+    assert_equals(true, array.get(3).value().is_varchar());
+    assert_equals("Cool String", array.get(3).value().as_varchar());
 
     assert_throws<ResultException>([&](){
         array.set_t<Varchar>(10, "S0");

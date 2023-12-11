@@ -64,16 +64,16 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<HermesTestState>>("Hermes
     assert_equals(0, map.size());
 
     map.put("Entry0", "Hello World");
-    assert_equals(true, map.get("Entry0").is_varchar());
-    assert_equals("Hello World", map.get("Entry0").as_varchar());
+    assert_equals(true, map.expect("Entry0").is_varchar());
+    assert_equals("Hello World", map.expect("Entry0").as_varchar());
 
     map.put_t<Double>("Entry1", 123456);
-    assert_equals(true, map.get("Entry1").is_double());
-    assert_equals(123456, map.get("Entry1").as_double());
+    assert_equals(true, map.expect("Entry1").is_double());
+    assert_equals(123456, map.expect("Entry1").as_double());
 
     map.put("Entry2", true);
-    assert_equals(true, map.get("Entry2").is_boolean());
-    assert_equals(true, map.get("Entry2").as_boolean());
+    assert_equals(true, map.expect("Entry2").is_boolean());
+    assert_equals(true, map.expect("Entry2").as_boolean());
 });
 
 }}

@@ -388,7 +388,7 @@ public:
                 array.push_back(result.value());
             }
             else {
-                array.push_back(Object{});
+                array.push_back(MaybeObject{});
             }
         }
 

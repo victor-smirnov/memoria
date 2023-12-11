@@ -112,14 +112,14 @@ uint64_t ParameterView::hash_code() const {
 Object ObjectView::search(U8StringView query) const
 {
     auto ast = HermesCtrView::parse_hermes_path(query);
-    auto exp = ast.root().as_tiny_object_map();
+    auto exp = ast.root().value().as_tiny_object_map();
     return hermes::path::search(exp, Object(get_mem_holder(), storage_.addr));
 }
 
 Object ObjectView::search(U8StringView query, const IParameterResolver& params) const
 {
     auto ast = HermesCtrView::parse_hermes_path(query);
-    auto exp = ast.root().as_tiny_object_map();
+    auto exp = ast.root().value().as_tiny_object_map();
     return hermes::path::search(exp, Object(get_mem_holder(), storage_.addr), params);
 }
 
@@ -277,7 +277,7 @@ void CheckStructureState::check_and_set(const void* ptr, size_t size, const char
 namespace memoria {
 
 TypeSignature::TypeSignature(U8StringView name) {
-    name_ = hermes::HermesCtrView::parse_datatype(name).root().as_datatype().to_string();
+    name_ = hermes::HermesCtrView::parse_datatype(name).root().value().as_datatype().to_string();
 }
 
 TypeSignature TypeSignature::make_normalized(U8StringView str) {

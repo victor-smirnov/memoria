@@ -85,11 +85,11 @@ public:
         }
     }
 
-    hermes::Object get(NamedCode name) override {
+    hermes::MaybeObject get(NamedCode name) override {
         return {};
     }
 
-    void set(NamedCode name, hermes::Object object) override {}
+    void set(NamedCode name, hermes::MaybeObject object) override {}
 
     EndpointID endpoint_id() override {
         return endpoint_id_;

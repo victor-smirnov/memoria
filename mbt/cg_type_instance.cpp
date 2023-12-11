@@ -284,7 +284,7 @@ public:
   }
 
   ObjectMap ld_config() const {
-    return config_.root().as_typed_value().constructor().as_object_map();
+    return config_.root().value().as_typed_value().constructor().as_object_map();
   }
 
   U8String name() const override {
@@ -298,8 +298,8 @@ public:
       config_ = hermes::HermesCtrView::parse_document(anns[anns.size() - 1]);
 
       auto name = ld_config().get("name");
-      if (name.is_not_empty()) {
-        name_ = name.as_varchar();
+      if (name) {
+        name_ = name->as_varchar();
       }
       else {
         U8String type_name = type_().getAsString();
@@ -307,11 +307,11 @@ public:
       }
 
       auto includes = ld_config().get("includes");
-      if (includes.is_not_empty()) {
-        auto arr = includes.as_object_array();
+      if (includes) {
+        auto arr = includes->as_object_array();
         for (size_t c = 0; c < arr.size(); c++)
         {
-          U8String file_name = arr.get(c).as_varchar();
+          U8String file_name = arr.get(c).value().as_varchar();
           includes_.push_back(file_name);
         }
       }
@@ -323,7 +323,7 @@ public:
       MEMORIA_MAKE_GENERIC_ERROR("Configuration must be specified for TypeInstance {}", type_().getAsString()).do_throw();
     }
 
-    auto cfg = config_.root();
+    auto cfg = config_.root().value();
     if (find_value(cfg, "$/config")) {
       config_sdn_path_ = cfg.as_varchar();
     }
@@ -331,7 +331,7 @@ public:
       config_sdn_path_ = "$/groups/default/containers";
     }
 
-    auto vv = project_->config().root();
+    auto vv = project_->config().root().value();
     if (find_value(vv, config_sdn_path_)) {
       project_config_ = vv.clone();
     }
@@ -351,7 +351,7 @@ public:
       MEMORIA_MAKE_GENERIC_ERROR("Can't create directory '{}': {}", target_folder_, ec.message()).do_throw();
     }
 
-    auto pp = config_.root();
+    auto pp = config_.root().value();
     if (find_value(pp, "$/profiles"))
     {
       if (pp.is_varchar())
@@ -369,7 +369,7 @@ public:
         auto arr = pp.as_object_array();
         profiles_ = std::vector<U8String>();
         for (size_t c = 0; c < arr.size(); c++) {
-          profiles_.value().push_back(arr.get(c).as_varchar());
+          profiles_.value().push_back(arr.get(c).value().as_varchar());
         }
       }
       else {

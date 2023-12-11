@@ -34,7 +34,7 @@ struct some_boost_exception : public boost::exception, std::exception {};
 
 Response errors_handler(ContextPtr context)
 {
-    U8StringOView arg = context->request().parameters().get(ARG1).as_varchar();
+    U8StringOView arg = context->request().parameters().expect(ARG1).as_varchar();
 
     if (arg == MEMORIA_ERROR) {
         MEMORIA_MAKE_GENERIC_ERROR("Some error").do_throw();

@@ -63,20 +63,18 @@ protected:
             iter_(iter), holder_(std::move(holder))
         {}
 
-
-
         StringOView first() const {
             return iter_->key()->view(holder_.holder());
         }
 
-        Object second() const
+        MaybeObject second() const
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
                 return Object(holder_.holder(), ptr);
             }
             else {
-                return Object();
+                return {};
             }
         }
     };
@@ -148,7 +146,7 @@ public:
         return size() == 0;
     }
 
-    Object get(U8StringView key) const
+    MaybeObject get(U8StringView key) const
     {
         assert_not_null();
         const ValuePtrT* res = map_->get(key, get_mem_holder());
@@ -161,7 +159,7 @@ public:
                     return Object(ObjectView(mem_holder_, res->get()));
                 }
                 else {
-                    return Object{};
+                    return MaybeObject{};
                 }
             }
             else {
@@ -170,13 +168,22 @@ public:
             }
         }
         else {
-            return Object{};
+            return MaybeObject{};
         }
     }
 
+    Object expect(U8StringView key) const {
+        return std::move(get(key).value());
+    }
+
     template <typename T>
-    Object get(const NamedTypedCode<T>& code) const {
+    MaybeObject get(const NamedTypedCode<T>& code) const {
         return get(code.name());
+    }
+
+    template <typename T>
+    Object expect(const NamedTypedCode<T>& code) const {
+        return std::move(get(code).value());
     }
 
 
@@ -196,7 +203,7 @@ public:
     }
 
 
-    void for_each(std::function<void(U8StringView, Object)> fn) const
+    void for_each(std::function<void(U8StringView, MaybeObject)> fn) const
     {
         assert_not_null();
         map_->for_each([&](const auto& key, const auto& value){
@@ -208,7 +215,7 @@ public:
                     fn(kk, Object(mem_holder_, value.get()));
                 }
                 else {
-                    fn(kk, Object());
+                    fn(kk, MaybeObject());
                 }
             }
             else {
@@ -227,7 +234,7 @@ public:
         bool simple = true;
 
         for_each([&](auto, auto vv){
-            simple = simple && vv.is_simple_layout();
+            simple = simple && vv.value().is_simple_layout();
         });
 
         return simple;

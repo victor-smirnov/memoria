@@ -56,7 +56,7 @@ namespace memoria::hermes::path { namespace interpreter {
  *
  * It can hold either a @ref Object value or a @ref const HermesObjectResolver*.
  */
-using ContextValue = boost::variant<Object, const HermesObjectResolver*>;
+using ContextValue = boost::variant<MaybeObject, const HermesObjectResolver*>;
 
 /**
  * @brief Convert the given @a value to something assignable to a @ref
@@ -65,6 +65,10 @@ using ContextValue = boost::variant<Object, const HermesObjectResolver*>;
  * @return Returns the parameter without any changes as an rvalue reference.
  */
 inline Object&& assignContextValue(Object&& value) {
+    return std::move(value);
+}
+
+inline MaybeObject&& assignContextValue(MaybeObject&& value) {
     return std::move(value);
 }
 /**
@@ -77,14 +81,19 @@ inline Object assignContextValue(const Object& value) {
     return value;
 }
 
+inline MaybeObject assignContextValue(const MaybeObject& value) {
+    return value;
+}
+
+
 /**
  * @brief Extract the @ref Object value held by the given @a value.
  * @param[in] contextValue A @ref ContextValue variable.
  * @return Returns a constant reference to the @ref Object value held by @a value.
  */
-inline const Object& getPathObject(const ContextValue& contextValue)
+inline const MaybeObject& getPathObject(const ContextValue& contextValue)
 {
-    return boost::get<Object>(contextValue);
+    return boost::get<MaybeObject>(contextValue);
 }
 
 /**
@@ -122,7 +131,7 @@ public:
      * @brief Returns the current evaluation context.
      * @return @ref Object document used as the context.
      */
-    const Object &currentContext() const {
+    const MaybeObject &currentContext() const {
         return getPathObject(m_context);
     }
     /**
@@ -147,7 +156,7 @@ public:
      */
 
     void visit(const ASTNodePtr& node);
-    void visit(const Object& node);
+    void visit(const MaybeObject& node);
 
     void visitNullNode(const ASTNodePtr& node);
     void visitIdentifierNode(const ASTNodePtr& node);
@@ -318,7 +327,7 @@ private:
      * @return Rreference to the Object value held by the @a argument.
      * @throws InvalidFunctionArgumentType
      */
-    const Object& getArgument(FunctionArgument& argument) const;
+    const MaybeObject& getArgument(FunctionArgument& argument) const;
     /**
      * @brief Calculates the absolute value of the first item in the given list
      * of @a arguments. The first item must be a number @ref Object value.

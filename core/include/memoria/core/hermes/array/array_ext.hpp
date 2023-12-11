@@ -42,7 +42,7 @@ void ArrayView<DT>::assert_mutable()
 }
 
 
-inline Object ArrayView<Object>::get(uint64_t idx) const
+inline MaybeObject ArrayView<Object>::get(uint64_t idx) const
 {
     assert_not_null();
 
@@ -55,7 +55,7 @@ inline Object ArrayView<Object>::get(uint64_t idx) const
                 return Object(mem_holder_, ptr.get());
             }
             else {
-                return Object{};
+                return {};
             }
         }
         else {
@@ -69,7 +69,7 @@ inline Object ArrayView<Object>::get(uint64_t idx) const
 }
 
 
-inline void ArrayView<Object>::for_each(std::function<void(const Object&)> fn) const {
+inline void ArrayView<Object>::for_each(std::function<void(const MaybeObject&)> fn) const {
     assert_not_null();
 
     for (auto& vv: array_->span()) {
@@ -79,7 +79,7 @@ inline void ArrayView<Object>::for_each(std::function<void(const Object&)> fn) c
                 fn(Object(mem_holder_, vv.get()));
             }
             else {
-                fn(Object());
+                fn(MaybeObject());
             }
         }
         else {
@@ -142,19 +142,19 @@ Object ArrayView<Object>::set_t(uint64_t idx, T&& view)
 }
 
 
-inline void ArrayView<Object>::push_back(const Object& value)
+inline void ArrayView<Object>::push_back(const MaybeObject& value)
 {
     assert_not_null();
     assert_mutable();
 
     auto ctr = HermesCtr(mem_holder_);
-    if (value.is_not_null())
+    if (value)
     {
         arena::ERelativePtr val_ptr;
-        if (value.get_vs_tag() == VS_TAG_SMALL_VALUE)
+        if (value->get_vs_tag() == VS_TAG_SMALL_VALUE)
         {
-            ShortTypeCode tag = value.get_type_tag();
-            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value.storage_.small_value);
+            ShortTypeCode tag = value->get_type_tag();
+            bool do_import = !get_type_reflection(tag).hermes_embed(val_ptr, value->storage_.small_value);
             if (do_import)
             {
                 auto vv = ctr.do_import_value(value);
@@ -194,16 +194,16 @@ void ArrayView<DT>::set(uint64_t idx, DTTViewType<DT> value)
 }
 
 
-inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
+inline MaybeObject ArrayView<Object>::set(uint64_t idx, const MaybeObject& ivalue)
 {
     assert_not_null();
     assert_mutable();
     auto ctr = HermesCtr(mem_holder_);
 
-    auto value = ctr.do_import_value(ivalue);
-
-    if (value.is_not_null())
+    if (ivalue)
     {
+        auto value = ctr.do_import_value(*ivalue);
+
         arena::ERelativePtr val_ptr;
 
         if (value.get_vs_tag() == VS_TAG_SMALL_VALUE)
@@ -222,12 +222,12 @@ inline Object ArrayView<Object>::set(uint64_t idx, const Object& ivalue)
         }
 
         array_->set(idx, val_ptr);
+        return value;
     }
     else {
         array_->set(idx, nullptr);
+        return {};
     }
-
-    return value;
 }
 
 

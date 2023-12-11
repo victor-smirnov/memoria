@@ -41,21 +41,21 @@ public:
     }
 
     hermes::TinyObjectMap parameters() const {
-        return object_.get(PARAMETERS).as_tiny_object_map();
+        return object_.expect(PARAMETERS).as_tiny_object_map();
     }
 
     ChannelCode input_channels() const {
         auto vv = object_.get(INPUT_CHANNELS);
-        if (vv.is_not_empty()) {
-            return vv.to_i32();
+        if (vv) {
+            return vv->to_i32();
         }
         return 0;
     }
 
     ChannelCode output_channels() const {
         auto vv = object_.get(OUTPUT_CHANNELS);
-        if (vv.is_not_empty()) {
-            return vv.to_i32();
+        if (vv) {
+            return vv->to_i32();
         }
         return 0;
     }
@@ -99,7 +99,7 @@ public:
 
     Request compactify() const {
         auto ctr = object_.ctr().compactify(true);
-        return ctr.root().as_tiny_object_map();
+        return ctr.root().value().as_tiny_object_map();
     }
 };
 
@@ -119,11 +119,11 @@ public:
     {}
 
     ErrorType type() const {
-        return (ErrorType)object_.get(TYPE).cast_to<UInteger>().value_t();
+        return (ErrorType)object_.expect(TYPE).cast_to<UInteger>().value_t();
     }
 
     U8StringOView description() const {
-        return object_.get(DESCRIPTION).cast_to<Varchar>();
+        return object_.expect(DESCRIPTION).cast_to<Varchar>();
     }
 
     void set_type(ErrorType type) {
@@ -166,27 +166,27 @@ public:
     }
 
     int32_t code() const {
-        return object_.get(CODE).cast_to<Integer>();
+        return object_.expect(CODE).cast_to<Integer>();
     }
 
     U8StringOView message() const {
-        return object_.get(MESSAGE).cast_to<Varchar>();
+        return object_.expect(MESSAGE).cast_to<Varchar>();
     }
 
     U8StringOView category() const {
-        return object_.get(CATEGORY).cast_to<Varchar>();
+        return object_.expect(CATEGORY).cast_to<Varchar>();
     }
 
     int32_t condition_code() const {
-        return object_.get(CONDITION_CODE).cast_to<Integer>();
+        return object_.expect(CONDITION_CODE).cast_to<Integer>();
     }
 
     U8StringOView condition_message() const {
-        return object_.get(CONDITION_MESSAGE).cast_to<Varchar>();
+        return object_.expect(CONDITION_MESSAGE).cast_to<Varchar>();
     }
 
     U8StringOView condition_category() const {
-        return object_.get(CONDITION_CATEGORY).cast_to<Varchar>();
+        return object_.expect(CONDITION_CATEGORY).cast_to<Varchar>();
     }
 
     void set_code(int32_t code) {
@@ -230,14 +230,14 @@ public:
     {}
 
     HrpcErrors code() const {
-        return (HrpcErrors)object_.get(CODE).to_i32();
+        return (HrpcErrors)object_.expect(CODE).to_i32();
     }
 
     Optional<EndpointID> endpoint_id() const
     {
         auto obj = object_.get(ENDPOINT_ID);
-        if (obj.is_not_empty()) {
-            return obj.cast_to<typename ViewToDTMapping<EndpointID>::Type>().value_t();
+        if (obj) {
+            return obj->cast_to<typename ViewToDTMapping<EndpointID>::Type>().value_t();
         }
         else {
             return {};
@@ -283,11 +283,11 @@ public:
     }
 
     StatusCode status_code() const {
-        return (StatusCode)object_.get(STATUS_CODE).cast_to<UInteger>().value_t();
+        return (StatusCode)object_.expect(STATUS_CODE).cast_to<UInteger>().value_t();
     }
 
     Error error() const {
-        return object_.get(ERROR).as_tiny_object_map();
+        return object_.expect(ERROR).as_tiny_object_map();
     }
 
     void set_status_code(StatusCode code) {
@@ -397,7 +397,7 @@ public:
 
     Response compactify() const {
         auto ctr = object_.ctr().compactify(true);
-        return ctr.root().as_tiny_object_map();
+        return ctr.root().value().as_tiny_object_map();
     }
 };
 
@@ -440,7 +440,7 @@ public:
     }
 
     Message compactify() const {
-        return object_.ctr().compactify(true).root().as_tiny_object_map();
+        return object_.ctr().compactify(true).root().value().as_tiny_object_map();
     }
 
     static Message empty() {
@@ -466,7 +466,7 @@ public:
     {}
 
     uint64_t channel_buffer_size() const {
-        return object_.get(CHANNEL_BUFFER_SIZE).cast_to<UBigInt>();
+        return object_.expect(CHANNEL_BUFFER_SIZE).cast_to<UBigInt>();
     }
 
     void set_channel_buffer_size(uint64_t size) {
@@ -474,7 +474,7 @@ public:
     }
 
     ConnectionMetadata compactify(size_t header_size = 0) const {
-        return object_.ctr().compactify(true, header_size).root().as_tiny_object_map();
+        return object_.ctr().compactify(true, header_size).root().value().as_tiny_object_map();
     }
 };
 
@@ -495,8 +495,8 @@ public:
     uint64_t channel_buffer_size() const
     {
         auto val = object_.get(CHANNEL_BUFFER_SIZE);
-        if (val.is_not_null()) {
-            return val.cast_to<UBigInt>();
+        if (val) {
+            return val->cast_to<UBigInt>();
         }
 
         return CHANNEL_BUFFER_SIZE_DEFAULT;
@@ -527,8 +527,8 @@ public:
     U8String host() const
     {
         auto val = object_.get(HOST);
-        if (val.is_not_null()) {
-            return val.cast_to<Varchar>();
+        if (val) {
+            return val->cast_to<Varchar>();
         }
 
         return HOST_DEFAULT;
@@ -541,8 +541,8 @@ public:
     uint16_t port() const
     {
         auto val = object_.get(PORT);
-        if (val.is_not_null()) {
-            return val.cast_to<USmallInt>();
+        if (val) {
+            return val->cast_to<USmallInt>();
         }
 
         return PORT_DEFAULT;

@@ -357,7 +357,7 @@ protected:
         {
             auto ptr = ii->second.lock();
             if (!ptr.is_null()) {
-                Message rq(msg.root().as_tiny_object_map());
+                Message rq(msg.root().value().as_tiny_object_map());
                 ptr->new_message(std::move(rq), header.channel_code());
             }
             else {
@@ -370,7 +370,7 @@ protected:
     {
         auto ctx = context(header.call_id());
         if (!ctx.is_null()) {
-            Message rq(msg.root().as_tiny_object_map());
+            Message rq(msg.root().value().as_tiny_object_map());
             ctx->new_message(std::move(rq), header.channel_code());
         }
     }
@@ -438,7 +438,7 @@ protected:
 
     void handle_return(const MessageHeader& header, hermes::HermesCtr&& msg)
     {
-        Response rs(msg.root().as_tiny_object_map());
+        Response rs(msg.root().value().as_tiny_object_map());
 
         auto ii = calls_.find(header.call_id());
         if (ii != calls_.end())
@@ -477,7 +477,7 @@ protected:
             do_session_close();
         }
 
-        ConnectionMetadata meta(msg.root().as_tiny_object_map());
+        ConnectionMetadata meta(msg.root().value().as_tiny_object_map());
 
         auto buf_size = meta.channel_buffer_size();
         if (buf_size < channel_buffer_size_) {
@@ -496,7 +496,7 @@ protected:
             do_session_close();
         }
 
-        ConnectionMetadata meta(msg.root().as_tiny_object_map());
+        ConnectionMetadata meta(msg.root().value().as_tiny_object_map());
 
         auto buf_size = meta.channel_buffer_size();
         if (buf_size < channel_buffer_size_) {
@@ -510,7 +510,7 @@ protected:
 
     void invoke_handler(const MessageHeader& header, hermes::HermesCtr&& msg)
     {
-        Request rq(msg.root().as_tiny_object_map());
+        Request rq(msg.root().value().as_tiny_object_map());
         auto ctx = context(header.call_id());
         if (ctx.is_null())
         {

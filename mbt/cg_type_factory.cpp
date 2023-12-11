@@ -146,8 +146,8 @@ public:
     U8String generator() const override
     {
         auto gen = ld_config().get("generator");
-        if (gen.is_not_empty()) {
-            return gen.as_varchar();
+        if (gen) {
+            return gen->as_varchar();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} has no generator attribute defined. Skipping: ", type_pattern()).do_throw();
@@ -163,11 +163,11 @@ public:
     }
 
     ObjectMap ld_config() {
-        return config_.root().as_typed_value().constructor().as_object_map();
+        return config_.root().value().as_typed_value().constructor().as_object_map();
     }
 
     ObjectMap ld_config() const {
-        return config_.root().as_typed_value().constructor().as_object_map();
+        return config_.root().value().as_typed_value().constructor().as_object_map();
     }
 
     void generate_artifacts() override {}
@@ -190,12 +190,12 @@ public:
     void configure() override
     {
         auto includes = ld_config().get("includes");
-        if (includes.is_not_empty())
+        if (includes)
         {
-            auto arr = includes.as_object_array();
+            auto arr = includes->as_object_array();
             for (size_t c = 0; c < arr.size(); c++)
             {
-                U8String file_name = arr.get(c).as_varchar();
+                U8String file_name = arr.get(c).value().as_varchar();
                 includes_.push_back(file_name);
             }
         }
@@ -204,9 +204,8 @@ public:
         }
 
         auto name = ld_config().get("name");
-        if (name.is_not_empty())
-        {
-            name_ = name.as_varchar();
+        if (name) {
+            name_ = name->as_varchar();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("TypeFactory for {} must define 'name' config attribute", type_pattern()).do_throw();

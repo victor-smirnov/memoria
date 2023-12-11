@@ -55,7 +55,7 @@ public:
      * @a string
      * @param[in] string The raw string value.
      */
-    HermesValueNode(const Object& string);
+    HermesValueNode(const MaybeObject& string);
     /**
      * @brief Calls the visit method of the given @a visitor with the
      * dynamic type of the node.
@@ -70,14 +70,14 @@ public:
      */
     bool operator==(const HermesValueNode& other) const;
 
-    operator Object() const {
+    operator MaybeObject() const {
         return value;
     }
 
     /**
      * @brief The raw Hermes value
      */
-    Object value;
+    MaybeObject value;
 
     static constexpr NamedCode CODE = ASTCodes::HERMES_VALUE_NODE;
 };
@@ -96,7 +96,7 @@ struct HermesArrayNode
 
 BOOST_FUSION_ADAPT_STRUCT(
     memoria::hermes::path::ast::HermesValueNode,
-    (memoria::hermes::Object, value)
+    (memoria::hermes::MaybeObject, value)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

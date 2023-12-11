@@ -693,11 +693,11 @@ void MultiProcessRunner::handle_connections()
                 {
                     // FIXME: Handle exceptions here!
                     auto msg = read_message(input);
-                    U8String code = msg.root().search("code").as_varchar();
+                    U8String code = msg.root().value().search("code").as_varchar();
 
                     if (code == "GREETING")
                     {
-                        worker_num = msg.root().search("worker_id").to_i64();
+                        worker_num = msg.root().value().search("worker_id").to_i64();
                         worker_process = worker_processes_.at(worker_num);
                     }
                     else if (code == "GET_TASK")
@@ -720,8 +720,8 @@ void MultiProcessRunner::handle_connections()
                     {
                         processed++;
 
-                        U8String test_path = msg.root().search("test_path").as_varchar();
-                        int32_t status = msg.root().search("status").to_i32();
+                        U8String test_path = msg.root().value().search("test_path").as_varchar();
+                        int32_t status = msg.root().value().search("status").to_i32();
 
                         heads_.erase(worker_num);
 
@@ -902,11 +902,11 @@ void Worker::run()
         write_message(output, "{'code': 'GET_TASK'}");
 
         auto msg = read_message(input);
-        U8String code = msg.root().search("code").as_varchar();
+        U8String code = msg.root().value().search("code").as_varchar();
 
         if (code == "RUN_TASK")
         {            
-            U8String test_path = msg.root().search("test_path").as_varchar();
+            U8String test_path = msg.root().value().search("test_path").as_varchar();
 
             println("++++++++++ New message from server: {}", test_path);
 

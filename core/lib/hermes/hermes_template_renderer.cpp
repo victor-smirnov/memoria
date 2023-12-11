@@ -74,20 +74,20 @@ public:
         return iterpreter.currentContext();
     }
 
-    void visit(const Object& element)
+    void visit(const MaybeObject& element)
     {
-        if (element.is_not_null())
+        if (element)
         {
-            if (element.is_varchar()) {
-                visitText(element.as_varchar());
+            if (element->is_varchar()) {
+                visitText(element->as_varchar());
             }
-            else if (element.is_object_array()) {
-                visitStatements(element.as_object_array());
+            else if (element->is_object_array()) {
+                visitStatements(element->as_object_array());
             }
-            else if (element.is_tiny_object_map())
+            else if (element->is_tiny_object_map())
             {
-                auto map = element.as_tiny_object_map();
-                int32_t code = map.get(CODE).to_i32();
+                auto map = element->as_tiny_object_map();
+                int32_t code = map.expect(CODE).to_i32();
                 auto& vmap = visitors_map();
                 auto ii = vmap.find(code);
                 if (ii != vmap.end()) {
@@ -100,7 +100,7 @@ public:
             else {
                 MEMORIA_MAKE_GENERIC_ERROR(
                     "Provided Hermes Template AST node is not an TinyObjectMapView: {}",
-                    element.to_pretty_string()
+                    element->to_pretty_string()
                 ).do_throw();
             }
         }
@@ -120,8 +120,8 @@ public:
 
     void visitForStmt(const ASTNodeT& element)
     {
-        auto var_name = element.get(VARIABLE).as_data_object<Varchar>();
-        auto expr = element.get(EXPRESSION);
+        auto var_name = element.expect(VARIABLE).as_data_object<Varchar>();
+        auto expr = element.expect(EXPRESSION);
         auto value = evaluateExpr(expr.as_tiny_object_map());
 
         auto stmts = element.get(STATEMENTS);
@@ -145,13 +145,13 @@ public:
 
     void visitIfStmt(const ASTNodeT& element)
     {
-        auto expr = element.get(EXPRESSION);
+        auto expr = element.expect(EXPRESSION);
         auto value = evaluateExpr(expr.as_tiny_object_map());
 
         bool boolValue = path::interpreter::HermesASTInterpreter::toSimpleBoolean(value);
         if (boolValue)
         {
-            auto stmts = element.get(STATEMENTS);
+            auto stmts = element.expect(STATEMENTS);
             visitStatements(stmts.as_object_array());
         }
         else {
@@ -162,21 +162,21 @@ public:
 
     void visitElseStmt(const ASTNodeT& element)
     {
-        auto stmts = element.get(STATEMENTS);
+        auto stmts = element.expect(STATEMENTS);
         visitStatements(stmts.as_object_array());
     }
 
     void visitSetStmt(const ASTNodeT& element)
     {
-        auto var_name = element.get(VARIABLE).as_data_object<Varchar>();
-        auto expr  = element.get(EXPRESSION);
+        auto var_name = element.expect(VARIABLE).as_data_object<Varchar>();
+        auto expr  = element.expect(EXPRESSION);
         auto value = evaluateExpr(expr.as_tiny_object_map());
         stack_.set(var_name, value);
     }
 
     void visitVarStmt(const ASTNodeT& element)
     {
-        auto expr = element.get(EXPRESSION).as_tiny_object_map();
+        auto expr = element.expect(EXPRESSION).as_tiny_object_map();
         auto res = evaluateExpr(expr);
         out_ << res.to_plain_string();
     }

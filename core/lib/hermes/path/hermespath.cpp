@@ -34,7 +34,7 @@
 namespace memoria::hermes::path {
 
 
-Object search(const TinyObjectMap &expression, const Object& value)
+MaybeObject search(const TinyObjectMap &expression, const Object& value)
 {
     using interpreter::HermesASTInterpreter;
     if (expression.empty())
@@ -51,7 +51,7 @@ Object search(const TinyObjectMap &expression, const Object& value)
     return interpreter::getPathObject(s_interpreter.currentContextValue());
 }
 
-Object search(const TinyObjectMap &expression, const Object& value, const IParameterResolver& resolver)
+MaybeObject search(const TinyObjectMap &expression, const Object& value, const IParameterResolver& resolver)
 {
     using interpreter::HermesASTInterpreter;
     if (expression.empty())

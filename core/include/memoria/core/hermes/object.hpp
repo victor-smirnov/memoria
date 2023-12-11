@@ -67,11 +67,14 @@ protected:
     friend struct CtrMakeHelper;
 
 public:
-    ObjectView() noexcept
-    {
-        storage_.addr = nullptr;
-        set_tag(ValueStorageTag::VS_TAG_ADDRESS);
-    }
+    // ObjectView must be non-null
+    ObjectView() = delete;
+
+//    ObjectView() noexcept
+//    {
+//        storage_.addr = nullptr;
+//        set_tag(ValueStorageTag::VS_TAG_ADDRESS);
+//    }
 
     template <typename DT>
     ObjectView(LWMemHolder* ptr_holder, const DTView<DT>& view, DirectViewTag<DT>) noexcept :

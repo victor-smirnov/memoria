@@ -199,7 +199,7 @@ int main(int argc, char** argv)
         }
 
         auto doc = project->dry_run();
-        write_text_file(file_name, doc.root().to_pretty_string());
+        write_text_file(file_name, doc.root().value().to_pretty_string());
 
         std::cout << build_output_list(doc);
       }

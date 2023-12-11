@@ -220,13 +220,13 @@ public:
         return arena_;
     }
 
-    Object root() const noexcept
+    MaybeObject root() const noexcept
     {
         if (MMA_LIKELY(header_->root.is_not_null())) {
             return Object(mem_holder_, header_->root.get());
         }
         else {
-            return Object{};
+            return {};
         }
     }
 
@@ -251,7 +251,13 @@ public:
 
 
     void stringify(std::ostream& out, DumpFormatState& state) const {
-        root().stringify(out, state);
+        auto rr = root();
+        if (rr) {
+            rr->stringify(out, state);
+        }
+        else {
+            out << "null";
+        }
     }
 
     static bool is_identifier(U8StringView string) {
@@ -355,7 +361,7 @@ public:
 
     TypedValue new_typed_value(Datatype datatype, const Object& constructor);
 
-    Object parse_raw_value(
+    MaybeObject parse_raw_value(
             CharIterator start,
             CharIterator end,
             const ParserConfiguration& cfg = ParserConfiguration{}

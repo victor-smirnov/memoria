@@ -106,7 +106,7 @@ int main(int, char**)
 
     doc2.check();
 
-    auto vv = doc.root().search("quiz.sport.q1.question");
+    auto vv = doc.root().value().search("quiz.sport.q1.question");
     println("{}", vv.to_pretty_string());
 
     return 0;

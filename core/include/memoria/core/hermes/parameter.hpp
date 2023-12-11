@@ -36,19 +36,19 @@ struct IParameterResolver {
     virtual ~IParameterResolver() noexcept = default;
 
     virtual bool has_parameter(U8StringView name) const = 0;
-    virtual Object resolve(U8StringView name) const   = 0;
+    virtual MaybeObject resolve(U8StringView name) const   = 0;
 };
 
 struct Params: IParameterResolver {
     virtual bool has_parameter(U8StringView name) const;
-    virtual Object resolve(U8StringView name) const;
+    virtual MaybeObject resolve(U8StringView name) const;
 
     template <typename DT>
     void add_dataobject(U8StringView name, DTTViewType<DT> view);
     void add_hermes(U8StringView name, U8StringView value);
 
 private:
-    std::unordered_map<U8String, Object> params_;
+    std::unordered_map<U8String, MaybeObject> params_;
 };
 
 

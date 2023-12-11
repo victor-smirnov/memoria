@@ -69,13 +69,13 @@ using HermesObjectResolver = std::function<Object(U8StringView)>;
  * specified for a HermesPath function call in the *expression*.
  */
 
-Object search(const Expression& expression, const Object& document);
+MaybeObject search(const Expression& expression, const Object& document);
 
-Object search(const Expression& expression, const Object& document, const IParameterResolver& resolver);
+MaybeObject search(const Expression& expression, const Object& document, const IParameterResolver& resolver);
 
-Object search(const TinyObjectMap& expression, const Object& document);
+MaybeObject search(const TinyObjectMap& expression, const Object& document);
 
-Object search(const TinyObjectMap& expression, const Object& document, const IParameterResolver& resolver);
+MaybeObject search(const TinyObjectMap& expression, const Object& document, const IParameterResolver& resolver);
 
 struct ASTCodes {
     static constexpr NamedCode CODE_ATTR                  = NamedCode(0, "code");

@@ -135,8 +135,7 @@ public:
         return array_->size() == 0;
     }
 
-    Object get(uint64_t idx) const;
-
+    MaybeObject get(uint64_t idx) const;
 
     template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int> = 0>
     Object set(uint64_t idx, T&& value);
@@ -144,14 +143,14 @@ public:
     template <typename DT, typename T>
     Object set_t(uint64_t idx, T&& value);
 
-    Object set(uint64_t idx, const Object& value);
+    MaybeObject set(uint64_t idx, const MaybeObject& value);
 
     template <typename T, std::enable_if_t<!HermesObject<std::decay_t<T>>::Value, int> = 0>
     void push_back(T&& view);
 
     template <typename DT, typename T>
     void push_back_t(T&& view);
-    void push_back(const Object& value);
+    void push_back(const MaybeObject& value);
 
     void set_null(uint64_t idx);
 
@@ -184,13 +183,13 @@ public:
         bool simple = true;
 
         for_each([&](auto vv){
-            simple = simple && vv.is_simple_layout();
+            simple = simple && vv ? vv->is_simple_layout() : true;
         });
 
         return simple;
     }
 
-    void for_each(std::function<void(const Object&)> fn) const;
+    void for_each(std::function<void(const MaybeObject&)> fn) const;
 
     bool is_null() const {
         return array_ == nullptr;
@@ -278,7 +277,12 @@ private:
                 }
 
                 state.make_indent(out);
-                vv.stringify(out, state);
+                if (vv) {
+                    vv->stringify(out, state);
+                }
+                else {
+                    out << "null";
+                }
             });
             state.pop();
 

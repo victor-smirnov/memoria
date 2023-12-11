@@ -141,7 +141,7 @@ struct TypeDeclarationParser : qi::grammar<Iterator, Datatype(), SkipperT<Iterat
 
 
 template <typename Iterator>
-struct RawHermesDocValueParser : qi::grammar<Iterator, Object(), SkipperT<Iterator>>
+struct RawHermesDocValueParser : qi::grammar<Iterator, MaybeObject(), SkipperT<Iterator>>
 {
     HermesDocParser<Iterator> hermes_doc_parser;
     RawHermesDocValueParser() : RawHermesDocValueParser::base_type(hermes_doc_parser.standalone_hermes_value)
@@ -283,7 +283,7 @@ void parse_raw_datatype_decl(Iterator& first, Iterator& last, HermesCtr& doc, Da
 }
 
 template <typename Iterator>
-void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, Object& value)
+void parse_raw_value0(Iterator& first, Iterator& last, HermesCtr& doc, MaybeObject& value)
 {
     HermesCtrBuilderCleanup cleanup;
     HermesCtrBuilder::enter(doc);
@@ -360,7 +360,7 @@ Datatype HermesCtrView::parse_raw_datatype(CharIterator start, CharIterator end,
     return datatype;
 }
 
-Object HermesCtrView::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
+MaybeObject HermesCtrView::parse_raw_value(CharIterator start, CharIterator end, const ParserConfiguration&)
 {
     IteratorType beginIt(start);
     IteratorType it = beginIt;
@@ -368,7 +368,7 @@ Object HermesCtrView::parse_raw_value(CharIterator start, CharIterator end, cons
 
     auto ctr = HermesCtr(mem_holder_);
 
-    Object value{};
+    MaybeObject value{};
     parse_raw_value0(it, endIt, ctr, value);
     return value;
 }

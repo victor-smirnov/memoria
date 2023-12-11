@@ -72,14 +72,14 @@ protected:
             return iter_->key();
         }
 
-        Object second() const
+        MaybeObject second() const
         {
             if (iter_->value().is_not_null()) {
                 auto ptr = iter_->value().get();
                 return Object(holder_.holder(), ptr);
             }
             else {
-                return Object();
+                return {};
             }
         }
     };
@@ -150,7 +150,7 @@ public:
         return size() == 0;
     }
 
-    Object get(KeyView key) const
+    MaybeObject get(KeyView key) const
     {
         assert_not_null();
         const auto* res = map_->get(key, mem_holder_);
@@ -162,7 +162,7 @@ public:
                     return Object(mem_holder_, res->get());
                 }
                 else {
-                    return Object{};
+                    return MaybeObject{};
                 }
             }
             else {
@@ -171,13 +171,23 @@ public:
             }
         }
         else {
-            return Object{};
+            return MaybeObject{};
         }
     }
 
+    Object expect(KeyView key) const
+    {
+        return get(key).value();
+    }
+
     template <typename T>
-    Object get(const NamedTypedCode<T>& code) const {
+    MaybeObject get(const NamedTypedCode<T>& code) const {
         return get(code.code());
+    }
+
+    template <typename T>
+    Object expect(const NamedTypedCode<T>& code) const {
+        return get(code.code()).value();
     }
 
 
@@ -243,7 +253,7 @@ public:
                     fn(key, Object(mem_holder_, value.get()));
                 }
                 else {
-                    fn(key, Object());
+                    fn(key, MaybeObject());
                 }
             }
             else {

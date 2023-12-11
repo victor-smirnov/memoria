@@ -35,7 +35,7 @@ void assert_arrays_equal(const std::vector<T>& expected, const hermes::ObjectArr
 {
     assert_equals(expected.size(), actual.size());
     for (size_t c = 0; c < expected.size(); c++) {
-        assert_equals(expected[c], actual.get(c).as_data_object<BigInt>());
+        assert_equals(expected[c], actual.get(c).value().as_data_object<BigInt>());
     }
 }
 
@@ -55,14 +55,14 @@ void assert_arrays_equal(const std::unordered_map<K, V>& expected, const hermes:
     assert_equals(expected.size(), actual.size());
     for (auto ii: expected)
     {
-        auto vv = actual.get(ii.first);
+        auto vv = actual.expect(ii.first);
         assert_equals(ii.second, vv.as_bigint());
     }
 
     actual.for_each([&](auto key, auto value){
         auto ii = expected.find(key);
         assert_equals(true, ii != expected.end());
-        assert_equals(ii->second, value.template as_data_object<BigInt>());
+        assert_equals(ii->second, value.value().template as_data_object<BigInt>());
     });
 }
 

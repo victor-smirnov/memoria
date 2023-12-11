@@ -139,7 +139,7 @@ inline void MapView<Varchar, Object>::do_stringify(std::ostream& out, DumpFormat
                 RawStringEscaper::current().reset();
             }
 
-            vv.stringify(out, state);
+            vv->stringify(out, state);
         });
         state.pop();
 

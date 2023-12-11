@@ -36,7 +36,7 @@ HermesValueNode::HermesValueNode()
 {
 }
 
-HermesValueNode::HermesValueNode(const Object &value)
+HermesValueNode::HermesValueNode(const MaybeObject &value)
     : AbstractNode(),
       value(value)
 {
@@ -51,7 +51,12 @@ bool HermesValueNode::operator==(const HermesValueNode &other) const
 {
     if (this != &other)
     {
-        return value.equals(other.value);
+        if (value && other.value) {
+            return value->equals(*other.value);
+        }
+        else if (!value && !other.value) {
+            return true;
+        }
     }
     return true;
 }

@@ -358,12 +358,12 @@ public:
             auto superblock = superblock_fn_(meta.superblock_file_pos());
 
             auto doc = superblock->metadata_doc();
-            auto map = doc.root().as_object_map();
+            auto map = doc.root().value().as_object_map();
 
             U8String branch_name;
             auto bname_opt = map.get("branch_name");
-            if (bname_opt.is_not_empty()) {
-                branch_name = bname_opt.as_varchar();
+            if (bname_opt) {
+                branch_name = bname_opt->as_varchar();
             }
             else {
                 branch_name = "";

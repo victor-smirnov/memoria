@@ -30,20 +30,21 @@ inline void Params::add_dataobject(U8StringView name, DTTViewType<DT> view) {
 
 inline void Params::add_hermes(U8StringView name, U8StringView value) {
     auto doc = HermesCtrView::parse_document(value);
-    params_[name] = doc.root();
+    auto rr = doc.root();
+    params_[name] = std::move(rr);
 }
 
 inline bool Params::has_parameter(U8StringView name) const {
     return params_.find(name) != params_.end();
 }
 
-inline Object Params::resolve(U8StringView name) const {
+inline MaybeObject Params::resolve(U8StringView name) const {
     auto ii = params_.find(name);
     if (ii != params_.end()) {
         return ii->second;
     }
 
-    return Object{};
+    return {};
 }
 
 inline HermesCtr ParameterView::ctr() const {

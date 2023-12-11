@@ -18,6 +18,7 @@
 #include <memoria/core/reflection/typehash.hpp>
 #include <memoria/core/datatypes/traits.hpp>
 #include <memoria/core/datatypes/varchars/varchar_dt.hpp>
+#include <memoria/core/tools/optional.hpp>
 
 namespace memoria {
 
@@ -57,7 +58,8 @@ class ObjectView;
 
 class ParameterView;
 
-using Object = Own<ObjectView, OwningKind::HOLDING>;
+using Object = Own<ObjectView, OwningKind::HOLDING_NON_NULL>;
+using MaybeObject = Optional<Object>;
 
 using StringOView = DTView<Varchar>;
 
@@ -107,8 +109,14 @@ struct HermesObject<Parameter>: BoolValue<true> {};
 template <>
 struct HermesObject<Object>: BoolValue<true> {};
 
+template <>
+struct HermesObject<MaybeObject>: BoolValue<true> {};
+
 }
 
+
+template <>
+struct OwnNonNullHolding<hermes::ObjectView>: BoolValue<true>{};
 
 template <>
 struct TypeHash<Hermes>: HasU64Value<98> {};
@@ -164,5 +172,7 @@ struct TypeDescriptor<hermes::Array<T>>:HasU64Value<hermes::HERMES_OBJECT_ARRAY>
 
 template <typename K, typename V>
 struct TypeDescriptor<hermes::Map<K, V>>:HasU64Value<hermes::HERMES_OBJECT_MAP> {};
+
+
 
 }

@@ -117,8 +117,8 @@ public:
 
     virtual Request request() = 0;
 
-    virtual hermes::Object get(NamedCode name) = 0;
-    virtual void set(NamedCode name, hermes::Object object) = 0;
+    virtual hermes::MaybeObject get(NamedCode name) = 0;
+    virtual void set(NamedCode name, hermes::MaybeObject object) = 0;
 
     virtual size_t input_channels() = 0;
     virtual size_t output_channels() = 0;

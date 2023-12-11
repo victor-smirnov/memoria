@@ -257,7 +257,7 @@ public:
         else {
             U8String signature = make_datatype_signature(RootMapType{}).name();
             auto doc = TypeSignature::parse(signature.to_std_string());
-            auto decl = doc.root().as_datatype();
+            auto decl = doc.root().value().as_datatype();
             auto ctr_ref = create_ctr_instance(decl, CtrID{});
 
             root_map_ = memoria_static_pointer_cast<CommonCtrT<RootMapType>>(ctr_ref);

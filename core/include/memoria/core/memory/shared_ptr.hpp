@@ -339,7 +339,8 @@ enum class OwningKind: size_t {
     EMBEDDED = 0,
     RESERVED = 1,
     WRAPPING = 2,
-    HOLDING  = 3
+    HOLDING  = 3,
+    HOLDING_NON_NULL  = 4,
 };
 
 template <typename, OwningKind> class Own;
@@ -416,11 +417,12 @@ protected:
     }
 };
 
-
+template <typename T>
+struct OwnNonNullHolding: BoolValue<false>{};
 
 template <typename ViewT>
 constexpr OwningKind OwningKindOf = detail::HasGetMemHolderMethod<ViewT>::Value ?
-        OwningKind::HOLDING :
+        (OwnNonNullHolding<ViewT>::Value ? OwningKind::HOLDING_NON_NULL : OwningKind::HOLDING):
             IsWrappingView<ViewT>::Value ?
                 OwningKind::WRAPPING :
         OwningKind::EMBEDDED;
@@ -848,5 +850,174 @@ public:
         return this->get_mem_holder() != nullptr;
     }
 };
+
+
+template <typename ViewT>
+class Own<ViewT, OwningKind::HOLDING_NON_NULL>: public ViewT {
+    using MemHolder = LWMemHolder;
+    using Base = ViewT;
+
+    template <typename, OwningKind>
+    friend class Own;
+
+public:
+    using element_type = ViewT;
+
+    template <typename... Args>
+    Own(MemHolder* holder, Args&&... args):
+        Base(holder, std::forward<Args>(args)...)
+    {
+        if (holder) {
+            holder->ref_copy();
+        }
+    }
+
+    template <typename... Args>
+    Own(MemHolderHandle&& holder, Args&&... args):
+        Base(std::move(holder), std::forward<Args>(args)...)
+    {}
+
+    Own(ViewT view) noexcept :
+        Base(view)
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (holder) {
+            holder->ref_copy();
+        }
+    }
+
+    template<typename U>
+    Own(const Own<U, OwningKind::HOLDING_NON_NULL>& other) noexcept:
+        Base(*static_cast<const U*>(&other))
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (MMA_LIKELY((bool)holder)) {
+            holder->ref_copy();
+        }
+    }
+
+
+    Own(const Own& other) noexcept:
+        Base(*static_cast<const ViewT*>(&other))
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (MMA_LIKELY((bool)holder)) {
+            holder->ref_copy();
+        }
+    }
+
+    Own(const Optional<Own>& other) noexcept:
+        Base(*static_cast<const ViewT*>(&other.value()))
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (MMA_LIKELY((bool)holder)) {
+            holder->ref_copy();
+        }
+    }
+
+
+    Own(Own&& other) noexcept:
+        Base(std::move(*static_cast<ViewT*>(&other)))
+    {
+        other.reset_mem_holder();
+    }
+
+    template<typename U>
+    Own(Own<U, OwningKind::HOLDING_NON_NULL>&& other) noexcept:
+        Base(*static_cast<U*>(&other))
+    {
+        other.reset_mem_holder();
+    }
+
+    ~Own() noexcept
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (holder) {
+            holder->unref();
+        }
+    }
+
+    Own& operator=(const Own& other) noexcept
+    {
+        if (MMA_LIKELY(&other != this))
+        {
+            MemHolder* holder = this->get_mem_holder();
+
+            if (holder) {
+                holder->unref();
+            }
+
+            *static_cast<ViewT*>(this) = *static_cast<const ViewT*>(&other);
+
+            holder = this->get_mem_holder();
+            if (holder){
+                holder->ref_copy();
+            }
+        }
+
+        return *this;
+    }
+
+    Own& operator=(Own&& other) noexcept
+    {
+        if (MMA_LIKELY(&other != this))
+        {
+            MemHolder* holder = this->get_mem_holder();
+
+            if (MMA_UNLIKELY(holder != nullptr)) {
+                holder->unref();
+            }
+
+            *static_cast<ViewT*>(this) = std::move(*static_cast<const ViewT*>(&other));
+
+            other.reset_mem_holder();
+        }
+
+        return *this;
+    }
+
+    void reset() noexcept
+    {
+        MemHolder* holder = this->get_mem_holder();
+        if (holder) {
+            holder->unref();
+            this->reset_mem_holder();
+        }
+    }
+
+    MemHolder* release_holder()
+    {
+        MemHolder* tmp = this->get_mem_holder();
+        *static_cast<ViewT*>(this) = ViewT{};
+        return tmp;
+    }
+
+    friend void swap(Own& lhs, Own& rhs) {
+        std::swap(
+            *static_cast<ViewT*>(&lhs),
+            *static_cast<ViewT*>(&rhs)
+        );
+    }
+
+    auto use_count() const {
+        MemHolder* holder = this->get_mem_holder();
+        if (holder) {
+            return holder->refs();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    bool is_empty() const {
+        return this->get_mem_holder() == nullptr;
+    }
+
+    bool is_not_empty() const {
+        return this->get_mem_holder() != nullptr;
+    }
+};
+
+
 
 }

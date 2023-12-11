@@ -111,11 +111,11 @@ public:
   virtual void configure() override
   {
     auto ii = ld_config().get("includes");
-    if (ii.is_not_null()) {
-      auto arr = ii.as_object_array();
+    if (ii) {
+      auto arr = ii->as_object_array();
       for (size_t c = 0; c < arr.size(); c++)
       {
-        includes_.push_back(arr.get(c).as_varchar());
+        includes_.push_back(arr.get(c).value().as_varchar());
       }
     }
 
@@ -141,7 +141,7 @@ public:
   }
 
   hermes::ObjectMap ld_config() const {
-    return config_.root().cast_to<hermes::TypedValue>().constructor().as_object_map();
+    return config_.root().value().cast_to<hermes::TypedValue>().constructor().as_object_map();
   }
 
   std::vector<U8String> snippets(const U8String& collection) const override

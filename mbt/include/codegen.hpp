@@ -182,10 +182,10 @@ T&& get_or_fail(Optional<T>&& opt, U8StringView msg)
 }
 
 template <typename T, OwningKind OK>
-Own<T, OK> get_or_fail(Own<T, OK>&& opt, U8StringView msg)
+Own<T, OK> get_or_fail(Optional<Own<T, OK>>&& opt, U8StringView msg)
 {
-    if (opt.is_not_empty()) {
-        return std::move(opt);
+    if (opt) {
+        return std::move(opt.value());
     }
     else {
         MEMORIA_MAKE_GENERIC_ERROR("{}", msg).do_throw();

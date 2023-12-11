@@ -177,9 +177,9 @@ void HermesASTInterpreter::evaluateProjection(
     if (is_hermes_object(icontext))
     {
         auto context = getPathObject(icontext);
-        if (context.is_array())
+        if (context.value().is_array())
         {
-            auto ctx_array = context.as_generic_array();
+            auto ctx_array = context->as_generic_array();
 
             // create the array of results
             auto result = make_array();
@@ -194,7 +194,7 @@ void HermesASTInterpreter::evaluateProjection(
                 // evaluate the expression
                 visit(expression);
                 // if the result of the expression is not null
-                if (!getPathObject(m_context).is_null())
+                if (getPathObject(m_context))
                 {
                     // add the result of the expression to the results array
                     result.push_back(getPathObject(m_context));
@@ -225,22 +225,22 @@ void HermesASTInterpreter::visitIdentifierNode(const ASTNodePtr& node)
 
 void HermesASTInterpreter::visitIdentifierNode2(const ASTNodePtr& node, ContextValue&& icontext)
 {
-    auto prop_name = node.get(IDENTIFIER_ATTR);
+    auto prop_name = node.expect(IDENTIFIER_ATTR);
 
     // evaluate the current function argument
     auto visitor = boost::hana::overload(
         // evaluate expressions and return their results
-        [&](const HermesObjectResolver* resolver) -> Object {
+        [&](const HermesObjectResolver* resolver) -> MaybeObject {
             auto name = prop_name.as_varchar();
             return (*resolver)(name);
         },
         // ignore blank arguments
-        [&](const Object& value) -> Object {
+        [&](const MaybeObject& value) -> MaybeObject {
 
             // evaluete the identifier if the context holds an object
-            if (value.is_not_null() && value.is_map())
+            if (value && value->is_map())
             {
-                auto map = value.as_generic_map();
+                auto map = value->as_generic_map();
                 return map->get(prop_name);
             }
 
@@ -252,12 +252,12 @@ void HermesASTInterpreter::visitIdentifierNode2(const ASTNodePtr& node, ContextV
 
 void HermesASTInterpreter::visitRawStringNode(const ASTNodePtr& node)
 {
-    m_context = expect_attr(node, RAW_STRING_ATTR);
+    m_context = node.expect(RAW_STRING_ATTR);
 }
 
 void HermesASTInterpreter::visitHermesValueNode(const ASTNodePtr& node)
 {
-    auto value = node.get(VALUE_ATTR);
+    auto value = node.expect(VALUE_ATTR);
 
     if (value.is_a(TypeTag<Parameter>()))
     {
@@ -290,15 +290,15 @@ void HermesASTInterpreter::visitIndexExpressionNode(const ASTNodePtr& node)
     // evaluate the left side expression
     visit(node.get(LEFT_EXPRESSION_ATTR));
     // evaluate the index expression if the context holds an array
-    if (getPathObject(m_context).is_array())
+    if (getPathObject(m_context).value().is_array())
     {
         // evaluate the bracket specifier
         visit(node.get(BRACKET_SPECIFIER_ATTR));
         // if the index expression also defines a projection then evaluate it
-        auto pattr = node.get(IS_PROJECTION_ATTR);
+        auto pattr = node.expect(IS_PROJECTION_ATTR);
         if (pattr.to_bool()) {
             auto nn = node.get(RIGHT_EXPRESSION_ATTR);
-            evaluateProjection(node.get(RIGHT_EXPRESSION_ATTR).as_tiny_object_map());
+            evaluateProjection(node.expect(RIGHT_EXPRESSION_ATTR).as_tiny_object_map());
         }
     }
     // otherwise evaluate to null
@@ -319,11 +319,11 @@ void HermesASTInterpreter::visitArrayItemNode2(const ASTNodePtr& node, ContextVa
     auto context = getPathObject(icontext);
 
     // evaluate the array item expression if the context holds an array
-    if (context.is_array())
+    if (context.value().is_array())
     {
-        auto arr = context.as_generic_array();
+        auto arr = context->as_generic_array();
         // normalize the index value
-        auto arrayIndex = node.get(INDEX_ATTR).to_i64();
+        auto arrayIndex = node.expect(INDEX_ATTR).to_i64();
         if (arrayIndex < 0) {
             arrayIndex += arr->size();
         }
@@ -353,9 +353,9 @@ void HermesASTInterpreter::visitFlattenOperatorNode2(const ASTNodePtr& node, Con
     auto context = getPathObject(icontext);
 
     // evaluate the flatten operation if the context holds an array
-    if (context.is_array())
+    if (context.value().is_array())
     {
-        auto ctx_array = context.as_generic_array();
+        auto ctx_array = context->as_generic_array();
         auto result = make_array();
 
         // iterate over the array
@@ -402,9 +402,9 @@ void HermesASTInterpreter::visitSliceExpressionNode2(const ASTNodePtr& node, Con
     auto context = getPathObject(icontext);
 
     // evaluate the slice operation if the context holds an array
-    if (context.is_array())
+    if (context.value().is_array())
     {
-        auto ctx_array = context.as_generic_array();
+        auto ctx_array = context->as_generic_array();
 
         int64_t startIndex = 0;
         int64_t stopIndex = 0;
@@ -414,9 +414,9 @@ void HermesASTInterpreter::visitSliceExpressionNode2(const ASTNodePtr& node, Con
         auto node_step = node.get(STEP_ATTR);
 
         // verify the validity of slice indeces and normalize their values
-        if (node_step.is_not_null())
+        if (node_step)
         {
-            auto val = node_step.to_i64();
+            auto val = node_step->to_i64();
             if (val == 0)
             {
                 BOOST_THROW_EXCEPTION(InvalidValue{});
@@ -427,23 +427,23 @@ void HermesASTInterpreter::visitSliceExpressionNode2(const ASTNodePtr& node, Con
         auto node_start = node.get(START_ATTR);
         auto node_stop  = node.get(STOP_ATTR);
 
-        if (node_start.is_null())
+        if (!node_start)
         {
             startIndex = step < 0 ? length - 1: 0;
         }
         else
         {
-            auto val = node_start.to_i64();
+            auto val = node_start->to_i64();
             startIndex = adjustSliceEndpoint(length, val, step);
         }
 
-        if (node_stop.is_null())
+        if (!node_stop)
         {
             stopIndex = step < 0 ? -1 : length;
         }
         else
         {
-            auto val = node_stop.to_i64();
+            auto val = node_stop->to_i64();
             stopIndex = adjustSliceEndpoint(length, val, step);
         }
 
@@ -473,7 +473,7 @@ void HermesASTInterpreter::visitSliceExpressionNode2(const ASTNodePtr& node, Con
 void HermesASTInterpreter::visitListWildcardNode(const ASTNodePtr& node)
 {
     // evaluate a list wildcard operation to null if the context isn't an array
-    if (!getPathObject(m_context).is_array()) {
+    if (!getPathObject(m_context).value().is_array()) {
         m_context = {};
     }
 }
@@ -489,9 +489,9 @@ void HermesASTInterpreter::visitHashWildcardNode2(const ASTNodePtr& node, Contex
     auto context = getPathObject(icontext);
 
     // evaluate the hash wildcard operation if the context holds an array
-    if (context.is_map())
+    if (context.value().is_map())
     {
-        auto ctx_map = context.as_generic_map();
+        auto ctx_map = context->as_generic_map();
 
         auto result = make_array();
 
@@ -507,13 +507,13 @@ void HermesASTInterpreter::visitHashWildcardNode2(const ASTNodePtr& node, Contex
         m_context = {};
     }
     // evaluate the projected sub expression
-    evaluateProjection(node.get(RIGHT_EXPRESSION_ATTR).as_tiny_object_map());
+    evaluateProjection(node.expect(RIGHT_EXPRESSION_ATTR).as_tiny_object_map());
 }
 
 void HermesASTInterpreter::visitMultiselectListNode(const ASTNodePtr& node)
 {
     // evaluate the multiselect list opration if the context doesn't holds null
-    if (!getPathObject(m_context).is_null())
+    if (getPathObject(m_context))
     {
         auto result = make_array();
 
@@ -522,7 +522,7 @@ void HermesASTInterpreter::visitMultiselectListNode(const ASTNodePtr& node)
         // during  the evaluation of sub expressions
         ContextValue contextValue {std::move(m_context)};
         // iterate over the list of subexpressions
-        ObjectArray expressions = node.get(EXPRESSIONS_ATTR).as_object_array();
+        ObjectArray expressions = node.expect(EXPRESSIONS_ATTR).as_object_array();
         for (size_t c = 0; c < expressions.size(); c++)
         {
             Object expression = expressions.get(c);
@@ -542,7 +542,7 @@ void HermesASTInterpreter::visitMultiselectListNode(const ASTNodePtr& node)
 void HermesASTInterpreter::visitMultiselectHashNode(const ASTNodePtr& node)
 {
     // evaluate the multiselect hash opration if the context doesn't holds null
-    if (!getPathObject(m_context).is_null())
+    if (getPathObject(m_context))
     {
         auto doc = hermes::HermesCtrView::make_pooled();
         auto result = doc.make_object_map();
@@ -554,7 +554,7 @@ void HermesASTInterpreter::visitMultiselectHashNode(const ASTNodePtr& node)
         ContextValue contextValue {std::move(m_context)};
         // iterate over the list of subexpressions
 
-        ObjectArray expressions = node.get(EXPRESSIONS_ATTR).as_object_array();
+        ObjectArray expressions = node.expect(EXPRESSIONS_ATTR).as_object_array();
         for (size_t c = 0; c < expressions.size(); c++)
         {
             Object keyValuePairObj = expressions.get(c);
@@ -569,7 +569,7 @@ void HermesASTInterpreter::visitMultiselectHashNode(const ASTNodePtr& node)
             //result[keyValuePair.first.identifier] = getJsonValue(m_context);
 
             result.put(
-                keyValuePair.get(FIRST_ATTR).as_tiny_object_map().get(IDENTIFIER_ATTR).as_varchar(),
+                keyValuePair.expect(FIRST_ATTR).as_tiny_object_map().expect(IDENTIFIER_ATTR).as_varchar(),
                 getPathObject(m_context)
             );
         }
@@ -581,7 +581,7 @@ void HermesASTInterpreter::visitMultiselectHashNode(const ASTNodePtr& node)
 void HermesASTInterpreter::visitNotExpressionNode(const ASTNodePtr& node)
 {
     // negate the result of the subexpression
-    visit(node.get(EXPRESSION_ATTR).as_tiny_object_map());
+    visit(node.expect(EXPRESSION_ATTR).as_tiny_object_map());
     m_context = hermes::HermesCtrView::wrap_dataobject<Boolean>(!toSimpleBoolean(getPathObject(m_context))).as_object();
 }
 
@@ -589,7 +589,7 @@ void HermesASTInterpreter::visitComparatorExpressionNode(const ASTNodePtr& node)
 {
     using Comparator = ast::ComparatorExpressionNode::Comparator;
 
-    Comparator comparator = (Comparator)node.get(COMPARATOR_ATTR).to_i64();
+    Comparator comparator = (Comparator)node.expect(COMPARATOR_ATTR).to_i64();
 
     // thow an error if it's an unhandled operator
     if (comparator == Comparator::Unknown)
@@ -643,7 +643,7 @@ void HermesASTInterpreter::visitComparatorExpressionNode(const ASTNodePtr& node)
             m_context = wrap_DO<Boolean>(leftResult.compare(rightResult) > 0).as_object();
         }
         else {
-            m_context = Object{};
+            m_context = {};
         }
     }
 }
@@ -715,9 +715,9 @@ void HermesASTInterpreter::visitFilterExpressionNode2(const ASTNodePtr& node, Co
     auto context = getPathObject(icontext);
 
     // evaluate the filtering operation if the context holds an array
-    if (context.is_array())
+    if (context.value().is_array())
     {
-        auto ctx_array = context.as_generic_array();
+        auto ctx_array = context->as_generic_array();
 
         // create the array of results
         auto result = make_array();
@@ -748,7 +748,7 @@ void HermesASTInterpreter::visitFilterExpressionNode2(const ASTNodePtr& node, Co
 void HermesASTInterpreter::visitFunctionExpressionNode(const ASTNodePtr& node)
 {
     // throw an error if the function doesn't exists
-    U8String fname = node.get(FUNCTION_NAME_ATTR).to_str();
+    U8String fname = node.expect(FUNCTION_NAME_ATTR).to_str();
     auto it = m_functionMap.find(fname.to_std_string());
     if (it == m_functionMap.end())
     {
@@ -763,7 +763,7 @@ void HermesASTInterpreter::visitFunctionExpressionNode(const ASTNodePtr& node)
     // validate that the function has been called with the appropriate
     // number of arguments
 
-    ObjectArray arguments = node.get(ARGUMENTS_ATTR).as_object_array();
+    ObjectArray arguments = node.expect(ARGUMENTS_ATTR).as_object_array();
 
     if (!argumentArityValidator(arguments.size())) {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentArity());
@@ -863,12 +863,12 @@ HermesASTInterpreter::evaluateArguments(
             {
                 NamedCode code = code_attr.to_i64();
                 if (code == ast::ExpressionArgumentNode::CODE) {
-                    argumentList.push_back(map.get(EXPRESSION_ATTR).as_tiny_object_map());
+                    argumentList.push_back(map.expect(EXPRESSION_ATTR).as_tiny_object_map());
                 }
                 else {
-                    if (contextValue.is_not_null())
+                    if (contextValue)
                     {
-                        const Object& context = getPathObject(contextValue);
+                        const MaybeObject& context = getPathObject(contextValue);
                         // assign a const lvalue ref to the context
                         m_context = assignContextValue(context);
                     }
@@ -905,7 +905,7 @@ T& HermesASTInterpreter::getArgument(FunctionArgument& argument) const
     }
 }
 
-const Object &HermesASTInterpreter::getArgument(FunctionArgument &argument) const
+const MaybeObject &HermesASTInterpreter::getArgument(FunctionArgument &argument) const
 {
     return getPathObject(getArgument<ContextValue>(argument));
 }
@@ -967,7 +967,7 @@ void HermesASTInterpreter::avg(FunctionArgumentList &arguments)
         // otherwise evaluate to null
         else
         {
-            m_context = Object{};
+            m_context = {};
         }
     }
     // otherwise throw an exception
@@ -1177,13 +1177,13 @@ void HermesASTInterpreter::map(const ASTNodePtr& node, ContextValue&& iarray_val
 
     using std::placeholders::_1;
     // throw an exception if the argument is not an array
-    if (!array_value.is_array())
+    if (!array_value.value().is_array())
     {
         BOOST_THROW_EXCEPTION(InvalidFunctionArgumentType());
     }
 
     auto result = make_array();
-    auto array = array_value.as_generic_array();
+    auto array = array_value.value().as_generic_array();
     for (size_t idx = 0; idx < array->size(); idx++)
     {
         auto item = array->get(idx);
@@ -1236,7 +1236,7 @@ void HermesASTInterpreter::mergeObject(Object* object, ContextValue&& isourceObj
     auto sourceObject = getPathObject(isourceObject);
 
     auto map = object->as_generic_map();
-    auto src_map = sourceObject.as_generic_map();
+    auto src_map = sourceObject.value().as_generic_map();
 
     src_map->for_each([&](auto k, auto v){
         map->put(k, v);
@@ -1276,7 +1276,7 @@ void HermesASTInterpreter::reverse(ContextValue&& isubject)
     auto result = doc.make_object_array();
     doc.set_root(result.as_object());
 
-    auto array = subject.as_generic_array();
+    auto array = subject.value().as_generic_array();
     size_t size = array->size();
     for (size_t idx = 0; idx < size; idx++) {
         auto item = array->get(size - idx - 1);
@@ -1298,7 +1298,7 @@ void HermesASTInterpreter::sort(ContextValue&& iarray)
     auto array = getPathObject(iarray);
 
     std::vector<hermes::Object> sorted;
-    auto garray = array.as_generic_array();
+    auto garray = array.value().as_generic_array();
     for (size_t idx = 0; idx < garray->size(); idx++)
     {
         auto item = garray->get(idx);
@@ -1333,7 +1333,7 @@ void HermesASTInterpreter::sortBy(const ASTNodePtr& expression, ContextValue&& i
 
     std::vector<SortT> sorted;
 
-    auto array = source.as_generic_array();
+    auto array = source.value().as_generic_array();
     for (size_t idx = 0; idx < array->size(); idx++)
     {
         auto item = array->get(idx);
@@ -1415,7 +1415,7 @@ void HermesASTInterpreter::toArray(ContextValue&& ivalue)
     auto value = getPathObject(ivalue);
 
     // evaluate to the argument if it's an array
-    if (value.is_array())
+    if (value.value().is_array())
     {
         m_context = assignContextValue(std::move(value));
     }
@@ -1443,14 +1443,14 @@ void HermesASTInterpreter::toString(ContextValue&& ivalue)
     auto value = getPathObject(ivalue);
 
     // evaluate to the argument if it's a string
-    if (value.is_varchar())
+    if (value.value().is_varchar())
     {
         m_context = assignContextValue(std::move(value));
     }
     // otherwise convert the value to a string by serializing it
     else
     {
-        m_context = wrap_DO<Varchar>(value.to_plain_string()).as_object();
+        m_context = wrap_DO<Varchar>(value->to_plain_string()).as_object();
     }
 }
 
@@ -1467,18 +1467,21 @@ void HermesASTInterpreter::toDouble(ContextValue&& ivalue)
     auto value = getPathObject(ivalue);
 
     // evaluate to the argument if it's a number
-    if (value.is_numeric())
+    if (!value) {
+        m_context = {};
+    }
+    else if (value->is_numeric())
     {
         m_context = assignContextValue(std::move(value));
         return;
     }
     // if it's a string
-    else if (value.is_varchar())
+    else if (value->is_varchar())
     {
         // try to convert the string to a number
         try
         {
-            m_context = wrap_DO<Double>(std::stod(value.to_str())).as_object();
+            m_context = wrap_DO<Double>(std::stod(value->to_str())).as_object();
             return;
         }
         // ignore the possible conversion error and let the default case
@@ -1502,7 +1505,7 @@ void HermesASTInterpreter::toBigInt(FunctionArgumentList &arguments)
 
 void HermesASTInterpreter::toBigInt(ContextValue&& ivalue)
 {
-    auto value = getPathObject(ivalue);
+    auto value = getPathObject(ivalue).value();
 
     // evaluate to the argument if it's a number
     if (value.is_bigint())
@@ -1527,7 +1530,7 @@ void HermesASTInterpreter::toBoolean(FunctionArgumentList &arguments)
 
 void HermesASTInterpreter::toBoolean(ContextValue&& ivalue)
 {
-    auto value = getPathObject(ivalue);
+    auto value = getPathObject(ivalue).value();
 
     // evaluate to the argument if it's a number
     if (value.is_bigint())
@@ -1572,7 +1575,7 @@ void HermesASTInterpreter::values(FunctionArgumentList &arguments)
 
 void HermesASTInterpreter::values(ContextValue&& iobject)
 {
-    auto object = getPathObject(iobject);
+    auto object = getPathObject(iobject).value();
 
     // throw an exception if the argument is not an object
     if (!object.is_map())
@@ -1602,15 +1605,15 @@ void HermesASTInterpreter::max(FunctionArgumentList &arguments,
 
 void HermesASTInterpreter::max(const PathComparator* comparator, ContextValue&& iarray)
 {
-    auto array = getPathObject(iarray);
-    hermes::Object max_val;
+    auto array = getPathObject(iarray).value();
+    hermes::MaybeObject max_val;
 
     auto garray = array.as_generic_array();
     for (size_t idx = 0; idx < garray->size(); idx++)
     {
         auto item = garray->get(idx);
-        if (max_val.is_not_null()) {
-            if (max_val.compare(item) > 0) {
+        if (max_val) {
+            if (max_val->compare(item) > 0) {
                 max_val = item;
             }
         }
@@ -1639,7 +1642,7 @@ void HermesASTInterpreter::maxBy(const ASTNodePtr& expression,
                          const PathComparator* comparator,
                          ContextValue&& isource)
 {
-    auto source = getPathObject(isource);
+    auto source = getPathObject(isource).value();
     auto array  = source.as_generic_array();
 
     // if the array is not empty
@@ -1676,19 +1679,19 @@ void HermesASTInterpreter::maxBy(const ASTNodePtr& expression,
     }
 }
 
-void HermesASTInterpreter::visit(const Object& node)
+void HermesASTInterpreter::visit(const MaybeObject& node)
 {
-    if (node.is_not_null()) {
-        visit(node.as_tiny_object_map());
+    if (node) {
+        visit(node->as_tiny_object_map());
     }
 }
 
 void HermesASTInterpreter::visit(const ASTNodePtr& node)
 {
     auto attr = node.get(CODE_ATTR);
-    if (attr.is_not_null())
+    if (attr)
     {
-        int64_t code = attr.to_i64();
+        int64_t code = attr->to_i64();
         const auto& map = visitors_map();
         auto ii = map.find(code);
         if (ii != map.end()) {
@@ -1739,17 +1742,6 @@ HermesASTInterpreter::VisitorsMap HermesASTInterpreter::build_visitors_map()
 const HermesASTInterpreter::VisitorsMap& HermesASTInterpreter::visitors_map() {
     static VisitorsMap map = build_visitors_map();
     return map;
-}
-
-Object HermesASTInterpreter::expect_attr(const ASTNodePtr& map, const NamedCode& code)
-{
-    auto res = map.get(code);
-    if (MMA_LIKELY(res.is_not_null())) {
-        return res;
-    }
-    else {
-        MEMORIA_MAKE_GENERIC_ERROR("Expected '{}' attribute is null", code).do_throw();
-    }
 }
 
 }} // namespace hermes::path::interpreter

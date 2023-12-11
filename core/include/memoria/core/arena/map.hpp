@@ -27,6 +27,7 @@
 #include <memoria/core/hermes/traits.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/optional.hpp>
 
 #include <memoria/core/tools/optional.hpp>
 

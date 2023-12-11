@@ -33,12 +33,12 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<HermesTestState
     }
 
     doc.set_root(map.as_object());
-    auto m0 = doc.root().as_generic_map();
+    auto m0 = doc.root().value().as_generic_map();
 
     assert_equals(size, m0->size());
 
     auto doc2 = doc.compactify(false);
-    auto gmap = doc2.root().as_generic_map();
+    auto gmap = doc2.root().value().as_generic_map();
 
     assert_equals(size, gmap->size());
 

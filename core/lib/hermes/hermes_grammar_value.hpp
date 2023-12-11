@@ -93,7 +93,7 @@ class ArrayValue {
     ObjectArray array_;
 
 public:
-    using value_type = Object;
+    using value_type = MaybeObject;
     using iterator = EmptyType;
 
     ArrayValue() {
@@ -155,7 +155,7 @@ public:
     }
 };
 
-struct NumericTypeParamValue: boost::fusion::vector2<Optional<QualNameValue>, Object> {
+struct NumericTypeParamValue: boost::fusion::vector2<Optional<QualNameValue>, MaybeObject> {
     Object finish()
     {
         //auto& cast = boost::fusion::at_c<0>(*this);
@@ -165,7 +165,7 @@ struct NumericTypeParamValue: boost::fusion::vector2<Optional<QualNameValue>, Ob
 };
 
 
-using MapEntryTuple = boost::phoenix::vector2<std::string, Object>;
+using MapEntryTuple = boost::phoenix::vector2<std::string, MaybeObject>;
 
 class MapValue {
     ObjectMap value_;
@@ -209,7 +209,7 @@ public:
 
 class TypeDeclarationValue {
 
-    Object datatype_name_;
+    MaybeObject datatype_name_;
     std::vector<Object> params_;
     std::vector<Object> ctr_args_;
     std::vector<PtrSpecifier> ptr_specs_;
@@ -249,7 +249,7 @@ public:
     Datatype finish() const
     {
         HermesCtrBuilder& builder = HermesCtrBuilder::current();
-        Datatype decl = builder.make_datatype(datatype_name_);
+        Datatype decl = builder.make_datatype(datatype_name_.value());
 
         for (auto& td: params_) {
             builder.add_type_decl_param(decl, td);
@@ -281,16 +281,16 @@ static inline std::ostream& operator<<(std::ostream& out, const TypeDeclarationV
 }
 
 struct TypeReference {
-    Object id{};
+    MaybeObject id{};
 
-    void operator=(const Object& id) {
+    void operator=(const MaybeObject& id) {
         this->id = id;
     }
 };
 
 struct ValueVisitor: boost::static_visitor<> {
 
-    Object value;
+    MaybeObject value;
 
     void operator()(long long v) {
         value = HermesCtrView::wrap_dataobject<BigInt>(v).as_object();
@@ -314,17 +314,21 @@ struct ValueVisitor: boost::static_visitor<> {
         value = v;
     }
 
+    void operator()(MaybeObject& v) {
+        value = v;
+    }
+
     template <typename V>
     void operator()(V& v) {
         value = v.finish().as_object();
     }
 };
 
-struct TypedValueValue: boost::fusion::vector2<Datatype, Object> {
+struct TypedValueValue: boost::fusion::vector2<Datatype, MaybeObject> {
     Object finish()
     {
         auto& type = boost::fusion::at_c<0>(*this);
-        auto& ctr  = boost::fusion::at_c<1>(*this);
+        auto& ctr  = boost::fusion::at_c<1>(*this).value();
 
         auto ctr_hash = type.cxx_type_hash();
         if (has_type_reflection(ctr_hash))
@@ -358,7 +362,7 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
         const auto& type = bf::at_c<1>(*this);
 
         if (MMA_LIKELY(!type)) {
-            return h_str.as_object();
+            return h_str;
         }
 
         auto ctr_hash = type.value().cxx_type_hash();
@@ -372,13 +376,11 @@ struct StringOrTypedValue: boost::fusion::vector2<std::string, Optional<Datatype
                     HermesCtrView::wrap_dataobject<Varchar>(str).as_object()
             ).as_object();
         }
-
-        return Object{};
     }
 };
 
 
-using TypedMapEntry = boost::phoenix::vector2<Object, Object>;
+using TypedMapEntry = boost::phoenix::vector2<MaybeObject, MaybeObject>;
 
 class TypedContainerValue {
     GenericArrayPtr array_;
@@ -419,9 +421,10 @@ public:
         }
     }
 
-    void push_back(const Object& value) {
+    void push_back(const MaybeObject& value) {
         array_->push_back(value);
     }
+
 
     void push_back(const TypedMapEntry& value) {
         map_->put(bf::at_c<0>(value), bf::at_c<1>(value));
@@ -846,12 +849,12 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, TypedDataObject<float,  memoria::Real>(), Skipper> f32_parser;
     qi::rule<Iterator, TypedDataObject<double, memoria::Double>(), Skipper> f64_parser;
 
-    qi::rule<Iterator, Object, Skipper>  integer_value;
-    qi::rule<Iterator, Object, Skipper>  fp_value;
+    qi::rule<Iterator, MaybeObject, Skipper>  integer_value;
+    qi::rule<Iterator, MaybeObject, Skipper>  fp_value;
 
 
-    qi::rule<Iterator, Object(), Skipper>            hermes_value;
-    qi::rule<Iterator, Object(), Skipper>            standalone_hermes_value;
+    qi::rule<Iterator, MaybeObject(), Skipper>            hermes_value;
+    qi::rule<Iterator, MaybeObject(), Skipper>            standalone_hermes_value;
 
     qi::rule<Iterator, ArrayValue(), Skipper>           array;
     qi::rule<Iterator, MapValue(), Skipper>             map;
@@ -859,7 +862,7 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
     qi::rule<Iterator, MapEntryTuple(), Skipper>        map_entry;
     qi::rule<Iterator, TypedMapEntry(), Skipper>        typed_map_entry;
 
-    qi::rule<Iterator, Object(), Skipper>            null_value;
+    qi::rule<Iterator, MaybeObject(), Skipper>          null_value;
     qi::rule<Iterator, std::string(), Skipper>          hermes_string;
     qi::rule<Iterator, std::string(), Skipper>          hermes_identifier;
 
@@ -875,10 +878,10 @@ struct HermesValueRulesLib: ValueStringRuleSet<Iterator, Skipper> {
 
     qi::rule<Iterator, NumericTypeParamValue(), Skipper>  numeric_type_parameter;
 
-    qi::rule<Iterator, Object(), Skipper>            type_parameter;
+    qi::rule<Iterator, MaybeObject(), Skipper>            type_parameter;
     qi::rule<Iterator, Datatype(), Skipper>          standalone_type_decl;
 
-    qi::rule<Iterator, Object(), Skipper>            parameter;
+    qi::rule<Iterator, MaybeObject(), Skipper>            parameter;
 
     qi::rule<Iterator, TypedValueValue(), Skipper>      typed_value;
     qi::rule<Iterator, TypedContainerValue(), Skipper>  typed_ctr;

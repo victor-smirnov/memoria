@@ -247,9 +247,9 @@ public:
 
     void configure(const hermes::HermesCtr& ctr, size_t stream, size_t substream)
     {
-        auto arr = ctr.root().as_object_array();
-        auto ss = arr.get(stream).as_object_array();
-        array_ = ss.get(substream).cast_to<hermes::Array<DT>>();
+        auto arr = ctr.root().value().as_object_array();
+        auto ss = arr.get(stream).value().as_object_array();
+        array_ = ss.get(substream).value().cast_to<hermes::Array<DT>>();
     }
 
     void reindex() {}
@@ -299,7 +299,7 @@ public:
     {}
 
     auto get(size_t c) const {
-        return array_.get(c).convert_to<DT>().template cast_to<DT>();
+        return array_.get(c).value().convert_to<DT>().template cast_to<DT>();
     }
 
     uint64_t size() const {
@@ -317,9 +317,9 @@ public:
 
     void configure(const hermes::HermesCtr& ctr, size_t stream, size_t substream)
     {
-        auto arr = ctr.root().as_object_array();
-        auto ss = arr.get(stream).as_object_array();
-        array_ = ss.get(substream).as_object_array();
+        auto arr = ctr.root().value().as_object_array();
+        auto ss = arr.get(stream).value().as_object_array();
+        array_ = ss.get(substream).value().as_object_array();
     }
 
     void reindex() {}
@@ -328,7 +328,7 @@ public:
     {
         size_t total{};
         for (size_t c = start; c < start + size; c++) {
-            auto obj = array_.get(c);
+            auto obj = array_.get(c).value();
             auto view = obj.convert_to<DT>().template cast_to<DT>();
             auto descr = DataTypeTraits<DT>::describe_data(view);
             total += std::get<0>(descr).size();

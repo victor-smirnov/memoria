@@ -633,11 +633,11 @@ void MultiProcessRunner::handle_connections()
                 while (tests_.size() || heads_.count(worker_num) > 0)
                 {
                     auto msg = read_message(*conn);
-                    U8String code = msg.root().search("code").as_varchar();
+                    U8String code = msg.root().value().search("code").as_varchar();
 
                     if (code == "GREETING")
                     {
-                        worker_num = msg.root().search("worker_id").to_i64();
+                        worker_num = msg.root().value().search("worker_id").to_i64();
                         worker_process = worker_processes_.at(worker_num);
                     }
                     else if (code == "GET_TASK")
@@ -660,8 +660,8 @@ void MultiProcessRunner::handle_connections()
                     {
                         processed++;
 
-                        U8String test_path = msg.root().search("test_path").as_varchar();
-                        int32_t status = msg.root().search("status").to_i32();
+                        U8String test_path = msg.root().value().search("test_path").as_varchar();
+                        int32_t status = msg.root().value().search("status").to_i32();
 
                         heads_.erase(worker_num);
 
@@ -833,11 +833,11 @@ void AbstractWorker::handle_messages() {
             write_message("{'code': 'GET_TASK'}");
 
             auto msg = read_message();
-            U8String code = msg.root().search("code").as_varchar();
+            U8String code = msg.root().value().search("code").as_varchar();
 
             if (code == "RUN_TASK")
             {
-                U8String test_path = msg.root().search("test_path").as_varchar();
+                U8String test_path = msg.root().value().search("test_path").as_varchar();
                 TestStatus status = run_single_test(test_path);
 
                 write_message(format_u8(

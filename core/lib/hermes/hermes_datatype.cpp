@@ -69,7 +69,7 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
 
                 state.make_indent(out);
 
-                auto type_param = params.get(c);
+                auto type_param = params.get(c).value();
                 type_param.stringify(out, state);
             }
             state.pop();
@@ -98,7 +98,7 @@ void DatatypeView::stringify(std::ostream& out, DumpFormatState& state) const
 
                 state.make_indent(out);
 
-                auto value = ctr_args.get(c);
+                auto value = ctr_args.get(c).value();
                 value.stringify(out, state);
             }
             state.pop();
@@ -367,7 +367,7 @@ hermes::Datatype strip_namespaces(hermes::Datatype src)
     if (params.is_not_null())
     {
         for (size_t c = 0; c < params.size(); c++) {
-            auto param = params.get(c);
+            auto param = params.get(c).value();
             if (param.is_datatype()) {
                 auto pp = strip_namespaces(param.as_datatype());
                 tgt.append_type_parameter(pp.as_object());

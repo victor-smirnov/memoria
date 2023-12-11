@@ -21,8 +21,8 @@ using namespace hrpc;
 
 Response normal_rq_handler(ContextPtr context)
 {
-    int arg1 = context->request().parameters().get(ARG1).to_i32();
-    int arg2 = context->request().parameters().get(ARG2).to_i32();
+    int arg1 = context->request().parameters().expect(ARG1).to_i32();
+    int arg2 = context->request().parameters().expect(ARG2).to_i32();
 
     auto rs = Response::ok(arg1 + arg2);
     return rs;

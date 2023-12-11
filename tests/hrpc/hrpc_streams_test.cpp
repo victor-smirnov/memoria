@@ -43,7 +43,7 @@ Response output_stream_handler(ContextPtr context)
 {
     println("Start output_stream_handler");
 
-    int32_t size = context->request().parameters().get(ARG1).to_i32();
+    int32_t size = context->request().parameters().expect(ARG1).to_i32();
     auto ch = context->output_channel(0);
 
     int64_t sum = 0;
