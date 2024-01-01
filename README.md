@@ -3,10 +3,12 @@ Memoria is an advanced data engineering Framework written in modern C++. It cons
 
 *Memoria is still in development and is not meant to be used in practice. Functionality declared below may be incomplete, experimental or currently missing. All processes are optimized for development, not for production.*
 
-1. **Hermes** - arbitrarily structured object graphs allocated in relocatable contiguous memory segments, suitable for memory mapping and inter-process communication, with focus on data storage purposes. Hermes objects and containers are string-externalizable and may look like "Json with types". GRPC-style services and related tooling (IDL) is provided.
+![Architecture](https://github.com/victor-smirnov/memoria/blob/master/docs/architecture.svg)
+
+1. **Hermes** - arbitrarily structured object graphs allocated in relocatable contiguous memory segments, suitable for memory mapping and inter-process communication, with focus on data storage purposes. Hermes objects and containers are string-externalizable and may look like "Json with types". GRPC-style services and related tooling (IDL) is provided (HRPC).
 2. Extensible and customizable set of **Data Containers**, internally based on B+Trees crafted from reusable building blocks by the metaprogramming framework. The spectrum of possible containers is from plain dynamic arrays and sets, via row-wise/column-wise tables, multitude of graphs, to compressed spatial indexes and beyond. Everything that maps well to B+Trees can be a first-class citizen of data containers framework. Containers and Hermes data objects are deeply integrated with each other.
 3. Pluggable **Storage Engines** based on Copy-on-Write principles. Storage is completely separated from containers via simple but efficient contracts. Out of the box, OLTP-optimized and HTAP-optimized storage, as well as In-Memory storage options, are provided, supporting advanced features like serializable transactions and Git-like branching.
-4. **DSL execution engine**. Lightweight embeddable VM with Hermes-backed code model (classes, byte-code, resources) natively supporting Hermes data types. Direct Interpreter and AOT compilation to optimized C++.
+4. **DSL execution engine (DSL Engine)**. Lightweight embeddable VM with Hermes-backed code model (classes, byte-code, resources) natively supporting Hermes data types. Direct Interpreter and AOT compilation to optimized C++.
 5. **Runtime Environments**. Single thread per CPU core, non-migrating fibers, high-performance IO on top of io-uring and hardware accelerators.
 6. **Development Automation** tools. Clang-based build tools to extract metadata directly from C++ sources and generate boilerplate code.
 
