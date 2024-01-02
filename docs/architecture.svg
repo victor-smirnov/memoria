@@ -295,9 +295,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.4104556"
-     inkscape:cx="274.74335"
-     inkscape:cy="177.83548"
+     inkscape:zoom="1.2057781"
+     inkscape:cx="238.84991"
+     inkscape:cy="414.25531"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -434,162 +434,162 @@
          y="292.92999"
          id="tspan38135" /></text>
     <rect
-       style="fill:#46ffdf;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       style="fill:#46ffdf;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect16873-3"
        width="145"
        height="55"
        x="245"
-       y="450" />
+       y="475" />
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="260.79718"
-       y="469.72845"
+       y="494.72845"
        id="text23651-6"><tspan
          sodipodi:role="line"
          id="tspan23649-7"
          x="260.79718"
-         y="469.72845">LL Query</tspan><tspan
+         y="494.72845">LL Query</tspan><tspan
          sodipodi:role="line"
          x="260.79718"
-         y="496.39508"
+         y="521.39508"
          id="tspan23653-5">Execution</tspan></text>
     <rect
-       style="fill:#46ff77;stroke:#000000;stroke-width:1.04881;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       style="fill:#46ff77;fill-opacity:1;stroke:#000000;stroke-width:1.04881;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect55580"
        width="145"
        height="55"
        x="245"
-       y="525" />
+       y="550" />
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="258.64597"
-       y="546.07922"
+       y="571.07922"
        id="text57787"><tspan
          sodipodi:role="line"
          id="tspan57785"
          x="258.64597"
-         y="546.07922">HL Data</tspan><tspan
+         y="571.07922">HL Data</tspan><tspan
          sodipodi:role="line"
          x="258.64597"
-         y="572.74585"
+         y="597.74585"
          id="tspan57789">Containers</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="420.25482"
-       y="546.66394"
+       y="571.66394"
        id="text60395"><tspan
          sodipodi:role="line"
          id="tspan60393"
          x="420.25482"
-         y="546.66394">Application-specific</tspan><tspan
+         y="571.66394">Application-specific</tspan><tspan
          sodipodi:role="line"
          x="420.25482"
-         y="573.33057"
+         y="598.33057"
          id="tspan60397">data representations</tspan></text>
     <rect
-       style="fill:#46ff77;stroke:#000000;stroke-width:1.04881;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       style="fill:#46ff77;fill-opacity:1;stroke:#000000;stroke-width:1.04881;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect68351"
        width="145"
        height="55"
        x="245"
-       y="605" />
+       y="630" />
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="256.78384"
-       y="625.17688"
+       y="650.17688"
        id="text57787-3"><tspan
          sodipodi:role="line"
          id="tspan57785-5"
          x="256.78384"
-         y="625.17688">LL Data</tspan><tspan
+         y="650.17688">LL Data</tspan><tspan
          sodipodi:role="line"
          x="256.78384"
-         y="651.84351"
+         y="676.84351"
          id="tspan57789-6">Containers</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="420.34943"
-       y="625.84668"
+       y="650.84668"
        id="text84818"><tspan
          sodipodi:role="line"
          id="tspan84816"
          x="420.34943"
-         y="625.84668">Tables, Sets, Vectors,</tspan><tspan
+         y="650.84668">Tables, Sets, Vectors,</tspan><tspan
          sodipodi:role="line"
          x="420.34943"
-         y="652.51331"
+         y="677.51331"
          id="tspan84820">Indexes, Advanced DS</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="418.24982"
-       y="481.15417"
+       y="506.15417"
        id="text29887-3"><tspan
          sodipodi:role="line"
          id="tspan29885-6"
          x="418.24982"
-         y="481.15417">DSL Engine</tspan></text>
+         y="506.15417">DSL Engine</tspan></text>
     <rect
-       style="fill:#acff46;stroke:#000000;stroke-width:1.17261;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       style="fill:#acff46;fill-opacity:1;stroke:#000000;stroke-width:1.17261;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1235-7"
        width="145"
        height="55"
        x="245"
-       y="370"
+       y="395"
        ry="0" />
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="250.59836"
-       y="391.43262"
+       y="416.43262"
        id="text11309-5"><tspan
          sodipodi:role="line"
          id="tspan11307-3"
          x="250.59836"
-         y="391.43262">Connectivity</tspan><tspan
+         y="416.43262">Connectivity</tspan><tspan
          sodipodi:role="line"
          x="250.59836"
-         y="418.09924"
+         y="443.09924"
          id="tspan11311-5">Layer</tspan></text>
     <rect
-       style="fill:#ffd5a2;stroke:#000000;stroke-width:0.866025;fill-opacity:1"
+       style="fill:#ffd5a2;fill-opacity:1;stroke:#000000;stroke-width:0.866025"
        id="rect9611"
        width="145"
        height="60"
        x="245"
-       y="685" />
+       y="710" />
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="255"
-       y="710"
+       y="735"
        id="text11705"><tspan
          sodipodi:role="line"
          id="tspan11703"
          x="255"
-         y="710">Storage</tspan><tspan
+         y="735">Storage</tspan><tspan
          sodipodi:role="line"
          x="255"
-         y="736.66663"
+         y="761.66663"
          id="tspan11707">Engines</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="418.96622"
-       y="711.42664"
+       y="736.42664"
        id="text18101"><tspan
          sodipodi:role="line"
          id="tspan18099"
          x="418.96622"
-         y="711.42664">OLTPStore,</tspan><tspan
+         y="736.42664">OLTPStore,</tspan><tspan
          sodipodi:role="line"
          x="418.96622"
-         y="738.09326"
+         y="763.09326"
          id="tspan18103">SWMRStore</tspan></text>
     <rect
        style="fill:#ffaf4e;stroke:#000000;fill-opacity:1"
@@ -684,63 +684,69 @@
        style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:1, 3;stroke-dashoffset:0"
        id="rect60258"
        width="610"
-       height="520"
+       height="490"
        x="60"
-       y="350"
+       y="380"
        ry="10" />
     <text
        xml:space="preserve"
        style="font-size:16px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="520.30634"
-       y="372.25439"
+       y="397.25439"
        id="text65520"><tspan
          sodipodi:role="line"
          id="tspan65518"
          x="520.30634"
-         y="372.25439">Single-Machine</tspan><tspan
+         y="397.25439">Single-Machine</tspan><tspan
          sodipodi:role="line"
          x="520.30634"
-         y="392.25439"
+         y="417.25439"
          id="tspan68558">Scale-UP Domain</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="M 255,745 140,805"
-       id="path82773" />
+       d="M 240,770 140,805"
+       id="path82773"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 275,745 -65,60"
-       id="path82775" />
+       d="m 260,770 -50,35"
+       id="path82775"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 380,745 190,60"
-       id="path82777" />
+       d="m 390,760 180,45"
+       id="path82777"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 365,745 100,60"
-       id="path82781" />
+       d="m 390,770 75,35"
+       id="path82781"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 320,745 15,60"
-       id="path82783" />
+       d="m 320,770 15,35"
+       id="path82783"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="M 320,370 V 290"
-       id="path82997" />
+       d="M 320,390 V 290"
+       id="path82997"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow2Mend)"
-       d="m 320,425 v 25"
+       d="m 320,450 v 25"
        id="path82999" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 320,505 v 20"
+       d="m 320,530 v 20"
        id="path83001" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 320,580 v 25"
+       d="m 320,605 v 25"
        id="path83003" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="m 320,660 v 25"
+       d="m 320,685 v 25"
        id="path83005" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
@@ -753,10 +759,10 @@
     <rect
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:1, 3;stroke-dashoffset:0"
        id="rect83113"
-       width="545"
-       height="295"
-       x="85"
-       y="15"
+       width="590"
+       height="290"
+       x="70"
+       y="20"
        ry="10" />
     <text
        xml:space="preserve"
@@ -774,31 +780,32 @@
          id="tspan85306">Domain</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-end:url(#Arrow1Mend)"
-       d="M 320,45 V 20"
-       id="path91067" />
+       d="M 320,45 V 10"
+       id="path91067"
+       sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="417.79669"
-       y="405.44696"
+       y="430.44696"
        id="text95265"><tspan
          sodipodi:role="line"
          id="tspan95263"
          x="417.79669"
-         y="405.44696">HRPC</tspan></text>
+         y="430.44696">HRPC</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
        x="71.070419"
-       y="371.83423"
+       y="396.83423"
        id="text114080"><tspan
          sodipodi:role="line"
          id="tspan114078"
          x="71.070419"
-         y="371.83423">Memoria's</tspan><tspan
+         y="396.83423">Memoria's</tspan><tspan
          sodipodi:role="line"
          x="71.070419"
-         y="391.83423"
+         y="416.83423"
          id="tspan114500">Main Scope</tspan></text>
     <text
        xml:space="preserve"
@@ -814,5 +821,55 @@
          x="94.221825"
          y="298.86087"
          id="tspan114500-9">Partial Scope</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
+       x="80.028664"
+       y="151.54912"
+       id="text8201"><tspan
+         sodipodi:role="line"
+         x="80.028664"
+         y="151.54912"
+         id="tspan10203">High-level problem</tspan><tspan
+         sodipodi:role="line"
+         x="80.028664"
+         y="171.54912"
+         id="tspan12497">description (logical</tspan><tspan
+         sodipodi:role="line"
+         x="80.028664"
+         y="191.54912"
+         id="tspan19974">plan)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
+       x="336.1395"
+       y="340.75797"
+       id="text23663"><tspan
+         sodipodi:role="line"
+         id="tspan23661"
+         x="336.1395"
+         y="340.75797">&quot;Predicate pushdown&quot; (program</tspan><tspan
+         sodipodi:role="line"
+         x="336.1395"
+         y="360.75797"
+         id="tspan23665">goes to data)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px"
+       x="70.579689"
+       y="489.43967"
+       id="text8201-3"><tspan
+         sodipodi:role="line"
+         x="70.579689"
+         y="489.43967"
+         id="tspan10203-5">Low-level problem</tspan><tspan
+         sodipodi:role="line"
+         x="70.579689"
+         y="509.43967"
+         id="tspan12497-6">description (physical</tspan><tspan
+         sodipodi:role="line"
+         x="70.579689"
+         y="529.4397"
+         id="tspan19974-2">plan)</tspan></text>
   </g>
 </svg>
