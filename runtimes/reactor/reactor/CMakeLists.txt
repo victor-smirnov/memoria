@@ -1,4 +1,4 @@
-# Copyright 2017-2023 Victor Smirnov
+# Copyright 2017-2025 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
