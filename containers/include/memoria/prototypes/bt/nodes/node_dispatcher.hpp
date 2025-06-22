@@ -236,7 +236,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0(ctr_).template dispatch2(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).dispatch2(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
         }
     }
 

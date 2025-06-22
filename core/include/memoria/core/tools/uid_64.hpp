@@ -288,7 +288,7 @@ struct formatter<memoria::UID64> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::UID64& d, FormatContext& ctx) {
+    auto format(const memoria::UID64& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_u8());
     }
 };

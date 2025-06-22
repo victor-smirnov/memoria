@@ -601,7 +601,7 @@ struct formatter<memoria::UnsignedAccumulator<BitLength>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::UnsignedAccumulator<BitLength>& d, FormatContext& ctx) {
+    auto format(const memoria::UnsignedAccumulator<BitLength>& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_bmp().str());
     }
 };
@@ -611,7 +611,7 @@ struct formatter<memoria::UnsignedAccumulator<64>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::UnsignedAccumulator<64>& d, FormatContext& ctx) {
+    auto format(const memoria::UnsignedAccumulator<64>& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", static_cast<uint64_t>(d));
     }
 };
@@ -621,7 +621,7 @@ struct formatter<memoria::detail::UAccBmpInt<BitLength>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::detail::UAccBmpInt<BitLength>& d, FormatContext& ctx)
+    auto format(const memoria::detail::UAccBmpInt<BitLength>& d, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", d.str());
     }
@@ -632,7 +632,7 @@ struct formatter<boost::multiprecision::uint256_t> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const boost::multiprecision::uint256_t& d, FormatContext& ctx)
+    auto format(const boost::multiprecision::uint256_t& d, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", d.str());
     }
@@ -660,7 +660,7 @@ struct formatter<
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const IntT& d, FormatContext& ctx)
+    auto format(const IntT& d, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", d.str());
     }

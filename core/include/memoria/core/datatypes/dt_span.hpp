@@ -217,7 +217,7 @@ public:
     }
 
     bool operator==(const OSpan& other) const noexcept {
-        return span_.data() == other.span_.data() && span_.lenght() == other.span.length();
+        return span_.data() == other.span_.data() && span_.lenght() == other.span_.length();
     }
 
     T operator[](size_t idx) const {

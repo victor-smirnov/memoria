@@ -806,7 +806,7 @@ struct formatter<memoria::hermes::ValueStorageTag> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(memoria::hermes::ValueStorageTag d, FormatContext& ctx) {
+    auto format(memoria::hermes::ValueStorageTag d, FormatContext& ctx) const {
         const char* name;
         switch (d) {
         case memoria::hermes::ValueStorageTag::VS_TAG_ADDRESS: name = "VS_TAG_ADDRESS"; break;

@@ -93,7 +93,7 @@ struct formatter<memoria::U8String> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::U8String& d, FormatContext& ctx) {
+    auto format(const memoria::U8String& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_std_string());
     }
 };
@@ -103,7 +103,7 @@ struct formatter<memoria::U16String> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::U16String& d, FormatContext& ctx) {
+    auto format(const memoria::U16String& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_u8().to_std_string());
     }
 };
@@ -114,7 +114,7 @@ struct formatter<memoria::U32String> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::U32String& d, FormatContext& ctx) {
+    auto format(const memoria::U32String& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_u8().to_std_string());
     }
 };
@@ -124,7 +124,7 @@ struct formatter<memoria::U32String> {
 //    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
 //    template <typename FormatContext>
-//    auto format(const memoria::filesystem::path& d, FormatContext& ctx) {
+//    auto format(const memoria::filesystem::path& d, FormatContext& ctx) const {
 //        return format_to(ctx.out(), "{}", d.string());
 //    }
 //};
@@ -134,7 +134,7 @@ struct formatter<memoria::NamedTypedCode<T>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::NamedTypedCode<T>& d, FormatContext& ctx) {
+    auto format(const memoria::NamedTypedCode<T>& d, FormatContext& ctx) const {
         if (MMA_LIKELY(!d.name().empty())) {
             return fmt::format_to(ctx.out(), "<{}:{}>", d.code(), d.name().to_string());
         }
@@ -149,7 +149,7 @@ struct formatter<boost::filesystem::path> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const boost::filesystem::path& d, FormatContext& ctx) {
+    auto format(const boost::filesystem::path& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.string());
     }
 };

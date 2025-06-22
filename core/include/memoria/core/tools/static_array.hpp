@@ -1018,7 +1018,7 @@ struct formatter<memoria::core::StaticVector<T, S>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::core::StaticVector<T, S>& vv, FormatContext& ctx)
+    auto format(const memoria::core::StaticVector<T, S>& vv, FormatContext& ctx) const
     {
         memoria::SBuf sb;
         sb << vv;

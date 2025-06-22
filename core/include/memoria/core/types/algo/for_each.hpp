@@ -168,7 +168,7 @@ struct formatter<memoria::ForEachIdx<Idx>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::ForEachIdx<Idx>& d, FormatContext& ctx) {
+    auto format(const memoria::ForEachIdx<Idx>& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.value());
     }
 };

@@ -56,7 +56,7 @@ struct formatter<memoria::Optional<T>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::Optional<T>& d, FormatContext& ctx) {
+    auto format(const memoria::Optional<T>& d, FormatContext& ctx) const {
         if (d.is_initialized()) {
             return formatter<T>().format(d.get(), ctx);
         }

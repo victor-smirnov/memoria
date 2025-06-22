@@ -141,7 +141,7 @@ struct formatter<memoria::CowBlockID<ValueHolder>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::CowBlockID<ValueHolder>& d, FormatContext& ctx)
+    auto format(const memoria::CowBlockID<ValueHolder>& d, FormatContext& ctx) const
     {
         std::stringstream ss;
         ss << d;

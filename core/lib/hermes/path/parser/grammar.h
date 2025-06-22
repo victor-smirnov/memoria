@@ -50,7 +50,7 @@
 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/phoenix.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
+#include <boost/phoenix/fusion.hpp>
 
 /**
  * @namespace hermes::path::parser

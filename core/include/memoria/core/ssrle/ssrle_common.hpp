@@ -1355,7 +1355,7 @@ struct formatter<memoria::SSRLERun<Bps>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::SSRLERun<Bps>& run, FormatContext& ctx) {
+    auto format(const memoria::SSRLERun<Bps>& run, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", run.to_string());
     }
 };

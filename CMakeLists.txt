@@ -153,8 +153,10 @@ execute_process(COMMAND ${CMAKE_COMMAND}
     COMMAND_ERROR_IS_FATAL ANY
 )
 
+
 execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/mbt-explicit
+    COMMAND ${CMAKE_COMMAND}
+      --build ${CMAKE_BINARY_DIR}/mbt-explicit
     COMMAND_ERROR_IS_FATAL ANY
 )
 

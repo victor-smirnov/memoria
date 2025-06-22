@@ -1387,7 +1387,7 @@ public:
     auto processStreamsStart(Fn&& fn, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
-        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatchAll(
+        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).dispatchAll(
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
@@ -1399,7 +1399,7 @@ public:
     auto processStreamsStart(Fn&& fn, Args&&... args) const
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
-        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatchAll(
+        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).dispatchAll(
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
@@ -1411,7 +1411,7 @@ public:
     auto processStreamStart(size_t stream, Fn&& fn, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
-        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatch(
+        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).dispatch(
                 stream,
                 allocator(),
                 std::forward<Fn>(fn),
@@ -1424,7 +1424,7 @@ public:
     auto processStreamStart(size_t stream, Fn&& fn, Args&&... args) const
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
-        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).template dispatch(
+        return typename Dispatcher::template SubsetDispatcher<Subset>(state()).dispatch(
                 stream,
                 allocator(),
                 std::forward<Fn>(fn),
@@ -1439,7 +1439,7 @@ public:
     static auto processStreamsStartStatic(Fn&& fn, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
-        return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+        return Dispatcher::template SubsetDispatcher<Subset>::dispatchAllStatic(
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
         );
@@ -1452,7 +1452,7 @@ public:
     static auto processStreamsStartStaticAcc(Fn&& fn, Accum&& accum, Args&&... args)
     {
         using Subset = bt::StreamsStartSubset<LeafSubstreamsStructList>;
-        return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+        return Dispatcher::template SubsetDispatcher<Subset>::dispatchAllStatic(
                 ProcessSubstreamsAccFnAdaptor(),
                 std::forward<Fn>(fn),
                 std::forward<Accum>(accum),

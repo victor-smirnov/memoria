@@ -194,7 +194,7 @@ struct formatter<memoria::ShortTypeCode> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::ShortTypeCode& d, FormatContext& ctx) {
+    auto format(const memoria::ShortTypeCode& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "<{},{},{},{}>", d.u64(), d.code(), d.descriptor(), d.code_len());
     }
 };

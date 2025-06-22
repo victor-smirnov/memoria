@@ -217,7 +217,7 @@ struct formatter<memoria::FixedArray<Size>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::FixedArray<Size>& d, FormatContext& ctx) {
+    auto format(const memoria::FixedArray<Size>& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", memoria::toString(d));
     }
 };

@@ -436,7 +436,7 @@ struct formatter<memoria::NumberView<T, Kind>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::NumberView<T, Kind>& d, FormatContext& ctx) {
+    auto format(const memoria::NumberView<T, Kind>& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", *d.ptr());
     }
 };
@@ -448,7 +448,7 @@ struct formatter<memoria::Own<memoria::NumberView<T, Kind>, memoria::OwningKind:
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const ArgT& d, FormatContext& ctx) {
+    auto format(const ArgT& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", *d.ptr());
     }
 };

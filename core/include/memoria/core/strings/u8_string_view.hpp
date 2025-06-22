@@ -183,7 +183,7 @@ struct formatter<memoria::U8StringOView> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::U8StringOView& d, FormatContext& ctx) {
+    auto format(const memoria::U8StringOView& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_string());
     }
 };
@@ -193,7 +193,7 @@ struct formatter<memoria::U8StringView> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::U8StringView& d, FormatContext& ctx) {
+    auto format(const memoria::U8StringView& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_string());
     }
 };
@@ -206,7 +206,7 @@ struct formatter<memoria::Own<memoria::U8StringOView, KT>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const ArgT& d, FormatContext& ctx) {
+    auto format(const ArgT& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", d.to_string());
     }
 };

@@ -126,7 +126,7 @@ struct formatter<memoria::FxdSizeView<T, Kind>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::FxdSizeView<T, Kind>& d, FormatContext& ctx) {
+    auto format(const memoria::FxdSizeView<T, Kind>& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", *d.ptr());
     }
 };
@@ -139,7 +139,7 @@ struct formatter<memoria::Own<memoria::FxdSizeView<T, Kind>, KT>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const ArgT& d, FormatContext& ctx) {
+    auto format(const ArgT& d, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", *d.ptr());
     }
 };
