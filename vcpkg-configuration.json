@@ -9,7 +9,7 @@
     {
       "kind": "git",
       "repository": "https://github.com/victor-smirnov/memoria-vcpkg-registry.git",
-      "baseline": "58de41c96c13f42bb6aa3b981ea23783804e7231",
+      "baseline": "c399428730814e0c03fce9e911ac39ed8b2c60c7",
       "packages": [ "seastar" ]
     }
   ]
