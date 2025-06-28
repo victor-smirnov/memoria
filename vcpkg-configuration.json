@@ -2,14 +2,14 @@
   "default-registry": {
     "kind": "git",
     "repository": "https://github.com/microsoft/vcpkg.git",
-    "baseline": "0e2a0e0ad1a370f85a637452be52e2ddf2dcac0b"
+    "baseline": "0cf34c184ce990471435b5b9c92edcf7424930b1"
   },
 
   "registries": [
     {
       "kind": "git",
       "repository": "https://github.com/victor-smirnov/memoria-vcpkg-registry.git",
-      "baseline": "43dd251602d9367bce18a4b94de28e29d3a0ccd0",
+      "baseline": "58de41c96c13f42bb6aa3b981ea23783804e7231",
       "packages": [ "seastar" ]
     }
   ]

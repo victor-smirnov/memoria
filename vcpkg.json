@@ -16,7 +16,7 @@
         {
           "name": "seastar",
           "platform": "linux",
-          "version>=": "1.0-2025-11-02"
+          "version>=": "1.0-2025-05-01#1"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "name": "seastar",
           "platform": "linux",
-          "version>=": "1.0-2025-11-02",
+          "version>=": "1.0-2025-05-01#1",
           "features": [ "with-boost" ]
         },
         { "name":  "boost", "version>=": "1.83.0" }
