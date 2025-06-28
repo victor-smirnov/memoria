@@ -1,17 +1,16 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 RUN apt-get update  -y; apt install software-properties-common -y
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y; apt update -y
-RUN apt-get install -y wget git mc curl zip unzip tar pkg-config gcc-13 g++-13 build-essential linux-headers-$(uname -r) make autoconf libtool automake autoconf-archive ninja-build cmake gnutls-dev lksctp-tools libsctp-dev ragel valgrind doxygen xfsprogs xfslibs-dev 
+RUN apt-get install -y wget git mc curl zip unzip tar pkg-config gcc-14 g++-14 build-essential linux-headers-$(uname -r)  make autoconf libtool automake autoconf-archive ninja-build cmake gnutls-dev lksctp-tools libsctp-dev ragel valgrind doxygen xfsprogs xfslibs-dev 
 RUN apt-get install -y libboost-all-dev 
-RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && echo '\"' | ./llvm.sh -n jammy 17 all
-RUN apt-get install -y libclang-17-dev
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13 --slave /usr/bin/g++ g++ /usr/bin/g++-13
+RUN apt-get install -y clang-19 libclang-19-dev
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14 --slave /usr/bin/g++ g++ /usr/bin/g++-14
 RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 30
 RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 30
 RUN update-alternatives --set c++ /usr/bin/g++
 RUN update-alternatives --set cc /usr/bin/gcc
-RUN mkdir -p vcpkg sources build /root/.cache/vcpkg
+#RUN mkdir -p vcpkg sources build /root/.cache/vcpkg
 #RUN git clone https://github.com/microsoft/vcpkg.git
 #RUN git clone https://github.com/victor-smirnov/memoria.git
 #RUN mkdir memoria-build
