@@ -1,8 +1,8 @@
 FROM memoria-base-ubuntu:latest
 
 RUN mkdir -p vcpkg sources build /root/.cache/vcpkg
-RUN git clone https://github.com/microsoft/vcpkg.git
 RUN git clone https://github.com/victor-smirnov/memoria.git
+RUN git clone https://github.com/microsoft/vcpkg.git
 RUN mkdir memoria-build
-RUN cd /memoria-build; cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE:INTERNAL=/vcpkg/scripts/buildsystems/vcpkg.cmake ../memoria
-RUN cd /memoria-build; ninja
+#RUN cd /memoria-build; cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE:INTERNAL=/vcpkg/scripts/buildsystems/vcpkg.cmake -DBUILD_SEASTAR=ON ../memoria
+#RUN cd /memoria-build; ninja

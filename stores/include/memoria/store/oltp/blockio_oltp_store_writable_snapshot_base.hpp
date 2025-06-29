@@ -322,9 +322,9 @@ public:
         AllocationMetadataT alc = this->get_allocation_metadata(block->id());
         Optional<AllocationMapEntryStatus> status = allocation_map_ctr_->get_allocation_status(alc.level(), alc.position());
 
-        if (status.is_initialized())
+        if (status.has_value())
         {
-            if (status.get() == AllocationMapEntryStatus::FREE) {
+            if (status.value() == AllocationMapEntryStatus::FREE) {
                 consumer(
                     CheckSeverity::ERROR,
                     make_string_document("Missing allocation info for {}", alc));
@@ -498,7 +498,7 @@ public:
     {
         auto alc = allocation_pool_->allocate_reserved(remainder);
         if (alc) {
-            return alc.get();
+            return alc.value();
         }
         else {
             MEMORIA_MAKE_GENERIC_ERROR("Empty reserved allocation pool").do_throw();
@@ -513,7 +513,7 @@ public:
         }
         else if (MMA_UNLIKELY(preallocated_ && level == 0))
         {
-            AllocationMetadataT& alc = preallocated_.get();
+            AllocationMetadataT& alc = preallocated_.value();
             if (alc.size1())
             {
                 auto alc0 = alc.take(1);
@@ -529,7 +529,7 @@ public:
             auto alc = allocation_pool_->allocate_one(level);
             if (alc)
             {
-                return alc.get();
+                return alc.value();
             }
             else if (populating_allocation_pool_) {
                 // Level must be 0 here
@@ -554,7 +554,7 @@ public:
                     populate_allocation_pool(level);
                     auto alc1 = allocation_pool_->allocate_one(level);
                     if (alc1) {
-                        return alc1.get();
+                        return alc1.value();
                     }
                 }
 

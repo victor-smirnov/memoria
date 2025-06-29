@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "memoria",
-  "version-date": "2023-11-03",
+  "version-date": "2025-06-28",
   "dependencies": [
     "abseil", "hash-library", "catch2", "lmdb", "icu", "inja", "ftxui",
     "fmt",

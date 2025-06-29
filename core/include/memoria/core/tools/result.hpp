@@ -906,7 +906,7 @@ struct formatter<memoria::Result<T>> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const memoria::Result<T>& d, FormatContext& ctx) {
+    auto format(const memoria::Result<T>& d, FormatContext& ctx) const {
         std::stringstream buf;
         buf << d;
         return fmt::format_to(ctx.out(), "{}", buf.str());

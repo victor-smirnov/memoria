@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    ftxui::Element Render() final
+    ftxui::Element Render()
     {
         using namespace ftxui;
 

@@ -552,14 +552,14 @@ public:
                 auto prev_id = directory_ctr_->replace_and_return(ctr_id, root);         
                 if (prev_id)
                 {
-                    unref_ctr_root(prev_id.get());
+                    unref_ctr_root(prev_id.value());
                 }
             }
             else {
                 auto prev_id = directory_ctr_->remove_and_return(ctr_id);
                 if (prev_id)
                 {
-                    unref_ctr_root(prev_id.get());
+                    unref_ctr_root(prev_id.value());
                 }
             }
         }
@@ -793,6 +793,7 @@ public:
 
     bool visit_snapshot(const SnapshotDescriptorT* descr)
     {
+        return false;
 //        auto ii = branch_removal_counters_.find(descr->snapshot_id());
 //        if (ii != branch_removal_counters_.end())
 //        {
