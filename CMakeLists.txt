@@ -73,6 +73,8 @@ option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_EXAMPLES   "Build project examples" ON)
 option(BUILD_BENCHMARKS "Build project benchmarks" ON)
 
+option(BUILD_MCP "Build project's MCP server" ON)
+
 option(BUILD_WITH_STATIC_BOOST     "Use static boost libraries" OFF)
 option(BUILD_REUSE_CODEGEN_CONFIG  "Reuse previously generated codegen configuration (faster iteration)" OFF)
 
@@ -368,6 +370,10 @@ add_subdirectory(app_init)
 
 if (BUILD_SANDBOX)
   add_subdirectory(sandbox)
+endif()
+
+if (BUILD_MCP)
+  add_subdirectory(mcp)
 endif()
 
 if (BUILD_TESTS)
