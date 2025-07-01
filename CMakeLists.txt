@@ -90,6 +90,8 @@ option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
 option(BUILD_TESTS_STORES       "Build Stores tests" ON)
 option(BUILD_TESTS_HRPC         "Build HRPC Protocol tests" ON)
 
+option(BUILD_DATASCOPE "Build Datascope GUI application" ON)
+
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_definitions(-Wno-unknown-warning-option)
@@ -107,10 +109,13 @@ find_package(Boost 1.74.0
         program_options
         context
         fiber
+        system
     REQUIRED
 )
 
-find_package(ftxui REQUIRED)
+if (BUILD_DATASCOPE)
+    find_package(ftxui REQUIRED)
+endif()
 
 if (BUILD_TESTS)
     find_package(Catch2 CONFIG REQUIRED)

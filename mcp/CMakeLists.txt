@@ -12,26 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(Clang CONFIG REQUIRED)
+# MCP server build script
 
-add_executable(mcp)
+find_package(Clang CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
+find_package(Crow CONFIG REQUIRED)
+
+
+add_executable(mcp mcp_main.cpp mcp_server.cpp mcp_stdio_transport.cpp mcp_http_transport.cpp)
 
 target_include_directories(mcp PRIVATE include)
 target_include_directories(mcp PRIVATE ${CLANG_INCLUDE_DIRS})
 target_include_directories(mcp PRIVATE ${CMAKE_BINARY_DIR})
 
 target_link_libraries(mcp PRIVATE Core)
-target_link_libraries(mcp PRIVATE Boost::program_options Boost::filesystem)
+target_link_libraries(mcp PRIVATE Boost::program_options Boost::system)
+target_link_libraries(mcp PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(mcp PRIVATE unofficial::sqlite3::sqlite3)
 target_link_libraries(mcp PRIVATE clangBasic clangLex clangParse clangAST clangFrontend clangTooling)
-
-file(GLOB MCP_SOURCES *.cpp *.hpp)
-file(GLOB_RECURSE MCP_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "include/*.*" )
-
-target_sources(
-  mcp
-  PRIVATE ${MCP_SOURCES}
-  PRIVATE ${MCP_HEADERS}
-)
+target_link_libraries(mcp PRIVATE Crow::Crow asio::asio)
 
 install(TARGETS
   mcp

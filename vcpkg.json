@@ -6,6 +6,10 @@
     "abseil", "hash-library", "catch2", "lmdb", "icu", "inja", "ftxui",
     "fmt",
     "atomic-queue",
+    "sqlite3",
+    "sqlite-modern-cpp",
+    "nlohmann-json",
+    "crow",
     {"name":  "yaml-cpp", "version>=": "0.7.0"}
   ],
   "default-features": [],
