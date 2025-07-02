@@ -1,5 +1,3 @@
-#pragma once
-
 // Copyright 2025 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/mcp/mcp_server.hpp>
-#include <iostream>
+#include <memoria/mcp/mcp_utils.hpp>
 
 namespace memoria::mcp {
 
-class MCPStdioTransport {
-public:
-    MCPStdioTransport(MCPServer& server);
-    void run();
+boost::filesystem::path get_executable_path()
+{
+    return boost::dll::program_location();
+}
 
-private:
-    MCPServer& server_;
-};
-
-} // namespace memoria::mcp
+}

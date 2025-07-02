@@ -17,6 +17,7 @@
 #include <memoria/mcp/mcp_server.hpp>
 #include <memoria/mcp/mcp_stdio_transport.hpp>
 #include <memoria/mcp/mcp_http_transport.hpp>
+#include <memoria/mcp/mcp_database.hpp>
 
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -32,7 +33,7 @@ int main(int argc, char** argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
-        ("transport", po::value<std::string>()->default_value("stdio"), "transport type (stdio or http)")
+        ("transport", po::value<std::string>()->default_value("http"), "transport type (stdio or http)")
         ("port", po::value<int>()->default_value(18080), "port for http transport");
 
     po::variables_map vm;
@@ -47,6 +48,7 @@ int main(int argc, char** argv) {
     std::string transport = vm["transport"].as<std::string>();
     int port = vm["port"].as<int>();
 
+    memoria::mcp::MCPDatabase database;
     memoria::mcp::MCPServer server;
 
     // Register add_numbers tool
@@ -58,6 +60,16 @@ int main(int argc, char** argv) {
             int a = args["a"].get<int>();
             int b = args["b"].get<int>();
             return json(a + b);
+        }
+    );
+
+    server.register_tool(
+        "sql_query",
+        "Executes an SQL query against the embedded SQLite database.",
+        json::parse(R"({"type":"object","properties":{"query":{"type":"string"}},"required":["query"]})"),
+        [&](const json& args) {
+            std::string query = args["query"].get<std::string>();
+            return database.execute_query(query);
         }
     );
 

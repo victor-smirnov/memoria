@@ -14,18 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/mcp/mcp_server.hpp>
-#include <iostream>
+#include <boost/dll.hpp>
+#include <boost/filesystem.hpp>
 
 namespace memoria::mcp {
 
-class MCPStdioTransport {
-public:
-    MCPStdioTransport(MCPServer& server);
-    void run();
+boost::filesystem::path get_executable_path();
 
-private:
-    MCPServer& server_;
-};
-
-} // namespace memoria::mcp
+}

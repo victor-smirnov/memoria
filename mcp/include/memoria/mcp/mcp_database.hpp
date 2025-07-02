@@ -14,18 +14,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/mcp/mcp_server.hpp>
-#include <iostream>
+#include <sqlite3.h>
+#include <string>
+#include <nlohmann/json.hpp>
 
 namespace memoria::mcp {
 
-class MCPStdioTransport {
+class MCPDatabase {
+    sqlite3* db_{};
+
 public:
-    MCPStdioTransport(MCPServer& server);
-    void run();
+    MCPDatabase();
+    ~MCPDatabase();
+
+    MCPDatabase(const MCPDatabase&) = delete;
+    MCPDatabase& operator=(const MCPDatabase&) = delete;
+
+    nlohmann::json execute_query(const std::string& sql);
 
 private:
-    MCPServer& server_;
+    void register_cmake_vtab();
 };
 
-} // namespace memoria::mcp
+}

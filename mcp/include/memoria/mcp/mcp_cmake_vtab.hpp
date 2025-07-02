@@ -14,18 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/mcp/mcp_server.hpp>
-#include <iostream>
+#include <sqlite3.h>
 
 namespace memoria::mcp {
 
-class MCPStdioTransport {
-public:
-    MCPStdioTransport(MCPServer& server);
-    void run();
+int register_cmake_vtab(sqlite3* db);
 
-private:
-    MCPServer& server_;
-};
-
-} // namespace memoria::mcp
+}
